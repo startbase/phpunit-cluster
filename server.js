@@ -63,6 +63,7 @@ stdin.on('data', function(key) {
     /** [d]: показать список пользователей в сети */
     if (key === '\u0064') {
         console.log('Total diff: ' + (tasks_diff / 1000) + ' сек.');
+        console.log('Avg: ' + (tasks_diff / tasks.length / 1000) + ' сек.');
     }
 });
 
