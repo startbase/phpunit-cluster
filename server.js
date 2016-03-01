@@ -170,7 +170,7 @@ function loadTasks() {
 
     while (i <= limit) {
         var id = Date.now() + '_' + i;
-        var sleep = Math.floor(Math.random() * (48 - 40 + 1) + 40);
+        var sleep = Math.floor(Math.random() * (40 - 40 + 1) + 40);
         tasks_runtime = tasks_runtime + sleep;
         task = { id: id, sleep: sleep, status: 0 };
         tasks.push(task);
