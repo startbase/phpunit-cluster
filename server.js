@@ -17,6 +17,9 @@ var tasks = [];
 var tasks_runtime = 0;
 var tasks_diff = 0;
 
+var start_t = 0;
+var end_t = 0;
+
 /** Готовимся читать ввод с клавиатуры */
 stdin.setRawMode(true);
 stdin.resume();
@@ -34,6 +37,7 @@ stdin.on('data', function(key) {
 
     /** [g]: запустить генерацию задач */
     if (key === '\u0067') {
+        start_t = new Date().getTime();
         console.log('[' + getDate() + '] Начинаем загрузку задач...');
         loadTasks();
         console.log('[' + getDate() + '] Суммарный runtime задач: ' + (tasks_runtime / 1000) + ' сек.');
@@ -64,6 +68,7 @@ stdin.on('data', function(key) {
     if (key === '\u0064') {
         console.log('Total diff: ' + (tasks_diff / 1000) + ' сек.');
         console.log('Avg: ' + (tasks_diff / tasks.length / 1000) + ' сек.');
+        console.log('Total time: ' + ((end_t - start_t) / 1000) + ' сек.');
     }
 });
 
@@ -121,6 +126,7 @@ io.sockets.on('connection', function(socket) {
             socket.emit('processTask', tasks[index]);
 		} else {
             // Если задач нет
+            end_t = new Date().getTime();
 		}
 		
 		socket.emit('updateTasksInfo', getCountFreeTasks());
