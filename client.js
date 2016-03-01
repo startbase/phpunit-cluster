@@ -1,5 +1,5 @@
 var user = 'startbase_' + Date.now();
-var socket = require('socket.io-client')('http://192.168.99.10:8080');
+var socket = require('socket.io-client')('http://dashboard.b2b-center.ru:8099');
 
 function getDate() {
     var date = new Date();

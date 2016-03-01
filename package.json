@@ -1,5 +1,5 @@
 {
-	"name": "b2b-unit-cluster",
+	"name": "phpunit-cluster",
 	"version": "0.0.1",
 	"description": "",
 	"main": "client.js",

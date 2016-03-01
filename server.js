@@ -1,4 +1,4 @@
-var io = require('socket.io').listen(8080);
+var io = require('socket.io').listen(8099);
 /** Для работы с клавиатурой */
 var stdin = process.stdin;
 /** Массив пользователей в системе */
