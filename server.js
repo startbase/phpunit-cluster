@@ -174,6 +174,7 @@ function loadTasks() {
     var i = 1;
     tasks_runtime = 0;
     tasks_diff = 0;
+    tasks = [];
 
     while (i <= limit) {
         var id = Date.now() + '_' + i;
