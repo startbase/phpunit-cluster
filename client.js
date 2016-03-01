@@ -1,3 +1,10 @@
+var Lib = require('./lib');
+//var start = new Date().getTime();
+//
+//console.log(Lib.fibonacci(47));
+//var end = new Date().getTime();
+//console.log("\n\n Complete: "+(end - start) / 1000 + 's');
+
 var user = 'startbase_' + Date.now();
 var socket = require('socket.io-client')('http://dashboard.b2b-center.ru:8099');
 
@@ -31,9 +38,11 @@ socket.on('updateTasksInfo', function(tasks_count) {
 // Обратно вернётся event: readyForJob
 socket.on('processTask', function(task) {
 	console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.id);
-	setTimeout(function() {
-		socket.emit('readyTask', task);
-	}, task.sleep);
+    var start = new Date().getTime();
+    Lib.fibonacci(task.sleep);
+    var end = new Date().getTime();
+    task.diff = end - start;
+    socket.emit('readyTask', task);
 });
 
 socket.on('disconnect', function() {

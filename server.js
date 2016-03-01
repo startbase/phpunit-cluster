@@ -15,6 +15,7 @@ var users = [];
 var tasks = [];
 /** Суммарное последовательное время выполнения задач (сумма всех sleep) */
 var tasks_runtime = 0;
+var tasks_diff = 0;
 
 /** Готовимся читать ввод с клавиатуры */
 stdin.setRawMode(true);
@@ -58,6 +59,11 @@ stdin.on('data', function(key) {
         }
         console.log('');
     }
+
+    /** [d]: показать список пользователей в сети */
+    if (key === '\u0064') {
+        console.log('Total diff: ' + (tasks_diff / 1000) + ' сек.');
+    }
 });
 
 io.sockets.on('connection', function(socket) {
@@ -89,7 +95,8 @@ io.sockets.on('connection', function(socket) {
      * Задача выполнена участником и он готов к новой работе.
      */
 	socket.on('readyTask', function(task) {
-		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.id);
+        tasks_diff += task.diff;
+		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.id + ' за ' + (task.diff / 1000) + ' сек.');
         socket.emit('readyForJob');
 	});
 
@@ -159,10 +166,11 @@ function loadTasks() {
     var limit = 20;
     var i = 1;
     tasks_runtime = 0;
+    tasks_diff = 0;
 
     while (i <= limit) {
         var id = Date.now() + '_' + i;
-        var sleep = Math.floor(Math.random() * (20000 - 3000 + 1) + 1000);
+        var sleep = Math.floor(Math.random() * (48 - 40 + 1) + 40);
         tasks_runtime = tasks_runtime + sleep;
         task = { id: id, sleep: sleep, status: 0 };
         tasks.push(task);
