@@ -1,0 +1,15 @@
+{
+	"name": "b2b-unit-cluster",
+	"version": "0.0.1",
+	"description": "",
+	"main": "client.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Startbase Team",
+	"license": "ISC",
+	"dependencies": {
+	  	"socket.io": "^1.4.5",
+		"socket.io-client": "^1.4.5"
+	}
+}
