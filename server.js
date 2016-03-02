@@ -4,12 +4,11 @@ const rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('>>> ');
 rl.prompt();
 
-var io = require('socket.io').listen(8099);
 var repository = require('./repository.js');
 
 /** Настройки по умолчанию */
 var params = {
-    port: 8080
+    port: 8099
 };
 
 /** Обработка аргументов */

@@ -39,7 +39,7 @@ $ node server.js [options]
 Пример:
 
 ```
-$ node client.js -p 8089
+$ node server.js -p 8089
 ```
 
 HotKeys:

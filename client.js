@@ -5,7 +5,7 @@ var Fibonacci = require('./libs/fibonacci.js');
 var params = {
     user: 'startbase_' + Date.now(),
     domen: 'localhost',
-    port: 8080
+    port: 8099
 };
 
 /** Обработка аргументов */
