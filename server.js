@@ -1,4 +1,15 @@
-var io = require('socket.io').listen(8099);
+/** Настройки по умолчанию */
+var params = {
+    port: 8080
+};
+
+/** Обработка аргументов */
+var argv = require('minimist')(process.argv.slice(2));
+
+if (argv.p && typeof argv.p == "number") { params.port = argv.p }
+
+/** Запускаемся */
+var io = require('socket.io').listen(params.port);
 /** Для работы с клавиатурой */
 var stdin = process.stdin;
 /** Массив пользователей в системе */
@@ -40,7 +51,7 @@ stdin.on('data', function(key) {
         start_t = new Date().getTime();
         console.log('[' + getDate() + '] Начинаем загрузку задач...');
         loadTasks();
-        console.log('[' + getDate() + '] Суммарный runtime задач: ' + (tasks_runtime / 1000) + ' сек.');
+        //console.log('[' + getDate() + '] Суммарный runtime задач: ' + (tasks_runtime / 1000) + ' сек.');
 
         io.sockets.emit('updateTasksInfo', getCountFreeTasks());
 
@@ -69,6 +80,7 @@ stdin.on('data', function(key) {
         console.log('Total diff: ' + (tasks_diff / 1000) + ' сек.');
         console.log('Avg: ' + (tasks_diff / tasks.length / 1000) + ' сек.');
         console.log('Total time: ' + ((end_t - start_t) / 1000) + ' сек.');
+        console.log('');
     }
 });
 
@@ -134,6 +146,8 @@ io.sockets.on('connection', function(socket) {
 
     /** Участник отключается от системы */
 	socket.on('disconnect', function() {
+        // todo-r: освободить задачу, которую делал отключённый участник
+
         /** Удаляем участника из обешго списка **/
 		var index = users.indexOf(socket.username);
 		if (index != -1) {
@@ -145,12 +159,19 @@ io.sockets.on('connection', function(socket) {
 
 });
 
-
+/**
+ * Человеко понятное время
+ * @returns {string}
+ */
 function getDate() {
     var date = new Date();
     return date.toLocaleString();
 }
 
+/**
+ * Подсчёт свободных задач
+ * @returns {number}
+ */
 function getCountFreeTasks() {
     var free_tasks_count = 0;
 
@@ -162,9 +183,8 @@ function getCountFreeTasks() {
 
     return free_tasks_count;
 }
-/**
- * Генерация задач
- */
+
+/** Генерация задач */
 function loadTasks() {
     /**
      * Максимальное кол-во задач (только для теста)

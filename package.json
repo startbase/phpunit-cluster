@@ -2,14 +2,19 @@
 	"name": "phpunit-cluster",
 	"version": "0.0.1",
 	"description": "",
-	"main": "client.js",
+	"author": "Startbase Team <startbase-dev-team@b2b-center.ru>",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
-	"author": "Startbase Team",
+	"main": "client.js",
 	"license": "ISC",
 	"dependencies": {
 	  	"socket.io": "^1.4.5",
-		"socket.io-client": "^1.4.5"
+		"socket.io-client": "^1.4.5",
+	  	"minimist": "^1.2.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/startbase/phpunit-cluster.git"
 	}
 }
