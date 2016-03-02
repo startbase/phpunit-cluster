@@ -1,3 +1,4 @@
+var queue = require('./queue');
 var io = require('socket.io').listen(8099);
 /** Для работы с клавиатурой */
 var stdin = process.stdin;
