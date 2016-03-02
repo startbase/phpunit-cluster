@@ -8,7 +8,8 @@ var argv = require('minimist')(process.argv.slice(2));
 
 if (argv.p && typeof argv.p == "number") { params.port = argv.p }
 
-var queue = require('./queue');
+var queue = new(require('./queue'));
+
 /** Запускаемся */
 var io = require('socket.io').listen(params.port);
 /** Для работы с клавиатурой */

@@ -24,7 +24,7 @@ var Queue = function () {
      */
     this.addTask = function (taskName, callback) {
         this.tasks.push(new Task(taskName, callback));
-        this.emit('add');
+        this.emit('add', taskName);
         return this;
     };
 
@@ -35,7 +35,7 @@ var Queue = function () {
     this.getTask = function () {
         var task = this.tasks.shift();
         this.lastTask = task;
-        this.emit('rm');
+        this.emit('rm', task.taskName);
         if (!this.tasks.length) {
             this.emit('empty');
         }
@@ -69,4 +69,4 @@ var Queue = function () {
 
 util.inherits(Queue, EventEmitter);
 
-module.exports = new Queue();
+module.exports = Queue;
