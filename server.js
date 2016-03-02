@@ -55,8 +55,8 @@ rl.on('line', function (line) {
             show_stats();
             break;
         case 'u':
-            repository.update();
-            break;
+            repository.update(function () { rl.prompt(); });
+            return;
         default:
             console.log('bad command `' + line.trim() + '`');
             show_help();

@@ -1,5 +1,8 @@
 /** ТОЛЬКО ДЛЯ ТЕСТА */
 var Fibonacci = require('./libs/fibonacci.js');
+var repository = require('./repository.js');
+
+var repository_updated = 0;
 
 /** Настройки по умолчанию */
 var params = {
@@ -23,11 +26,22 @@ console.log('[' + getDate() + '] Выбранный сервер: http://' + par
 console.log('[' + getDate() + '] Запрашиваем статус сервера...');
 
 socket.on('connect', function() {
+    socket.join('system-clients');
     console.log('[' + getDate() + '] Сервер доступен. Присоединяемся...');
 });
 
 socket.on('disconnect', function() {
 	console.log('[' + getDate() + '] Сервер недоступен');
+});
+
+socket.on('updateRepository', function() {
+    console.log('Обновляем репозиторий');
+    repository_updated = 0;
+
+    repository.update(function () {
+        repository_updated = 1;
+    });
+
 });
 
 /**
