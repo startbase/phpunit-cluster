@@ -1,5 +1,6 @@
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
+var Task = require('./task');
 
 rl.setPrompt('>>> ');
 rl.prompt();
@@ -16,7 +17,11 @@ var argv = require('minimist')(process.argv.slice(2));
 
 if (argv.p && typeof argv.p == "number") { params.port = argv.p }
 
-var queue = new(require('./queue'));
+var queueEvents = new(require('./queue'));
+var queueTasks = new(require('./queue'));
+
+var task = new Task(queueTasks);
+
 
 /** Запускаемся */
 var io = require('socket.io').listen(params.port);
@@ -32,7 +37,7 @@ var users = [];
  *  0 - свободна
  *  1 - занята
  */
-var tasks = [];
+//var tasks = [];
 /** Суммарное последовательное время выполнения задач (сумма всех sleep) */
 var tasks_runtime = 0;
 var tasks_diff = 0;
@@ -46,7 +51,9 @@ rl.on('line', function (line) {
             show_help();
             break;
         case 'g':
-            generate_new_tasks();
+            //generate_new_tasks();
+            queueTasks.emit('generateTasks', task);
+            io.sockets.emit('readyForJob');
             break;
         case 'o':
             show_online_clients();
@@ -109,24 +116,7 @@ io.sockets.on('connection', function (socket) {
      * Оповещение других участников о кол-ве доступных задач
      */
     socket.on('getTask', function () {
-        var index = undefined;
-        for (var i = 0; i < tasks.length; i++) {
-            if (tasks[i].status == 0) {
-                index = i;
-                tasks[i].status = 1;
-                break;
-            }
-        }
-
-        if (index !== undefined) {
-            console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: ' + tasks[index].id);
-            socket.emit('processTask', tasks[index]);
-        } else {
-            // Если задач нет
-            end_t = new Date().getTime();
-        }
-
-        socket.emit('updateTasksInfo', getCountFreeTasks());
+        var yourTask = queueTasks.getTask();
     });
 
     /** Участник отключается от системы */

@@ -1,9 +1,22 @@
 const EventEmitter = require('events');
 const util = require('util');
 
-var Task = function (taskName, callback) {
+var Task = function (taskName, params) {
     this.taskName = taskName;
-    this.callback = callback;
+    this.params = params;
+
+    /**
+     * @param {Object} newParams
+     */
+    this.updateParams = function (newParams) {
+        for (var i in newParams) {
+            for (var j in this.params) {
+                if (i == j) {
+                    this.params[j] = newParams[i];
+                }
+            }
+        }
+    };
 };
 
 var Queue = function () {
@@ -19,28 +32,47 @@ var Queue = function () {
     /**
      * Добавить задачу в очередь
      * @param {String} taskName
-     * @param {Function|null} [callback]
+     * @param {Object} [params]
      * @returns Queue
      */
-    this.addTask = function (taskName, callback) {
-        this.tasks.push(new Task(taskName, callback));
+    this.addTask = function (taskName, params) {
+        this.tasks.push(new Task(taskName, params));
         this.emit('add', taskName);
         return this;
     };
 
     /**
+     * @deprecated
      * Получить первый из очереди
-     * @returns {Task}
+     * @returns {Task|Boolean}
      */
     this.getTask = function () {
         var task = this.tasks.shift();
-        this.lastTask = task;
-        this.emit('rm', task.taskName);
+
         if (!this.tasks.length) {
             this.emit('empty');
+            return false;
         }
+
+        this.lastTask = task;
+        this.emit('rm', task.taskName);
         return task;
     };
+
+    /**
+     * @param {String} taskName
+     * @returns {Task|Boolean}
+     */
+    this.find = function (taskName) {
+        for (var key in this.tasks) {
+            if (this.tasks[key].taskName == taskName) {
+                return this.tasks[key];
+            }
+        }
+        return false;
+    };
+
+
 
     /**
      * Проверить есть ли такая задача в очереди
