@@ -4,11 +4,15 @@ const rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('>>> ');
 rl.prompt();
 
+var config = require('./config.js');
 var repository = require('./repository.js');
+
+
+config_params = config.getParams();
 
 /** Настройки по умолчанию */
 var params = {
-    port: 8099
+    port: config_params.server_socket.port
 };
 
 /** Обработка аргументов */

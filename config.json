@@ -1,0 +1,9 @@
+{
+  "repository": {
+    "local_branch": "master",
+    "repository_path": "../phpunit-cluster-tests"
+  },
+  "server_socket": {
+    "port": 8099
+  }
+}
