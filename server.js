@@ -5,7 +5,7 @@ rl.setPrompt('>>> ');
 rl.prompt();
 
 var config = require('./config.js');
-var repository = require('./repository.js');
+var repository = require('./libs/repository.js');
 
 
 config_params = config.getParams();

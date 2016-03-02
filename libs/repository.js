@@ -1,4 +1,4 @@
-var config = require('./config.js');
+var config = require('../config.js');
 
 var config_params = config.getParams();
 var Repository = function () {
