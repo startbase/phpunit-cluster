@@ -2,12 +2,10 @@ var config = require('./config.js');
 var configParams = config.getParams();
 var params = {
     user: 'startbase_' + Date.now(),
-    domen: 'localhost',
+    domain: 'localhost',
     port: 8099
 };
 
-/** ТОЛЬКО ДЛЯ ТЕСТА */
-var Fibonacci = require('./libs/fibonacci.js');
 var repository = require('./libs/repository.js');
 
 var phpunitRunner = require('./libs/phpunit_runner.js');
@@ -20,14 +18,14 @@ var repository_updated = 0;
 var argv = require('minimist')(process.argv.slice(2));
 
 if (argv.u && typeof argv.u == "string") { params.user = argv.u }
-if (argv.d && typeof argv.d == "string") { params.domen = argv.d }
+if (argv.d && typeof argv.d == "string") { params.domain = argv.d }
 if (argv.p && typeof argv.p == "number") { params.port = argv.p }
 
 /** Запускаемся */
 var user = params.user;
-var socket = require('socket.io-client')('http://' + params.domen + ':' + params.port);
+var socket = require('socket.io-client')('http://' + params.domain + ':' + params.port);
 
-console.log('[' + getDate() + '] Выбранный сервер: http://' + params.domen + ':' + params.port);
+console.log('[' + getDate() + '] Выбранный сервер: http://' + params.domain + ':' + params.port);
 console.log('[' + getDate() + '] Запрашиваем статус сервера...');
 
 socket.on('connect', function() {

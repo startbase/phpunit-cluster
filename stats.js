@@ -13,9 +13,7 @@ var Stats = function () {
             var test = this.tests[key];
             time_overall += test.time;
 
-            console.log(test.status);
-
-            if (test.status=='fail') {
+            if (test.status === false) {
                 tests_failed.push(test);
             }
             else {
@@ -23,10 +21,19 @@ var Stats = function () {
             }
         }
 
-        var stat_msg = "\nПройдено " + tests_completed.length + " тестов из " + this.tests.length + "\n";
+        var stat_msg = '';
+
+        if (this.tests.length > 0) {
+            stat_msg = "\nПройдено " + tests_completed.length + "/" + this.tests.length + " тестов\n" +
+                    "Общее время выполнения: " + time_overall + "ms" + "\n" +
+                    "Среднее время выполнения: " + time_overall/this.tests.length + "ms";
+        }
+        else {
+            stat_msg = "\nТесты не пройдены";
+        }
 
         if (tests_failed.length > 0) {
-            stat_msg += "Завалены тесты: \n";
+            stat_msg += "\nЗавалены тесты: \n";
 
             for (test in tests_failed) {
                 stat_msg += "\t\t" + test.file + "\n";

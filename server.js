@@ -22,24 +22,13 @@ var stats = require('./stats');
 rl.setPrompt('>>> ');
 rl.prompt();
 
+show_help();
 
 /** Запускаемся */
 var io = require('socket.io').listen(params.port);
 
-/** Массив пользователей в системе */
 var users = [];
-/**
- * Текущий список задач
- * Формат: { id: id, sleep: sleep, status: 0|1 }
- * id - идентификатор
- * sleep - длительность выполнения задача
- * status:
- *  0 - свободна
- *  1 - занята
- */
-//var tasks = [];
-/** Суммарное последовательное время выполнения задач (сумма всех sleep) */
-var tasks_runtime = 0;
+
 var tasks_diff = 0;
 
 var start_t = 0;
@@ -111,16 +100,8 @@ function show_online_clients() {
         console.log(user_index + '. ' + users[i]);
         user_index++;
     }
-    console.log('');
+    console.log('\n');
 }
-
-function show_stats() {
-    console.log('Total diff: ' + (tasks_diff / 1000) + ' сек.');
-    // 20 - кол-во задач
-    console.log('Avg: ' + (tasks_diff / tasks_total / 1000) + ' сек.');
-    console.log('Total time: ' + ((end_t - start_t) / 1000) + ' сек.');
-}
-
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
