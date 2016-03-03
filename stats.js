@@ -9,7 +9,7 @@ var Stats = function () {
     };
 
     this.addStat = function (data) {
-
+        console.log(data);
     };
 
     this.resetStats = function () {
