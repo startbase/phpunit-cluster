@@ -1,6 +1,6 @@
 /** ТОЛЬКО ДЛЯ ТЕСТА */
 var Fibonacci = require('./libs/fibonacci.js');
-var repository = require('./repository.js');
+var repository = require('./libs/repository.js');
 
 var repository_updated = 0;
 

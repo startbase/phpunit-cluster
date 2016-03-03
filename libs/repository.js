@@ -1,6 +1,9 @@
+var config = require('../config.js');
+
+var config_params = config.getParams();
 var Repository = function () {
-    this.local_branch = 'master';
-    this.repository_path = '../nodejs-tests';
+    this.local_branch = config_params.repository.local_branch;
+    this.repository_path = config_params.repository.repository_path;
     this.update = function (callback) {
 
         var local_branch = this.local_branch;
