@@ -14,7 +14,7 @@ var Task = function (queue, parser) {
 
         var instance = this;
 
-        this.parser.getTestsArray('~/phpunit-cluster-tests/phpunit-cluster-tests/', function(err, results) {
+        this.parser.getTestsArray('../phpunit-cluster-tests/', function(err, results) {
             if(err) {
                 throw err;
             }

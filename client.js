@@ -73,6 +73,13 @@ socket.on('readyForJob', function() {
 socket.on('processTask', function(task) {
     console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.taskName);
 
+    /**
+     * Выполнение теста. Название лежит в task.taskName
+     *
+     * Формат для возврата:
+     * { taskName: task.taskName, params: { process_time: ***, status: 200 } }
+     */
+
     ///** ТОЛЬКО ДЛЯ ТЕСТА */
     var start = new Date().getTime();
     Fibonacci.calc(task.params.calc);

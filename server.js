@@ -47,12 +47,20 @@ var users = [];
 //var tasks = [];
 /** Суммарное последовательное время выполнения задач (сумма всех sleep) */
 var tasks_runtime = 0;
+
 var tasks_diff = 0;
+var tasks_total = 0;
 
 var start_t = 0;
 var end_t = 0;
 
 queueTasks.on('fill.complete', function() {
+    tasks_diff = 0;
+    tasks_total = queueTasks.tasks.length;
+    console.log('[' + getDate() + '] Всего задач: ' + tasks_total);
+    console.log('[' + getDate() + '] Раздаём задачи...');
+    start_t = new Date().getTime();
+
     io.sockets.emit('readyForJob');
 });
 
@@ -64,9 +72,6 @@ rl.on('line', function (line) {
         case 'g':
             console.log('[' + getDate() + '] Начинаем загрузку задач...');
             queueTasks.emit('generateTasks', task);
-
-            console.log('[' + getDate() + '] Раздаём задачи...');
-            start_t = new Date().getTime();
             break;
         case 'o':
             show_online_clients();
@@ -97,50 +102,12 @@ function getDate() {
     return date.toLocaleString();
 }
 
-/**
- * Подсчёт свободных задач
- * @returns {number}
- */
-function getCountFreeTasks() {
-    var free_tasks_count = 0;
-
-    for (var i = 0; i < tasks.length; i++) {
-        if (tasks[i].status == 0) {
-            free_tasks_count++;
-        }
-    }
-
-    return free_tasks_count;
-}
-
-/** Генерация задач */
-function loadTasks() {
-    /**
-     * Максимальное кол-во задач (только для теста)
-     * @type {number}
-     */
-    var limit = 20;
-    var i = 1;
-    tasks_runtime = 0;
-    tasks_diff = 0;
-    tasks = [];
-
-    while (i <= limit) {
-        var id = Date.now() + '_' + i;
-        var sleep = Math.floor(Math.random() * (40 - 40 + 1) + 40);
-        tasks_runtime = tasks_runtime + sleep;
-        task = {id: id, sleep: sleep, status: 0};
-        tasks.push(task);
-        i++;
-    }
-}
-
 function show_help() {
     console.log('help:');
     console.log('g - generate new tasks');
     console.log('u - update tests repository');
-    console.log('o - show stats');
-    console.log('d - show online clients');
+    console.log('d - show stats');
+    console.log('o - show online clients');
     console.log('h - help');
 }
 
@@ -158,7 +125,7 @@ function show_online_clients() {
 function show_stats() {
     console.log('Total diff: ' + (tasks_diff / 1000) + ' сек.');
     // 20 - кол-во задач
-    console.log('Avg: ' + (tasks_diff / 20 / 1000) + ' сек.');
+    console.log('Avg: ' + (tasks_diff / tasks_total / 1000) + ' сек.');
     console.log('Total time: ' + ((end_t - start_t) / 1000) + ' сек.');
 }
 
@@ -199,6 +166,16 @@ io.sockets.on('connection', function (socket) {
      * Задача выполнена участником и он готов к новой работе.
      */
     socket.on('readyTask', function (task) {
+        /**
+         * Передача данных в статистику.
+         *
+         * Формат приходящих данных:
+         * { taskName: task.taskName, params: { process_time: ***, status: 200 } }
+         *
+         * process_time - время выполнения теста, в милисекундах
+         * status - статус выполнения теста. Пока значения не определены
+         */
+
         tasks_diff += task.params.process_time;
         console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.process_time / 1000) + ' сек.');
         socket.emit('readyForJob');
