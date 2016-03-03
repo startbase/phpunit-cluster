@@ -12,8 +12,7 @@
   },
   "parser" : {
     "baseDirs" : [
-      "/raid/vhosts/b2bcenter/tests/Unit/Helper",
-      "/raid/vhosts/b2bcenter/tests/Unit/B2BCenter"
+      "../phpunit-cluster-tests/"
     ]
   }
 }
