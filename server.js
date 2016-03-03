@@ -17,6 +17,7 @@ var repository = require('./libs/repository.js');
 var queueEvents = new (require('./queue'));
 var queueTasks = new (require('./queue'));
 var task = new Task(queueTasks);
+var stats = require('./stats');
 
 rl.setPrompt('>>> ');
 rl.prompt();
