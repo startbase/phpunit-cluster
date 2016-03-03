@@ -20,7 +20,7 @@ var PhpUnitRunner = function () {
             fs.readFile(self.result_json_file, 'utf8', function (err, data) {
                 if (err) throw err;
 
-                data = data.replace(/\}\{/ig, '},{');
+                data = data.replace(/\}\{/ig, '},{'); // @see https://github.com/sebastianbergmann/phpunit/issues/1156
                 data = '['+data+']';
 
                 try {
