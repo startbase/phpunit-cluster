@@ -12,7 +12,7 @@ if (argv.p && typeof argv.p == "number") {
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
 var Task = require('./task');
-var testParser = require('./test-parser');
+var testParser = require('./libs/test-parser');
 var repository = require('./libs/repository.js');
 var queueEvents = new (require('./queue'));
 var queueTasks = new (require('./queue'));
@@ -215,9 +215,10 @@ queueEvents.on('add', function (taskName) {
             });
             break;
         case 'parser.start':
-            testParser.getTestsArray(configParams.parser.baseDir, function (err, result) {
+            testParser.base_dirs = configParams.parser.baseDirs;
+            testParser.processParse(function (err, result) {
                 queueEvents.rmTask('parser.start');
-                queueEvents.addTask('task.generate', {data: result});
+                queueEvents.addTask('task.generate', {data: testParser.getCleanResults(result, configParams.repository.repository_path)});
             });
             break;
         case 'task.generate':

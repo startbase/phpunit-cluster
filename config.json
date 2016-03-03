@@ -11,6 +11,9 @@
     "result_json_file": "../phpunit-cluster-tests/result.json"
   },
   "parser" : {
-    "baseDir" : "../phpunit-cluster-tests"
+    "baseDirs" : [
+      "/raid/vhosts/b2bcenter/tests/Unit/Helper",
+      "/raid/vhosts/b2bcenter/tests/Unit/B2BCenter"
+    ]
   }
 }
