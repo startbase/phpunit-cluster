@@ -1,6 +1,5 @@
-var Task = function (queue, parser) {
+var Task = function (queue) {
     this.queue = queue;
-    this.parser = parser;
 
     this.generateTask = function () {
         /*var limit = 20;

@@ -16,7 +16,7 @@ var testParser = require('./test-parser');
 var repository = require('./libs/repository.js');
 var queueEvents = new (require('./queue'));
 var queueTasks = new (require('./queue'));
-//var task = new Task(queueTasks);
+var task = new Task(queueTasks);
 
 rl.setPrompt('>>> ');
 rl.prompt();
@@ -44,7 +44,7 @@ var tasks_diff = 0;
 var start_t = 0;
 var end_t = 0;
 
-queueTasks.on('fill.complete', function() {
+queueTasks.on('fill.complete', function () {
     tasks_diff = 0;
     tasks_total = queueTasks.tasks.length;
     console.log('[' + getDate() + '] Всего задач: ' + tasks_total);
@@ -200,6 +200,9 @@ io.sockets.on('connection', function (socket) {
     });
 
 });
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 queueEvents.on('add', function (taskName) {
     switch (taskName) {
         case 'update.repo':
@@ -209,13 +212,15 @@ queueEvents.on('add', function (taskName) {
             });
             break;
         case 'parser.start':
-            testParser.getTestsArray(configParams.parser.baseDir, function (result) {
+            testParser.getTestsArray(configParams.parser.baseDir, function (err, result) {
                 queueEvents.rmTask('parser.start');
                 queueEvents.addTask('task.generate', {data: result});
             });
             break;
         case 'task.generate':
-            console.log('Заполняй задачами очередь!');
+            var taskEventObj = queueEvents.find('task.generate');
+            queueEvents.rmTask('task.generate');
+            task.generateQueue(taskEventObj.params['data']);
             break;
     }
 });
