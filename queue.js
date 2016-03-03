@@ -59,6 +59,23 @@ var Queue = function () {
         return task;
     };
 
+    this.rmTask = function (taskName) {
+        var index = NaN;
+        for (var i in this.tasks) {
+            var task = this.tasks[i];
+            if (task.taskName == taskName) {
+                index = i;
+                break;
+            }
+        }
+
+        if (!isNaN(index)) {
+            delete this.tasks[index];
+            return true;
+        }
+        return false;
+    };
+
     /**
      * @param {String} taskName
      * @returns {Task|Boolean}

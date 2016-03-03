@@ -19,10 +19,12 @@ var params = {
 /** Обработка аргументов */
 var argv = require('minimist')(process.argv.slice(2));
 
-if (argv.p && typeof argv.p == "number") { params.port = argv.p }
+if (argv.p && typeof argv.p == "number") {
+    params.port = argv.p
+}
 
-var queueEvents = new(require('./queue'));
-var queueTasks = new(require('./queue'));
+var queueEvents = new (require('./queue'));
+var queueTasks = new (require('./queue'));
 
 var task = new Task(queueTasks);
 
@@ -69,7 +71,7 @@ rl.on('line', function (line) {
             show_stats();
             break;
         case 'u':
-            repository.update(function () { rl.prompt(); });
+            queueEvents.addTask('update.repo');
             return;
         default:
             console.log('bad command `' + line.trim() + '`');
@@ -80,75 +82,6 @@ rl.on('line', function (line) {
 }).on('close', function () {
     console.log('Bye!');
     process.exit(0);
-});
-
-
-io.sockets.on('connection', function (socket) {
-
-    console.log('[' + getDate() + '] Новое подключение...');
-
-    /**
-     * Запрашиваем регистрацию пользователя
-     */
-    if (socket.username === undefined) {
-        socket.emit('needUserReg');
-    }
-
-    /**
-     * Регистрация нового участника в системе
-     * Новый участник готов к работе
-     * Оповещение других участников
-     * Оповещение других участников о кол-ве доступных задач
-     */
-    socket.on('registerUser', function (username) {
-        socket.username = username;
-        users.push(username);
-
-        console.log('[' + getDate() + '] ' + username + ' подключился к системе');
-        socket.emit('readyForJob');
-    });
-
-    /**
-     * Задача выполнена участником и он готов к новой работе.
-     */
-    socket.on('readyTask', function (task) {
-        tasks_diff += task.params.process_time;
-        console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.process_time / 1000) + ' сек.');
-        socket.emit('readyForJob');
-    });
-
-    /**
-     * Получаем первую свободную задачу из списка
-     * Отправляем участнику и удаляем из очереди
-     * Оповещение других участников о кол-ве доступных задач
-     */
-    socket.on('getTask', function () {
-        var task = queueTasks.getTask();
-
-        if (task !== false) {
-            console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: ' + task.taskName);
-            socket.emit('processTask', task);
-        } else {
-            // Если задач нет
-            end_t = new Date().getTime();
-        }
-
-        socket.emit('updateTasksInfo', queueTasks.tasks.length);
-    });
-
-    /** Участник отключается от системы */
-	socket.on('disconnect', function() {
-        // todo-r: освободить задачу, которую делал отключённый участник
-
-        /** Удаляем участника из обешго списка **/
-        var index = users.indexOf(socket.username);
-        if (index != -1) {
-            users.splice(index, 1);
-        }
-
-        console.log('[' + getDate() + '] ' + socket.username + ' отключился от системы');
-    });
-
 });
 
 /**
@@ -224,3 +157,92 @@ function show_stats() {
     console.log('Avg: ' + (tasks_diff / 20 / 1000) + ' сек.');
     console.log('Total time: ' + ((end_t - start_t) / 1000) + ' сек.');
 }
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+
+
+
+
+io.sockets.on('connection', function (socket) {
+
+    console.log('[' + getDate() + '] Новое подключение...');
+
+    /**
+     * Запрашиваем регистрацию пользователя
+     */
+    if (socket.username === undefined) {
+        socket.emit('needUserReg');
+    }
+
+    /**
+     * Регистрация нового участника в системе
+     * Новый участник готов к работе
+     * Оповещение других участников
+     * Оповещение других участников о кол-ве доступных задач
+     */
+    socket.on('registerUser', function (username) {
+        socket.username = username;
+        users.push(username);
+
+        console.log('[' + getDate() + '] ' + username + ' подключился к системе');
+        socket.emit('readyForJob');
+    });
+
+    /**
+     * Задача выполнена участником и он готов к новой работе.
+     */
+    socket.on('readyTask', function (task) {
+        tasks_diff += task.params.process_time;
+        console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.process_time / 1000) + ' сек.');
+        socket.emit('readyForJob');
+    });
+
+    /**
+     * Получаем первую свободную задачу из списка
+     * Отправляем участнику и удаляем из очереди
+     * Оповещение других участников о кол-ве доступных задач
+     */
+    socket.on('getTask', function () {
+        var task = queueTasks.getTask();
+
+        if (task !== false) {
+            console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: ' + task.taskName);
+            socket.emit('processTask', task);
+        } else {
+            // Если задач нет
+            end_t = new Date().getTime();
+        }
+
+        socket.emit('updateTasksInfo', queueTasks.tasks.length);
+    });
+
+    /** Участник отключается от системы */
+    socket.on('disconnect', function () {
+        // todo-r: освободить задачу, которую делал отключённый участник
+
+        /** Удаляем участника из обешго списка **/
+        var index = users.indexOf(socket.username);
+        if (index != -1) {
+            users.splice(index, 1);
+        }
+
+        console.log('[' + getDate() + '] ' + socket.username + ' отключился от системы');
+    });
+
+});
+queueEvents.on('add', function (taskName) {
+    switch (taskName) {
+        case 'update.repo':
+            repository.update(function () {
+                queueEvents.rmTask('update.repo');
+                queueEvents.addTask('parser.start');
+            });
+            break;
+        case 'parser.start':
+            console.log('Витя дай парсер');
+            break;
+    }
+});
