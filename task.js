@@ -6,9 +6,8 @@ var Task = function (queue) {
         var i = 1;
         while (i <= limit) {
             var id = Date.now() + '_' + i;
-            this.queue.addTask(id, function () {
-                return Math.floor(Math.random() * (40 - 40 + 1) + 40);
-            });
+            var params = { calc: 40, process_time: 0 };
+            this.queue.addTask(id, params);
             i++;
         }
     };

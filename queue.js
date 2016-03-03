@@ -8,15 +8,15 @@ var Task = function (taskName, params) {
     /**
      * @param {Object} newParams
      */
-    this.updateParams = function (newParams) {
-        for (var i in newParams) {
-            for (var j in this.params) {
-                if (i == j) {
-                    this.params[j] = newParams[i];
-                }
-            }
-        }
-    };
+    //this.updateParams = function (newParams) {
+    //    for (var i in newParams) {
+    //        for (var j in this.params) {
+    //            if (i == j) {
+    //                this.params[j] = newParams[i];
+    //            }
+    //        }
+    //    }
+    //};
 };
 
 var Queue = function () {
@@ -47,12 +47,12 @@ var Queue = function () {
      * @returns {Task|Boolean}
      */
     this.getTask = function () {
-        var task = this.tasks.shift();
-
-        if (!this.tasks.length) {
+        if (this.tasks.length == 0) {
             this.emit('empty');
             return false;
         }
+
+        var task = this.tasks.shift();
 
         this.lastTask = task;
         this.emit('rm', task.taskName);

@@ -26,7 +26,7 @@ console.log('[' + getDate() + '] Выбранный сервер: http://' + par
 console.log('[' + getDate() + '] Запрашиваем статус сервера...');
 
 socket.on('connect', function() {
-    socket.join('system-clients');
+    //socket.join('system-clients');
     console.log('[' + getDate() + '] Сервер доступен. Присоединяемся...');
 });
 
@@ -71,13 +71,13 @@ socket.on('readyForJob', function() {
  * Участник выполняет задачу и отправляет результаты серверу.
  */
 socket.on('processTask', function(task) {
-    console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.id);
+    console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.taskName);
 
-    /** ТОЛЬКО ДЛЯ ТЕСТА */
+    ///** ТОЛЬКО ДЛЯ ТЕСТА */
     var start = new Date().getTime();
-    Fibonacci.calc(task.sleep);
+    Fibonacci.calc(task.params.calc);
     var end = new Date().getTime();
-    task.diff = end - start;
+    task.params.process_time = end - start;
     /** */
 
     socket.emit('readyTask', task);

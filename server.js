@@ -55,8 +55,11 @@ rl.on('line', function (line) {
             show_help();
             break;
         case 'g':
-            //generate_new_tasks();
+            console.log('[' + getDate() + '] Начинаем загрузку задач...');
             queueTasks.emit('generateTasks', task);
+
+            console.log('[' + getDate() + '] Раздаём задачи...');
+            start_t = new Date().getTime();
             io.sockets.emit('readyForJob');
             break;
         case 'o':
@@ -109,8 +112,8 @@ io.sockets.on('connection', function (socket) {
      * Задача выполнена участником и он готов к новой работе.
      */
     socket.on('readyTask', function (task) {
-        tasks_diff += task.diff;
-        console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.id + ' за ' + (task.diff / 1000) + ' сек.');
+        tasks_diff += task.params.process_time;
+        console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.process_time / 1000) + ' сек.');
         socket.emit('readyForJob');
     });
 
@@ -120,7 +123,17 @@ io.sockets.on('connection', function (socket) {
      * Оповещение других участников о кол-ве доступных задач
      */
     socket.on('getTask', function () {
-        var yourTask = queueTasks.getTask();
+        var task = queueTasks.getTask();
+
+        if (task !== false) {
+            console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: ' + task.taskName);
+            socket.emit('processTask', task);
+        } else {
+            // Если задач нет
+            end_t = new Date().getTime();
+        }
+
+        socket.emit('updateTasksInfo', queueTasks.tasks.length);
     });
 
     /** Участник отключается от системы */
@@ -194,22 +207,6 @@ function show_help() {
     console.log('h - help');
 }
 
-function generate_new_tasks() {
-    start_t = new Date().getTime();
-    console.log('[' + getDate() + '] Начинаем загрузку задач...');
-    loadTasks();
-    console.log('[' + getDate() + '] Суммарный runtime задач: ' + (tasks_runtime / 1000) + ' сек.');
-
-    io.sockets.emit('updateTasksInfo', getCountFreeTasks());
-
-    console.log('[' + getDate() + '] Раздаём задачи...');
-    var clients = io.sockets.sockets;
-    for (var index in clients) {
-        var socketId = clients[index].id;
-        io.sockets.sockets[socketId].emit('readyForJob');
-    }
-}
-
 function show_online_clients() {
     var user_index = 1;
 
@@ -223,6 +220,7 @@ function show_online_clients() {
 
 function show_stats() {
     console.log('Total diff: ' + (tasks_diff / 1000) + ' сек.');
-    console.log('Avg: ' + (tasks_diff / tasks.length / 1000) + ' сек.');
+    // 20 - кол-во задач
+    console.log('Avg: ' + (tasks_diff / 20 / 1000) + ' сек.');
     console.log('Total time: ' + ((end_t - start_t) / 1000) + ' сек.');
 }
