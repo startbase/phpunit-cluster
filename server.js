@@ -47,7 +47,8 @@ var end_t = 0;
 
 queueTasks.on('fill.complete', function () {
     tasks_diff = 0;
-    tasks_total = queueTasks.tasks.length;
+    stats.resetStats();
+    var tasks_total = queueTasks.tasks.length;
     console.log('[' + getDate() + '] Всего задач: ' + tasks_total);
     console.log('[' + getDate() + '] Раздаём задачи...');
     start_t = new Date().getTime();
@@ -68,7 +69,7 @@ rl.on('line', function (line) {
             show_online_clients();
             break;
         case 'd':
-            show_stats();
+            console.log(stats.getStats());
             break;
         case 'u':
             queueEvents.addTask('update.repo');
@@ -165,6 +166,7 @@ io.sockets.on('connection', function (socket) {
 
         tasks_diff += task.params.process_time;
         console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.process_time / 1000) + ' сек.');
+        stats.addStat(task.params.response);
         socket.emit('readyForJob');
     });
 

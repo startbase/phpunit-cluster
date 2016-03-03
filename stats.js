@@ -1,5 +1,17 @@
 var Stats = function () {
+    this.rows = [];
 
+    this.getStats = function () {
+        return "STATS";
+    };
+
+    this.addStat = function (data) {
+
+    };
+
+    this.resetStats = function () {
+
+    };
 
     EventEmitter.call(this);
 };

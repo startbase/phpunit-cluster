@@ -1,15 +1,20 @@
-/** ТОЛЬКО ДЛЯ ТЕСТА */
-var Fibonacci = require('./libs/fibonacci.js');
-var repository = require('./libs/repository.js');
-
-var repository_updated = 0;
-
-/** Настройки по умолчанию */
+var config = require('./config.js');
+var configParams = config.getParams();
 var params = {
     user: 'startbase_' + Date.now(),
     domen: 'localhost',
     port: 8099
 };
+
+/** ТОЛЬКО ДЛЯ ТЕСТА */
+var Fibonacci = require('./libs/fibonacci.js');
+var repository = require('./libs/repository.js');
+
+var phpunitRunner = require('./libs/phpunit_runner.js');
+phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
+phpunitRunner.result_json_file = configParams.phpunit_runner.result_json_file;
+
+var repository_updated = 0;
 
 /** Обработка аргументов */
 var argv = require('minimist')(process.argv.slice(2));
@@ -73,21 +78,10 @@ socket.on('readyForJob', function() {
 socket.on('processTask', function(task) {
     console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.taskName);
 
-    /**
-     * Выполнение теста. Название лежит в task.taskName
-     *
-     * Формат для возврата:
-     * { taskName: task.taskName, params: { process_time: ***, status: 200 } }
-     */
-
-    ///** ТОЛЬКО ДЛЯ ТЕСТА */
-    var start = new Date().getTime();
-    Fibonacci.calc(task.params.calc);
-    var end = new Date().getTime();
-    task.params.process_time = end - start;
-    /** */
-
-    socket.emit('readyTask', task);
+    phpunitRunner.run(task.taskName, function (response) {
+        task.params.response = response;
+        socket.emit('readyTask', task);
+    });
 });
 
 /**
