@@ -1,3 +1,6 @@
+const EventEmitter = require('events');
+const util = require('util');
+
 var Stats = function () {
     this.rows = [];
 
