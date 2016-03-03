@@ -6,7 +6,7 @@ var PhpUnitRunner = function () {
     this.result_json_file = '';
     this.run = function (file, callback) {
         var self = this;
-        var sh = this.phpunit_cmd+' --tap --log-json '+this.result_json_file+' '+file+' ';
+        var sh = self.phpunit_cmd+' --tap --log-json '+self.result_json_file+' '+file+' ';
 
         var exec = require('child_process').exec;
         var child = exec(sh);
@@ -17,7 +17,7 @@ var PhpUnitRunner = function () {
             self.log(data);
         });
         child.on('close', function(code) {
-            fs.readFile('result.json', 'utf8', function (err, data) {
+            fs.readFile(self.result_json_file, 'utf8', function (err, data) {
                 if (err) throw err;
 
                 data = data.replace(/\}\{/ig, '},{');
