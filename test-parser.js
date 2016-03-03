@@ -42,4 +42,4 @@ var TestParser = function() {
     };
 };
 
-module.exports = TestParser;
+module.exports = new TestParser();

@@ -1,33 +1,25 @@
-const readline = require('readline');
-const rl = readline.createInterface(process.stdin, process.stdout);
-var Task = require('./task');
-var TestParser = require('./test-parser');
-
-rl.setPrompt('>>> ');
-rl.prompt();
-
-var config = require('./config.js');
-var repository = require('./libs/repository.js');
-
-
-config_params = config.getParams();
-
-/** Настройки по умолчанию */
-var params = {
-    port: config_params.server_socket.port
-};
-
-/** Обработка аргументов */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 var argv = require('minimist')(process.argv.slice(2));
-
+var config = require('./config.js');
+var configParams = config.getParams();
+var params = {
+    port: configParams.server_socket.port
+};
 if (argv.p && typeof argv.p == "number") {
     params.port = argv.p
 }
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+const readline = require('readline');
+const rl = readline.createInterface(process.stdin, process.stdout);
+var Task = require('./task');
+var testParser = require('./test-parser');
+var repository = require('./libs/repository.js');
 var queueEvents = new (require('./queue'));
 var queueTasks = new (require('./queue'));
+//var task = new Task(queueTasks);
 
-var task = new Task(queueTasks, new TestParser());
+rl.setPrompt('>>> ');
+rl.prompt();
 
 
 /** Запускаемся */
@@ -47,9 +39,7 @@ var users = [];
 //var tasks = [];
 /** Суммарное последовательное время выполнения задач (сумма всех sleep) */
 var tasks_runtime = 0;
-
 var tasks_diff = 0;
-var tasks_total = 0;
 
 var start_t = 0;
 var end_t = 0;
@@ -130,11 +120,7 @@ function show_stats() {
 }
 
 
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-
-
 
 
 io.sockets.on('connection', function (socket) {
@@ -223,7 +209,13 @@ queueEvents.on('add', function (taskName) {
             });
             break;
         case 'parser.start':
-            console.log('Витя дай парсер');
+            testParser.getTestsArray(configParams.parser.baseDir, function (result) {
+                queueEvents.rmTask('parser.start');
+                queueEvents.addTask('task.generate', {data: result});
+            });
+            break;
+        case 'task.generate':
+            console.log('Заполняй задачами очередь!');
             break;
     }
 });

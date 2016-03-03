@@ -5,7 +5,6 @@ var Repository = function () {
     this.local_branch = config_params.repository.local_branch;
     this.repository_path = config_params.repository.repository_path;
     this.update = function (callback) {
-        console.log(123);
         var local_branch = this.local_branch;
         var repository_path = this.repository_path;
 

@@ -9,5 +9,8 @@
   "phpunit_runner": {
     "cmd": "php ../phpunit-cluster-tests/phpunit.phar",
     "result_json_file": "../phpunit-cluster-tests/result.json"
+  },
+  "parser" : {
+    "baseDir" : "/raid/vhosts/b2bcenter/tests/Unit"
   }
 }
