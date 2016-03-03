@@ -1,6 +1,7 @@
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
 var Task = require('./task');
+var TestParser = require('./test-parser');
 
 rl.setPrompt('>>> ');
 rl.prompt();
@@ -26,7 +27,7 @@ if (argv.p && typeof argv.p == "number") {
 var queueEvents = new (require('./queue'));
 var queueTasks = new (require('./queue'));
 
-var task = new Task(queueTasks);
+var task = new Task(queueTasks, new TestParser());
 
 
 /** Запускаемся */
@@ -51,6 +52,10 @@ var tasks_diff = 0;
 var start_t = 0;
 var end_t = 0;
 
+queueTasks.on('fill.complete', function() {
+    io.sockets.emit('readyForJob');
+});
+
 rl.on('line', function (line) {
     switch (line.trim()) {
         case 'h':
@@ -62,7 +67,6 @@ rl.on('line', function (line) {
 
             console.log('[' + getDate() + '] Раздаём задачи...');
             start_t = new Date().getTime();
-            io.sockets.emit('readyForJob');
             break;
         case 'o':
             show_online_clients();
