@@ -35,8 +35,16 @@ var Stats = function () {
         if (tests_failed.length > 0) {
             stat_msg += "\nЗавалены тесты: \n";
 
-            for (test in tests_failed) {
-                stat_msg += "\t\t" + test.file + "\n";
+            for (var key in tests_failed) {
+                var test = tests_failed[key];
+                stat_msg += "\t" + test.file + "\n";
+
+				for (var index in test.suites) {
+					var suite = test.suites[index];
+					if (suite.status == 'fail') {
+						stat_msg += "\t\t" + suite.test + " [" + suite.message + "]\n";
+					}
+				}
             }
         }
 
@@ -44,8 +52,8 @@ var Stats = function () {
     };
 
     this.addStat = function (data) {
-        console.log("DATA", data);
-        console.log('\n\n');
+        //console.log("DATA", data);
+        //console.log('\n\n');
         this.tests.push(data);
     };
 

@@ -146,7 +146,7 @@ io.sockets.on('connection', function (socket) {
          */
 
         tasks_diff += task.params.process_time;
-        console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.process_time / 1000) + ' сек.');
+        console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.response.time).toFixed(4) + ' сек.');
         stats.addStat(task.params.response);
         socket.emit('readyForJob');
     });

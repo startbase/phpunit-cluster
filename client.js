@@ -1,3 +1,5 @@
+var path = require('path');
+
 var config = require('./config.js');
 var configParams = config.getParams();
 var params = {
@@ -76,7 +78,7 @@ socket.on('readyForJob', function() {
 socket.on('processTask', function(task) {
     console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.taskName);
 
-    phpunitRunner.run(task.taskName, function (response) {
+    phpunitRunner.run(path.resolve(configParams.repository.repository_path, task.taskName), function (response) {
         task.params.response = response;
         socket.emit('readyTask', task);
     });
