@@ -15,6 +15,7 @@ phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
 phpunitRunner.result_json_file = configParams.phpunit_runner.result_json_file;
 
 var repository_updated = 0;
+var repository_updating = 0;
 
 /** Обработка аргументов */
 var argv = require('minimist')(process.argv.slice(2));
@@ -42,10 +43,12 @@ socket.on('disconnect', function() {
 socket.on('updateRepository', function() {
     console.log('[' + getDate() + '] Обновляем репозиторий...');
     repository_updated = 0;
+	repository_updating = 1;
     repository.update(function () {
+		repository_updating = 0;
         repository_updated = 1;
+		socket.emit('getTask');
     });
-
 });
 
 /**
@@ -66,7 +69,14 @@ socket.on('needUserReg', function() {
  * Участник запрашивает у сервера свободную задачу.
  */
 socket.on('readyForJob', function() {
-	if (!repository_updated) {
+	if (!repository_updated && !repository_updating) {
+		repository_updating = 1;
+		repository.update(function () {
+			repository_updating = 0;
+			repository_updated = 1;
+			socket.emit('getTask');
+		});
+
 		return;
 	}
 
