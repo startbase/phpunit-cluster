@@ -1,22 +1,22 @@
 var Task = function(queue) {
-    this.queue = queue;
+	this.queue = queue;
 
 	/**
-	 * Создаём очередь тестов из списка
-	 * В конце вызываем событие "очередь наполнена и готова"
+	 * РЎРѕР·РґР°С‘Рј РѕС‡РµСЂРµРґСЊ С‚РµСЃС‚РѕРІ РёР· СЃРїРёСЃРєР°
+	 * Р’ РєРѕРЅС†Рµ РІС‹Р·С‹РІР°РµРј СЃРѕР±С‹С‚РёРµ "РѕС‡РµСЂРµРґСЊ РЅР°РїРѕР»РЅРµРЅР° Рё РіРѕС‚РѕРІР°"
 	 *
-	 * @param result список тестов в виде массива
+	 * @param result СЃРїРёСЃРѕРє С‚РµСЃС‚РѕРІ РІ РІРёРґРµ РјР°СЃСЃРёРІР°
 	 */
-    this.generateQueue = function (result) {
-        var instance = this;
+	this.generateQueue = function (result) {
+		var instance = this;
 
-        result.forEach(function(item) {
-            var params = {};
-            instance.queue.addTask(item, params);
-        });
+		result.forEach(function(item) {
+			var params = {};
+			instance.queue.addTask(item, params);
+		});
 
-        instance.queue.emit('fill.complete');
-    };
+		instance.queue.emit('fill.complete');
+	};
 };
 
 module.exports = Task;
