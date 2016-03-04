@@ -9,6 +9,9 @@
   "stats_socket": {
     "port": 8101
   },
+  "web": {
+    "port": 8100
+  },
   "phpunit_runner": {
     "cmd": "php ../phpunit-cluster-tests/phpunit.phar",
     "result_json_file": "../phpunit-cluster-tests/result.json"
