@@ -6,6 +6,9 @@
   "server_socket": {
     "port": 8099
   },
+  "stats_socket": {
+    "port": 8101
+  },
   "phpunit_runner": {
     "cmd": "php ../phpunit-cluster-tests/phpunit.phar",
     "result_json_file": "../phpunit-cluster-tests/result.json"

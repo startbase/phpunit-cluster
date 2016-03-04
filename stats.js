@@ -4,6 +4,10 @@ const util = require('util');
 var Stats = function () {
     this.tests = [];
 
+    this.getWebStats = function() {
+        return this.getStats();
+    };
+
     this.getStats = function () {
         var time_overall = 0;
         var tests_failed = [];

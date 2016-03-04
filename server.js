@@ -3,7 +3,8 @@ var argv = require('minimist')(process.argv.slice(2));
 var config = require('./config.js');
 var configParams = config.getParams();
 var params = {
-    port: configParams.server_socket.port
+    port: configParams.server_socket.port,
+    stats_port: configParams.stats_cosket,
 };
 if (argv.p && typeof argv.p == "number") {
     params.port = argv.p
@@ -186,4 +187,15 @@ queueEvents.on('add', function (taskName) {
             task.generateQueue(taskEventObj.params['data']);
             break;
     }
+});
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+var stats_socket = require('socket.io').listen(params.stats_port);
+
+stats_socket.on('connection', function (socket) {
+
+    socket.on('getWebStats', function () {
+        socket.emit('statsReceived', stats.getWebStats());
+    });
+
 });
