@@ -52,7 +52,7 @@ rl.on('line', function (line) {
             show_online_clients();
             break;
         case 'd':
-            console.log(stats.getStats());
+            console.log(stats.getConsoleStats());
             break;
         case 'u':
 			io.sockets.emit('updateRepository');
@@ -185,6 +185,7 @@ queueEvents.on('add', function (taskName) {
         case 'task.generate':
             var taskEventObj = queueEvents.find('task.generate');
             queueEvents.rmTask('task.generate');
+            io.sockets.emit('stats.update', stats.getWebStats());
             task.generateQueue(taskEventObj.params['data']);
             break;
     }
