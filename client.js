@@ -40,9 +40,8 @@ socket.on('disconnect', function() {
 });
 
 socket.on('updateRepository', function() {
-    console.log('Обновляем репозиторий');
+    console.log('[' + getDate() + '] Обновляем репозиторий...');
     repository_updated = 0;
-
     repository.update(function () {
         repository_updated = 1;
     });
@@ -67,6 +66,10 @@ socket.on('needUserReg', function() {
  * Участник запрашивает у сервера свободную задачу.
  */
 socket.on('readyForJob', function() {
+	if (!repository_updated) {
+		return;
+	}
+
 	socket.emit('getTask');
 });
 

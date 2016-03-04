@@ -55,6 +55,7 @@ rl.on('line', function (line) {
             console.log(stats.getStats());
             break;
         case 'u':
+			io.sockets.emit('updateRepository');
             queueEvents.addTask('update.repo');
             return;
         default:
