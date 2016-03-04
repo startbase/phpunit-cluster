@@ -5,7 +5,7 @@ var configParams = config.getParams();
 var params = {
     user: 'startbase_' + Date.now(),
     domain: 'localhost',
-    port: 8099
+    port: configParams.server_socket.port
 };
 
 var repository = require('./libs/repository.js');
@@ -78,7 +78,8 @@ socket.on('readyForJob', function() {
 socket.on('processTask', function(task) {
     console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.taskName);
 
-    phpunitRunner.run(path.resolve(configParams.repository.repository_path, task.taskName), function (response) {
+    var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
+    phpunitRunner.run(test_path, function (response) {
         task.params.response = response;
         socket.emit('readyTask', task);
     });

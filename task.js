@@ -1,39 +1,22 @@
-var Task = function (queue) {
+var Task = function(queue) {
     this.queue = queue;
 
-    this.generateTask = function () {
-        /*var limit = 20;
-        var i = 1;
-        while (i <= limit) {
-            var id = Date.now() + '_' + i;
-            var params = { calc: 40, process_time: 0 };
-            this.queue.addTask(id, params);
-            i++;
-        }*/
-
-        var instance = this;
-
-        this.parser.getTestsArray('../phpunit-cluster-tests/', function(err, results) {
-            if(err) {
-                throw err;
-            }
-            instance.generateQueue(results);
-        });
-    };
-
+	/**
+	 * Создаём очередь тестов из списка
+	 * В конце вызываем событие "очередь наполнена и готова"
+	 *
+	 * @param result список тестов в виде массива
+	 */
     this.generateQueue = function (result) {
         var instance = this;
 
         result.forEach(function(item) {
-            var params = { calc: 40, process_time: 0 };
+            var params = {};
             instance.queue.addTask(item, params);
         });
+
         instance.queue.emit('fill.complete');
     };
-
-    this.queue.on('generateTasks', function (obj) {
-        obj.generateTask();
-    });
 };
 
 module.exports = Task;

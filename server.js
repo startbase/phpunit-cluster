@@ -29,19 +29,16 @@ var io = require('socket.io').listen(params.port);
 
 var users = [];
 
-var tasks_diff = 0;
-
-var start_t = 0;
-var end_t = 0;
-
+/**
+ * Когда очередь готова для раздачи обнуляем статистику
+ * и говорим участникам, что они могут разбирать тесты
+ */
 queueTasks.on('fill.complete', function () {
-    tasks_diff = 0;
     stats.resetStats();
+
     var tasks_total = queueTasks.tasks.length;
     console.log('[' + getDate() + '] Всего задач: ' + tasks_total);
     console.log('[' + getDate() + '] Раздаём задачи...');
-    start_t = new Date().getTime();
-
     io.sockets.emit('readyForJob');
 });
 
@@ -49,10 +46,6 @@ rl.on('line', function (line) {
     switch (line.trim()) {
         case 'h':
             show_help();
-            break;
-        case 'g':
-            console.log('[' + getDate() + '] Начинаем загрузку задач...');
-            queueTasks.emit('generateTasks', task);
             break;
         case 'o':
             show_online_clients();
@@ -85,7 +78,6 @@ function getDate() {
 
 function show_help() {
     console.log('help:');
-    console.log('g - generate new tasks');
     console.log('u - update tests repository');
     console.log('d - show stats');
     console.log('o - show online clients');
@@ -120,8 +112,6 @@ io.sockets.on('connection', function (socket) {
     /**
      * Регистрация нового участника в системе
      * Новый участник готов к работе
-     * Оповещение других участников
-     * Оповещение других участников о кол-ве доступных задач
      */
     socket.on('registerUser', function (username) {
         socket.username = username;
@@ -132,29 +122,18 @@ io.sockets.on('connection', function (socket) {
     });
 
     /**
-     * Задача выполнена участником и он готов к новой работе.
+     * Задача выполнена участником и он готов к новой работе
      */
     socket.on('readyTask', function (task) {
-        /**
-         * Передача данных в статистику.
-         *
-         * Формат приходящих данных:
-         * { taskName: task.taskName, params: { process_time: ***, status: 200 } }
-         *
-         * process_time - время выполнения теста, в милисекундах
-         * status - статус выполнения теста. Пока значения не определены
-         */
+		stats.addStat(task.params.response);
 
-        tasks_diff += task.params.process_time;
-        console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.response.time).toFixed(4) + ' сек.');
-        stats.addStat(task.params.response);
-        socket.emit('readyForJob');
+		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.response.time).toFixed(4) + ' сек.');
+		socket.emit('readyForJob');
     });
 
     /**
      * Получаем первую свободную задачу из списка
-     * Отправляем участнику и удаляем из очереди
-     * Оповещение других участников о кол-ве доступных задач
+     * Отправляем участнику и говорим сколько ещё задач осталось
      */
     socket.on('getTask', function () {
         var task = queueTasks.getTask();
@@ -164,7 +143,6 @@ io.sockets.on('connection', function (socket) {
             socket.emit('processTask', task);
         } else {
             // Если задач нет
-            end_t = new Date().getTime();
         }
 
         socket.emit('updateTasksInfo', queueTasks.tasks.length);

@@ -42,7 +42,6 @@ var Queue = function () {
     };
 
     /**
-     * @deprecated
      * Получить первый из очереди
      * @returns {Task|Boolean}
      */
