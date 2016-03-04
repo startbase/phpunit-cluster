@@ -4,7 +4,7 @@ var config = require('./config.js');
 var configParams = config.getParams();
 var params = {
     port: configParams.server_socket.port,
-    stats_port: configParams.stats_cosket,
+    stats_port: configParams.stats_socket.port,
 };
 if (argv.p && typeof argv.p == "number") {
     params.port = argv.p
