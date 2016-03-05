@@ -30,6 +30,33 @@ var Repository = function () {
 
         });
     };
+
+    /**
+     * Получаем последний commit hash
+     * @param callback
+     */
+    this.getLastCommitHash = function(callback) {
+        var commit_hash = '';
+        var sh = 'cd ' + this.repository_path + ' '
+            + '&& git log -n 1 --pretty=format:"%H"';
+
+        var exec = require('child_process').exec;
+        var child = exec(sh);
+
+        child.stdout.on('data', function(data) {
+            commit_hash = data;
+        });
+
+        child.stderr.on('data', function(data) {
+            console.log(data);
+        });
+
+        child.on('close', function() {
+            if (callback != undefined) {
+                callback(commit_hash);
+            }
+        });
+    };
 };
 
 module.exports = new Repository();

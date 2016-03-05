@@ -5,17 +5,16 @@ var configParams = config.getParams();
 var params = {
     user: 'startbase_' + Date.now(),
     domain: 'localhost',
-    port: configParams.server_socket.port
+    port: configParams.server_socket.port,
+    commit_hash: 'none'
 };
 
 var repository = require('./libs/repository.js');
+var repository_updated = 0;
 
 var phpunitRunner = require('./libs/phpunit_runner.js');
 phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
 phpunitRunner.result_json_file = configParams.phpunit_runner.result_json_file;
-
-var repository_updated = 0;
-var repository_updating = 0;
 
 /** Обработка аргументов */
 var argv = require('minimist')(process.argv.slice(2));
@@ -25,41 +24,36 @@ if (argv.d && typeof argv.d == "string") { params.domain = argv.d }
 if (argv.p && typeof argv.p == "number") { params.port = argv.p }
 
 /** Запускаемся */
-var user = params.user;
 var socket = require('socket.io-client')('http://' + params.domain + ':' + params.port);
 
 console.log('[' + getDate() + '] Выбранный сервер: http://' + params.domain + ':' + params.port);
-console.log('[' + getDate() + '] Запрашиваем статус сервера...');
+console.log('[' + getDate() + '] Запрашиваю статус сервера...');
 
 socket.on('connect', function() {
-    //socket.join('system-clients');
-    console.log('[' + getDate() + '] Сервер доступен. Присоединяемся...');
+    console.log('[' + getDate() + '] Сервер доступен. Присоединяюсь...');
 });
 
 socket.on('disconnect', function() {
 	console.log('[' + getDate() + '] Сервер недоступен');
 });
 
-socket.on('updateRepository', function() {
-    console.log('[' + getDate() + '] Обновляем репозиторий...');
-    repository_updated = 0;
-	repository_updating = 1;
-    repository.update(function () {
-		repository_updating = 0;
-        repository_updated = 1;
-		socket.emit('getTask');
-    });
-});
-
 /**
  * Регистрация в системе
  *
  * Если участника нет в списках - сервер отправит запрос на регистрацию.
- * После прохождения регистрации вернётся событие "readyForJob".
+ * После прохождения регистрации вернётся событие "readyForJob" если репозитории совпадают.
+ * Если не совпадают - сервер попросит обновить
  */
 socket.on('needUserReg', function() {
-	console.log('[' + getDate() + '] Проходим регистрацию...');
-	socket.emit('registerUser', user);
+	console.log('[' + getDate() + '] Прохожу регистрацию...');
+
+    repository.getLastCommitHash(function(commit_hash) {
+        params.commit_hash = commit_hash;
+        socket.emit('registerUser', {
+            username: params.user,
+            commit_hash: params.commit_hash
+        });
+    });
 });
 
 /**
@@ -69,18 +63,24 @@ socket.on('needUserReg', function() {
  * Участник запрашивает у сервера свободную задачу.
  */
 socket.on('readyForJob', function() {
-	if (!repository_updated && !repository_updating) {
-		repository_updating = 1;
-		repository.update(function () {
-			repository_updating = 0;
-			repository_updated = 1;
-			socket.emit('getTask');
-		});
+    if (repository_updated == 1) {
+        console.log('[' + getDate() + '] Беру задачу из пула...');
+        socket.emit('getTask');
+    }
+});
 
-		return;
-	}
+/**
+ * Обновляем репозитарий и просим дать задачу
+ */
+socket.on('updateRepository', function() {
+    console.log('[' + getDate() + '] Обновляю репозиторий...');
 
-	socket.emit('getTask');
+    repository_updated = 0;
+    repository.update(function () {
+        repository_updated = 1;
+        console.log('[' + getDate() + '] Беру задачу из пула...');
+        socket.emit('getTask');
+    });
 });
 
 /**
@@ -94,6 +94,7 @@ socket.on('processTask', function(task) {
     var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
     phpunitRunner.run(test_path, function (response) {
         task.params.response = response;
+        console.log('[' + getDate() + '] Посылаю результаты выполнения на сервер...');
         socket.emit('readyTask', task);
     });
 });
@@ -103,6 +104,13 @@ socket.on('processTask', function(task) {
  */
 socket.on('updateTasksInfo', function(tasks_count) {
 	console.log('[' + getDate() + '] Свободных задач: ' + tasks_count);
+});
+
+/**
+ * Показываем сообщение, что сервер ещё не готов для работы
+ */
+socket.on('serverNotReady', function() {
+    console.log('[' + getDate() + '] Жду готовности сервера...');
 });
 
 /**

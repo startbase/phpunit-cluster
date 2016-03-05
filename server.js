@@ -5,6 +5,7 @@ var configParams = config.getParams();
 var params = {
     port: configParams.server_socket.port,
     stats_port: configParams.stats_socket.port,
+    commit_hash: 'none'
 };
 if (argv.p && typeof argv.p == "number") {
     params.port = argv.p
@@ -19,16 +20,12 @@ var queueEvents = new (require('./queue'));
 var queueTasks = new (require('./queue'));
 var task = new Task(queueTasks);
 var stats = require('./stats');
-
-rl.setPrompt('>>> ');
-rl.prompt();
-
-show_help();
+var users = [];
 
 /** Запускаемся */
 var io = require('socket.io').listen(params.port);
-
-var users = [];
+console.log('[' + getDate() + '] Сервер запущен. Порт: ' + params.port);
+show_help();
 
 /**
  * Когда очередь готова для раздачи обнуляем статистику
@@ -36,6 +33,7 @@ var users = [];
  */
 queueTasks.on('fill.complete', function () {
     stats.resetStats();
+    stats.start_time = Date.now();
 
     var tasks_total = queueTasks.tasks.length;
     console.log('[' + getDate() + '] Всего задач: ' + tasks_total);
@@ -43,6 +41,8 @@ queueTasks.on('fill.complete', function () {
     io.sockets.emit('readyForJob');
 });
 
+rl.setPrompt('>>> ');
+rl.prompt();
 rl.on('line', function (line) {
     switch (line.trim()) {
         case 'h':
@@ -51,11 +51,14 @@ rl.on('line', function (line) {
         case 'o':
             show_online_clients();
             break;
+        case 'c':
+            console.log('Текущий commit hash сервера: ' + params.commit_hash);
+            console.log('');
+            break;
         case 'd':
             console.log(stats.getConsoleStats());
             break;
         case 'u':
-			io.sockets.emit('updateRepository');
             queueEvents.addTask('update.repo');
             return;
         default:
@@ -83,6 +86,7 @@ function show_help() {
     console.log('u - update tests repository');
     console.log('d - show stats');
     console.log('o - show online clients');
+    console.log('c - show current commit hash');
     console.log('h - help');
 }
 
@@ -115,12 +119,27 @@ io.sockets.on('connection', function (socket) {
      * Регистрация нового участника в системе
      * Новый участник готов к работе
      */
-    socket.on('registerUser', function (username) {
-        socket.username = username;
-        users.push(username);
+    socket.on('registerUser', function (data) {
+        socket.username = data.username;
+        users.push(data.username);
 
-        console.log('[' + getDate() + '] ' + username + ' подключился к системе');
-        socket.emit('readyForJob');
+        console.log('[' + getDate() + '] ' + socket.username + ' подключился к системе');
+
+        /** Сервер ещё не готов для работы */
+        if (params.commit_hash == 'none') {
+            socket.emit('serverNotReady');
+            return;
+        }
+
+        /** Если у сервера и клиента совпадают хеши - разрешаем работать */
+        if (params.commit_hash == data.commit_hash) {
+            console.log('[' + getDate() + '] ' + socket.username + ' готов для работы');
+            socket.emit('readyForJob');
+        } else {
+            console.log('[' + getDate() + '] ' + socket.username + ' обновляет репозитарий...');
+            socket.emit('updateRepository');
+        }
+
     });
 
     /**
@@ -130,7 +149,12 @@ io.sockets.on('connection', function (socket) {
 		stats.addStat(task.params.response);
 
 		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.response.time).toFixed(4) + ' сек.');
-		socket.emit('readyForJob');
+
+        if (queueTasks.tasks.length > 0) {
+            socket.emit('readyForJob');
+        } else {
+            stats.finish_time = Date.now();
+        }
     });
 
     /**
@@ -171,8 +195,16 @@ queueEvents.on('add', function (taskName) {
     switch (taskName) {
         case 'update.repo':
             repository.update(function () {
+                io.sockets.emit('updateRepository');
                 queueEvents.rmTask('update.repo');
+                queueEvents.addTask('set.commit.hash');
                 queueEvents.addTask('parser.start');
+            });
+            break;
+        case 'set.commit.hash':
+            repository.getLastCommitHash(function(commit_hash) {
+                params.commit_hash = commit_hash;
+                queueEvents.rmTask('set.commit.hash');
             });
             break;
         case 'parser.start':
