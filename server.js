@@ -124,6 +124,8 @@ io.sockets.on('connection', function (socket) {
         users.push(data.username);
 
         console.log('[' + getDate() + '] ' + socket.username + ' подключился к системе');
+        console.log('[' + getDate() + '] User Commit Hash: ' + data.commit_hash);
+        console.log('[' + getDate() + '] Server Commit Hash: ' + params.commit_hash);
 
         /** Сервер ещё не готов для работы */
         if (params.commit_hash == 'none') {
@@ -148,6 +150,7 @@ io.sockets.on('connection', function (socket) {
     socket.on('readyTask', function (task) {
 		stats.addStat(task.params.response);
 
+        socket.current_task = false;
 		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.response.time).toFixed(4) + ' сек.');
 
         if (queueTasks.tasks.length > 0) {
@@ -166,6 +169,7 @@ io.sockets.on('connection', function (socket) {
 
         if (task !== false) {
             console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: ' + task.taskName);
+            socket.current_task = task;
             socket.emit('processTask', task);
         } else {
             // Если задач нет
@@ -176,8 +180,6 @@ io.sockets.on('connection', function (socket) {
 
     /** Участник отключается от системы */
     socket.on('disconnect', function () {
-        // todo-r: освободить задачу, которую делал отключённый участник
-
         /** Удаляем участника из обешго списка **/
         var index = users.indexOf(socket.username);
         if (index != -1) {
@@ -185,6 +187,15 @@ io.sockets.on('connection', function (socket) {
         }
 
         console.log('[' + getDate() + '] ' + socket.username + ' отключился от системы');
+
+        /** Если клиент выполнял задачу - возвращаем её в очередь */
+        if (socket.current_task) {
+            console.log('[' + getDate() + '] Задача ID: ' + socket.current_task.taskName + ' возвращена в очередь');
+            queueTasks.addTask(socket.current_task.taskName, {});
+        }
+
+        socket.username = undefined;
+        socket.current_task = false;
     });
 
 });
@@ -195,6 +206,7 @@ queueEvents.on('add', function (taskName) {
     switch (taskName) {
         case 'update.repo':
             repository.update(function () {
+                // @todo-r: в идеале должны стянуть ТОТ ЖЕ коммит, что и сервер
                 io.sockets.emit('updateRepository');
                 queueEvents.rmTask('update.repo');
                 queueEvents.addTask('set.commit.hash');

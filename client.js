@@ -63,6 +63,9 @@ socket.on('needUserReg', function() {
  * Участник запрашивает у сервера свободную задачу.
  */
 socket.on('readyForJob', function() {
+    /**
+     * @todo-r в данный момент если клиент отключается и снова подключается не работает. Нужен рефакторинг регистрации.
+     */
     if (repository_updated == 1) {
         console.log('[' + getDate() + '] Беру задачу из пула...');
         socket.emit('getTask');
