@@ -3,10 +3,11 @@ var fs = require('fs');
 var PhpUnitRunner = function () {
     this.show_log = false;
     this.phpunit_cmd = '';
-    this.result_json_file = '';
+    this.result_json_file_path = '';
+    this.result_json_suffix = '';
     this.run = function (file, callback) {
-        var tmp_filename = self.result_json_path + parseInt(Math.random() * 1000) + self.result_json_suffix;
         var self = this;
+        var tmp_filename = self.result_json_file_path + parseInt(Math.random() * 1000) + self.result_json_suffix;
         var sh = self.phpunit_cmd+' --tap --log-json ' + tmp_filename + ' '+file+' ';
 
         var exec = require('child_process').exec;
@@ -51,6 +52,8 @@ var PhpUnitRunner = function () {
                         callback({'file':file, 'status':false, 'time':0, 'suites':[]});
                     }
                     self.log(e.message);
+                } finally {
+                    fs.unlink(tmp_filename);
                 }
             });
         });

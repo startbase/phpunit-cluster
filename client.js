@@ -14,7 +14,8 @@ var repository_updated = 0;
 
 var phpunitRunner = require('./libs/phpunit_runner.js');
 phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
-phpunitRunner.result_json_file = configParams.phpunit_runner.result_json_file;
+phpunitRunner.result_json_file_path = configParams.phpunit_runner.result_json_file_path;
+phpunitRunner.result_json_suffix = configParams.phpunit_runner.result_json_suffix;
 
 /** Обработка аргументов */
 var argv = require('minimist')(process.argv.slice(2));

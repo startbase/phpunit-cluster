@@ -4,7 +4,8 @@ var config = require('./config.js');
 var config_params = config.getParams();
 
 phpunit_runner.phpunit_cmd = config_params.phpunit_runner.cmd;
-phpunit_runner.result_json_file = config_params.phpunit_runner.result_json_file;
+phpunit_runner.result_json_file_path = config_params.phpunit_runner.result_json_file_path;
+phpunit_runner.result_json_suffix = config_params.phpunit_runner.result_json_suffix;
 phpunit_runner.show_log = false;
 
 phpunit_runner.run('../phpunit-cluster-tests/examples/a1/a1Test.php', function(data) {
