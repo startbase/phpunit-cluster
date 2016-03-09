@@ -14,8 +14,10 @@
   },
   "phpunit_runner": {
     "cmd": "php ../phpunit-cluster-tests/phpunit.phar",
-    "result_json_file": "../phpunit-cluster-tests/result.json"
+    "result_json_file_path": "../phpunit-cluster-tests/",
+    "result_json_suffix": "result.json"
   },
+
   "parser" : {
     "baseDirs" : [
       "../phpunit-cluster-tests/"

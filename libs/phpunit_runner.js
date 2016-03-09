@@ -5,8 +5,9 @@ var PhpUnitRunner = function () {
     this.phpunit_cmd = '';
     this.result_json_file = '';
     this.run = function (file, callback) {
+        var tmp_filename = self.result_json_path + parseInt(Math.random() * 1000) + self.result_json_suffix;
         var self = this;
-        var sh = self.phpunit_cmd+' --tap --log-json '+self.result_json_file+' '+file+' ';
+        var sh = self.phpunit_cmd+' --tap --log-json ' + tmp_filename + ' '+file+' ';
 
         var exec = require('child_process').exec;
         var child = exec(sh);
@@ -17,7 +18,7 @@ var PhpUnitRunner = function () {
             self.log(data);
         });
         child.on('close', function(code) {
-            fs.readFile(self.result_json_file, 'utf8', function (err, data) {
+            fs.readFile(tmp_filename, 'utf8', function (err, data) {
                 if (err) throw err;
 
                 data = data.replace(/\}\{/ig, '},{'); // @see https://github.com/sebastianbergmann/phpunit/issues/1156
