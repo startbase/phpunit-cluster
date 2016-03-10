@@ -53,7 +53,11 @@ rl.on('line', function (line) {
             break;
         case 'c':
             console.log('Текущий commit hash сервера: ' + params.commit_hash);
-            console.log('');
+            break;
+        case 'e':
+            console.log('Очищение очереди задач');
+            queueTasks.tasks = [];
+            io.sockets.emit('abortTask');
             break;
         case 'd':
             console.log(stats.getConsoleStats());
@@ -84,6 +88,7 @@ function getDate() {
 function show_help() {
     console.log('help:');
     console.log('u - update tests repository');
+    console.log('e - erase queue with tasks');
     console.log('d - show stats');
     console.log('o - show online clients');
     console.log('c - show current commit hash');

@@ -12,6 +12,8 @@ var params = {
 var repository = require('./libs/repository.js');
 var repository_updated = 0;
 
+var is_task_aborted = false;
+
 var phpunitRunner = require('./libs/phpunit_runner.js');
 phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
 phpunitRunner.phpunit_cmd_suffix = configParams.phpunit_runner.cmd_suffix;
@@ -97,9 +99,16 @@ socket.on('processTask', function(task) {
 
     var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
     phpunitRunner.run(test_path, function (response) {
-        task.params.response = response;
-        console.log('[' + getDate() + '] Посылаю результаты выполнения на сервер...');
-        socket.emit('readyTask', task);
+        if (is_task_aborted) {
+            is_task_aborted = false;
+            console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером.');
+        }
+        else {
+            task.params.response = response;
+            console.log('[' + getDate() + '] Посылаю результаты выполнения на сервер...');
+            socket.emit('readyTask', task);
+        }
+
     });
 });
 
@@ -115,6 +124,15 @@ socket.on('updateTasksInfo', function(tasks_count) {
  */
 socket.on('serverNotReady', function() {
     console.log('[' + getDate() + '] Жду готовности сервера...');
+});
+
+/**
+ * Отменяем отправку результатов выполнения задачи
+ *
+ * Наступает, когда принудительно очищаем очередь на сервере
+ */
+socket.on('abortTask', function() {
+    is_task_aborted = true;
 });
 
 /**
