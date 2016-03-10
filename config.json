@@ -14,8 +14,8 @@
     "port": 8100
   },
   "phpunit_runner": {
-    "cmd": "BAMBOO_UNIT_TEST_DATABASE=b2bcenter_cluster_test php ../phpunit-cluster-tests/phpunit.phar",
-    "cmd_suffix": "--bootstrap /raid/vhosts/b2bcenter/www_b2b/includes/tests/bootstrap.php -c ./configuration.xml",
+    "cmd": "BAMBOO_UNIT_TEST_DATABASE=b2bcenter_cluster_test php /opt/phpunit/phpunit-4.8.15.phar",
+    "cmd_suffix": "--bootstrap /raid/vhosts/b2bcenter/www_b2b/includes/tests/bootstrap.php -c /raid/vhosts/b2bcenter/www_b2b/includes/tests/configuration.xml",
     "result_json_file": "../phpunit-cluster-tests/result.json"
   },
 
