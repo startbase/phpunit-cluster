@@ -4,6 +4,10 @@ var config_params = config.getParams();
 var Repository = function () {
     this.local_branch = config_params.repository.local_branch;
     this.repository_path = config_params.repository.repository_path;
+
+    /**
+     * @param callback
+     */
     this.update = function (callback) {
         var local_branch = this.local_branch;
         var repository_path = this.repository_path;
@@ -15,6 +19,35 @@ var Repository = function () {
 
         var exec = require('child_process').exec;
         var child = exec(sh);
+        child.stdout.on('data', function(data) {
+            console.log(data);
+        });
+        child.stderr.on('data', function(data) {
+            console.log(data);
+        });
+        child.on('close', function(code) {
+            console.log('repository updated!');
+
+            if (callback != undefined) {
+                callback();
+            }
+
+        });
+    };
+
+    this.checkout = function (commit_hash, callback) {
+        var local_branch = this.local_branch;
+        var repository_path = this.repository_path;
+
+        var sh = 'cd '+repository_path+' '
+            + ' && git reset --hard origin/'+local_branch+ ' '
+            + ' && git fetch origin '
+            + ' && git checkout ' + commit_hash + ' ';
+
+        var exec = require('child_process').exec;
+        var child = exec(sh);
+
+        //@todo событие data перехватывается одновременно двумя обработчиками
         child.stdout.on('data', function(data) {
             console.log(data);
         });

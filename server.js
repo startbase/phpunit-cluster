@@ -166,7 +166,7 @@ io.sockets.on('connection', function (socket) {
         if (task !== false) {
             console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: ' + task.taskName);
             socket.current_task = task;
-            socket.emit('processTask', task);
+            socket.emit('processTask', {commit_hash: params.commit_hash, task: task});
         } else {
             // Если задач нет
         }
@@ -202,17 +202,15 @@ queueEvents.on('add', function (taskName) {
     switch (taskName) {
         case 'update.repo':
             repository.update(function () {
-                // @todo-r: в идеале должны стянуть ТОТ ЖЕ коммит, что и сервер
-                io.sockets.emit('updateRepository');
                 queueEvents.rmTask('update.repo');
                 queueEvents.addTask('set.commit.hash');
-                queueEvents.addTask('parser.start');
             });
             break;
         case 'set.commit.hash':
             repository.getLastCommitHash(function(commit_hash) {
                 params.commit_hash = commit_hash;
                 queueEvents.rmTask('set.commit.hash');
+                queueEvents.addTask('parser.start');
             });
             break;
         case 'parser.start':

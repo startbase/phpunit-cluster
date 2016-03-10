@@ -72,17 +72,11 @@ socket.on('readyForJob', function() {
 });
 
 /**
+ * @todo не нужно
  * Обновляем репозитарий и просим дать задачу
  */
 socket.on('updateRepository', function() {
-    console.log('[' + getDate() + '] Обновляю репозиторий...');
-
-    repository_updated = 0;
-    repository.update(function () {
-        repository_updated = 1;
-        console.log('[' + getDate() + '] Беру задачу из пула...');
-        socket.emit('getTask');
-    });
+    socket.emit('getTask');
 });
 
 /**
@@ -90,22 +84,16 @@ socket.on('updateRepository', function() {
  *
  * Участник выполняет задачу и отправляет результаты серверу.
  */
-socket.on('processTask', function(task) {
-    console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.taskName);
-
-    var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
-    phpunitRunner.run(test_path, function (response) {
-        if (is_task_aborted) {
-            is_task_aborted = false;
-            console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером.');
-        }
-        else {
-            task.params.response = response;
-            console.log('[' + getDate() + '] Посылаю результаты выполнения на сервер...');
-            socket.emit('readyTask', task);
-        }
-
-    });
+socket.on('processTask', function(data) {
+    var task = data.task;
+    if(params.commit_hash != data.commit_hash) {
+        updateRepository(data.commit_hash, function() {
+            processTask(task, socket);
+        });
+    }
+    else {
+        processTask(task, socket);
+    }
 });
 
 /**
@@ -123,6 +111,34 @@ socket.on('updateTasksInfo', function(tasks_count) {
 socket.on('abortTask', function() {
     is_task_aborted = true;
 });
+
+function processTask(task, socket) {
+    console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.taskName);
+    var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
+    phpunitRunner.run(test_path, function (response) {
+        if (is_task_aborted) {
+            is_task_aborted = false;
+            console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером.');
+        }
+        else {
+            task.params.response = response;
+            console.log('[' + getDate() + '] Посылаю результаты выполнения на сервер...');
+            socket.emit('readyTask', task);
+        }
+    });
+}
+
+function updateRepository(commit_hash, callback) {
+    console.log('[' + getDate() + '] Перехожу в ревизию ' + commit_hash + '...');
+//    repository_updated = 0;
+    repository.checkout(commit_hash, function () {
+//        repository_updated = 1;
+        callback();
+        params.commit_hash = commit_hash;
+        //console.log('[' + getDate() + '] Беру задачу из пула...');
+        //socket.emit('getTask');
+    });
+}
 
 /**
  * Человеко понятное время
