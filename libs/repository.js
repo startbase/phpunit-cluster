@@ -40,14 +40,11 @@ var Repository = function () {
         var repository_path = this.repository_path;
 
         var sh = 'cd '+repository_path+' '
-            + ' && git reset --hard origin/'+local_branch+ ' '
-            + ' && git fetch origin '
-            + ' && git checkout ' + commit_hash + ' ';
+            + ' && git fetch origin && git reset --hard ' + commit_hash + ' ';
 
         var exec = require('child_process').exec;
         var child = exec(sh);
 
-        //@todo событие data перехватывается одновременно двумя обработчиками
         child.stdout.on('data', function(data) {
             console.log(data);
         });
