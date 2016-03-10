@@ -55,6 +55,12 @@ rl.on('line', function (line) {
         case 'c':
             console.log('Текущий commit hash сервера: ' + params.commit_hash);
             break;
+        case 't':
+            console.log('Всего невыполненных задач: ' + queueTasks.tasks.length);
+            queueTasks.tasks.forEach(function (task, i) {
+                console.log(i + ': ' + task.taskName);
+            });
+            break;
         case 'e':
             console.log('Очищение очереди задач');
             queueTasks.tasks = [];
@@ -91,6 +97,7 @@ function show_help() {
     console.log('u - update tests repository');
     console.log('e - erase queue with tasks');
     console.log('d - show stats');
+    console.log('t - show tasks');
     console.log('o - show online clients');
     console.log('c - show current commit hash');
     console.log('h - help');
