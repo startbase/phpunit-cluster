@@ -6,7 +6,8 @@ var params = {
     user: 'startbase_' + Date.now(),
     domain: 'localhost',
     port: configParams.server_socket.port,
-    commit_hash: 'none'
+    commit_hash: 'none',
+    version: configParams.version
 };
 
 var repository = require('./libs/repository.js');
@@ -47,16 +48,16 @@ socket.on('disconnect', function() {
  * После прохождения регистрации вернётся событие "readyForJob" если репозитории совпадают.
  * Если не совпадают - сервер попросит обновить
  */
-socket.on('needUserReg', function() {
-	console.log('[' + getDate() + '] Прохожу регистрацию...');
+socket.on('needUserReg', function(server_version) {
+	console.log('[' + getDate() + '] Проверяю версию клиента...');
 
-    repository.getLastCommitHash(function(commit_hash) {
-        params.commit_hash = commit_hash;
-        socket.emit('registerUser', {
-            username: params.user,
-            commit_hash: params.commit_hash
-        });
-    });
+	if (server_version != params.version) {
+		console.log('[' + getDate() + '] Версия клиента корректна! Регистрируюсь в системе');
+		socket.emit('registerUser', { username: params.user });
+	} else {
+		console.log('[' + getDate() + '] Версия клиента не подходит для работы с сервером. Обновись!');
+		process.exit(0);
+	}
 });
 
 /**
@@ -66,13 +67,8 @@ socket.on('needUserReg', function() {
  * Участник запрашивает у сервера свободную задачу.
  */
 socket.on('readyForJob', function() {
-    /**
-     * @todo-r в данный момент если клиент отключается и снова подключается не работает. Нужен рефакторинг регистрации.
-     */
-    if (repository_updated == 1) {
-        console.log('[' + getDate() + '] Беру задачу из пула...');
-        socket.emit('getTask');
-    }
+	console.log('[' + getDate() + '] Готов для работы!');
+	socket.emit('getTask');
 });
 
 /**
@@ -117,13 +113,6 @@ socket.on('processTask', function(task) {
  */
 socket.on('updateTasksInfo', function(tasks_count) {
 	console.log('[' + getDate() + '] Свободных задач: ' + tasks_count);
-});
-
-/**
- * Показываем сообщение, что сервер ещё не готов для работы
- */
-socket.on('serverNotReady', function() {
-    console.log('[' + getDate() + '] Жду готовности сервера...');
 });
 
 /**

@@ -5,7 +5,8 @@ var configParams = config.getParams();
 var params = {
     port: configParams.server_socket.port,
     stats_port: configParams.stats_socket.port,
-    commit_hash: 'none'
+    commit_hash: 'none',
+    version: configParams.version
 };
 if (argv.p && typeof argv.p == "number") {
     params.port = argv.p
@@ -111,13 +112,11 @@ function show_online_clients() {
 
 io.sockets.on('connection', function (socket) {
 
-    console.log('[' + getDate() + '] Новое подключение...');
-
     /**
      * Запрашиваем регистрацию пользователя
      */
     if (socket.username === undefined) {
-        socket.emit('needUserReg');
+        socket.emit('needUserReg', params.version);
     }
 
     /**
@@ -125,28 +124,13 @@ io.sockets.on('connection', function (socket) {
      * Новый участник готов к работе
      */
     socket.on('registerUser', function (data) {
+		console.log('[' + getDate() + '] Новое подключение!');
+
         socket.username = data.username;
         users.push(data.username);
 
         console.log('[' + getDate() + '] ' + socket.username + ' подключился к системе');
-        console.log('[' + getDate() + '] User Commit Hash: ' + data.commit_hash);
-        console.log('[' + getDate() + '] Server Commit Hash: ' + params.commit_hash);
-
-        /** Сервер ещё не готов для работы */
-        if (params.commit_hash == 'none') {
-            socket.emit('serverNotReady');
-            return;
-        }
-
-        /** Если у сервера и клиента совпадают хеши - разрешаем работать */
-        if (params.commit_hash == data.commit_hash) {
-            console.log('[' + getDate() + '] ' + socket.username + ' готов для работы');
-            socket.emit('readyForJob');
-        } else {
-            console.log('[' + getDate() + '] ' + socket.username + ' обновляет репозитарий...');
-            socket.emit('updateRepository');
-        }
-
+        socket.emit('readyForJob');
     });
 
     /**
