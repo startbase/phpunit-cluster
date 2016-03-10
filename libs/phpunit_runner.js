@@ -51,8 +51,6 @@ var PhpUnitRunner = function () {
                         callback({'file':file, 'status':false, 'time':0, 'suites':[]});
                     }
                     self.log(e.message);
-                } finally {
-                    fs.unlink(tmp_filename);
                 }
             });
         });
