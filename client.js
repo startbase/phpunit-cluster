@@ -51,7 +51,7 @@ socket.on('disconnect', function() {
 socket.on('needUserReg', function(server_version) {
 	console.log('[' + getDate() + '] Проверяю версию клиента...');
 
-	if (server_version != params.version) {
+	if (server_version == params.version) {
 		console.log('[' + getDate() + '] Версия клиента корректна! Регистрируюсь в системе');
 		socket.emit('registerUser', { username: params.user });
 	} else {
