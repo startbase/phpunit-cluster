@@ -21,7 +21,7 @@
 
   "parser" : {
     "baseDirs" : [
-      "../phpunit-cluster-tests/"
+      "/raid/vhosts/b2bcenter/tests/Unit/Broker"
     ]
   }
 }
