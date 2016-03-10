@@ -3,10 +3,11 @@ var fs = require('fs');
 var PhpUnitRunner = function () {
     this.show_log = false;
     this.phpunit_cmd = '';
+    this.phpunit_cmd_suffix = '';
     this.result_json_file = '';
     this.run = function (file, callback) {
         var self = this;
-        var sh = self.phpunit_cmd + ' --tap --log-json ' + self.result_json_file + ' ' + file + ' ';
+        var sh = self.phpunit_cmd + ' ' + self.phpunit_cmd_suffix + ' --tap --log-json ' + self.result_json_file + ' ' + file;
 
         var exec = require('child_process').exec;
         var child = exec(sh);
@@ -50,6 +51,8 @@ var PhpUnitRunner = function () {
                         callback({'file':file, 'status':false, 'time':0, 'suites':[]});
                     }
                     self.log(e.message);
+                } finally {
+                    fs.unlink(tmp_filename);
                 }
             });
         });

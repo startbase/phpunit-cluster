@@ -14,6 +14,7 @@ var repository_updated = 0;
 
 var phpunitRunner = require('./libs/phpunit_runner.js');
 phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
+phpunitRunner.phpunit_cmd_suffix = configParams.phpunit_runner.cmd_suffix;
 phpunitRunner.result_json_file = configParams.phpunit_runner.result_json_file;
 
 /** Обработка аргументов */

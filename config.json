@@ -13,7 +13,8 @@
     "port": 8100
   },
   "phpunit_runner": {
-    "cmd": "php ../phpunit-cluster-tests/phpunit.phar",
+    "cmd": "BAMBOO_UNIT_TEST_DATABASE=b2bcenter_cluster_test php ../phpunit-cluster-tests/phpunit.phar",
+    "cmd_suffix": "--bootstrap /raid/vhosts/b2bcenter/www_b2b/includes/tests/bootstrap.php -c /raid/vhosts/b2bcenter/www_b2b/includes/tests/cluster-configuration.xml",
     "result_json_file": "../phpunit-cluster-tests/result.json"
   },
 
