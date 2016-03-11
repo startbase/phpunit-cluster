@@ -59,7 +59,7 @@ rl.on('line', function (line) {
         case 't':
             console.log('Всего невыполненных задач: ' + queueTasks.tasks.length);
             queueTasks.tasks.forEach(function (task, i) {
-                console.log(i + ': ' + task.taskName);
+                console.log((i + 1) + ': ' + task.taskName);
             });
             break;
         case 'e':
@@ -71,7 +71,13 @@ rl.on('line', function (line) {
             console.log(stats.getConsoleStats());
             break;
         case 'u':
-            queueEvents.addTask('update.repo');
+			// обновляем репозиторий только есть текущий пул задач выполнен
+			if (queueTasks.tasks.length == 0 && tasks_pool_count == stats.tests.length) {
+				queueTasks.tasks = [];
+				queueEvents.addTask('update.repo');
+			} else {
+				console.log('[' + getDate() + '] Невозможно обновить репозиторий - в текущем пуле есть задачи');
+			}
             return;
         default:
             console.log('bad command `' + line.trim() + '`');
