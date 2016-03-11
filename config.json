@@ -20,8 +20,9 @@
 	},
 	"parser" : {
 		"baseDirs" : [
-			"/raid/vhosts/b2bcenter/tests/Unit/Broker",
-			"/raid/vhosts/b2bcenter/tests/Unit/NC"
+			"example1",
+			"example2",
+			"example3"
 		]
 	}
 }
