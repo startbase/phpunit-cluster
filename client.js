@@ -3,11 +3,11 @@ var path = require('path');
 var config = require('./config.js');
 var configParams = config.getParams();
 var params = {
-    user: 'startbase_' + Date.now(),
-    domain: 'localhost',
-    port: configParams.server_socket.port,
-    commit_hash: 'none',
-    version: configParams.version
+	user: 'startbase_' + Date.now(),
+	domain: 'localhost',
+	port: configParams.server_socket.port,
+	commit_hash: 'none',
+	version: configParams.version
 };
 
 var repository = require('./libs/repository.js');
@@ -33,7 +33,7 @@ console.log('[' + getDate() + '] Выбранный сервер: http://' + par
 console.log('[' + getDate() + '] Запрашиваю статус сервера...');
 
 socket.on('connect', function() {
-    console.log('[' + getDate() + '] Сервер доступен. Присоединяюсь...');
+	console.log('[' + getDate() + '] Сервер доступен. Присоединяюсь...');
 });
 
 socket.on('disconnect', function() {
@@ -83,17 +83,17 @@ socket.on('readyForJob', function() {
  * - не совпадают -> клиент обновляет репозитарий, переключается в нужный коммит и выполняет тест
  */
 socket.on('processTask', function(data) {
-    var task = data.task;
+	var task = data.task;
 	console.log('[' + getDate() + '] Получил задачу ID: ' + task.taskName);
 
-    if (params.commit_hash != data.commit_hash) {
+	if (params.commit_hash != data.commit_hash) {
 		console.log('[' + getDate() + '] Для её выполнения нужно синхронизировать commit hash');
-        syncRepository(data.commit_hash, function() {
-            processTask(task, socket);
-        });
-    } else {
-        processTask(task, socket);
-    }
+		syncRepository(data.commit_hash, function() {
+			processTask(task, socket);
+		});
+	} else {
+		processTask(task, socket);
+	}
 });
 
 /**
@@ -111,7 +111,7 @@ socket.on('userMessage', function(data) {
  * Наступает, когда принудительно очищаем очередь на сервере
  */
 socket.on('abortTask', function() {
-    is_task_aborted = true;
+	is_task_aborted = true;
 });
 
 /**
@@ -121,18 +121,18 @@ socket.on('abortTask', function() {
  * @param socket
  */
 function processTask(task, socket) {
-    var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
+	var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
 
 	phpunitRunner.run(test_path, function (response) {
-        if (is_task_aborted) {
-            is_task_aborted = false;
-            console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером');
-        } else {
-            task.params.response = response;
+		if (is_task_aborted) {
+			is_task_aborted = false;
+			console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером');
+		} else {
+			task.params.response = response;
 			console.log('[' + getDate() + '] Выполнил задачу ID: ' + task.taskName);
-            socket.emit('readyTask', task);
-        }
-    });
+			socket.emit('readyTask', task);
+		}
+	});
 }
 
 /**
@@ -142,12 +142,12 @@ function processTask(task, socket) {
  * @param callback
  */
 function syncRepository(commit_hash, callback) {
-    console.log('[' + getDate() + '] Синхронизация с ' + commit_hash + ' ...');
+	console.log('[' + getDate() + '] Синхронизация с ' + commit_hash + ' ...');
 
-    repository.checkout(commit_hash, function () {
-        callback();
-        params.commit_hash = commit_hash;
-    });
+	repository.checkout(commit_hash, function () {
+		callback();
+		params.commit_hash = commit_hash;
+	});
 }
 
 /**
@@ -156,6 +156,6 @@ function syncRepository(commit_hash, callback) {
  * @returns {string}
  */
 function getDate() {
-    var date = new Date();
-    return date.toLocaleString();
+	var date = new Date();
+	return date.toLocaleString();
 }

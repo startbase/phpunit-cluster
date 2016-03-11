@@ -173,8 +173,8 @@ io.sockets.on('connection', function (socket) {
         if (task !== false) {
             console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: ' + task.taskName);
             socket.current_task = task;
-			socket.emit('userMessage', { message: 'Свободных задач в пуле: ' + queueTasks.tasks.length });
             socket.emit('processTask', { task: task, commit_hash: params.commit_hash });
+			socket.emit('userMessage', { message: 'Свободных задач в пуле: ' + queueTasks.tasks.length });
         } else {
 			socket.emit('userMessage', { message: 'Свободных задач в пуле нет' });
         }
