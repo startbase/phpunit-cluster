@@ -6,6 +6,10 @@
 $ sudo npm install
 ```
 
+Создать БД `b2bcenter_cluster_test` командой `echo "CREATE DATABASE IF NOT EXISTS b2bcenter_cluster_test" | mysql -uroot`
+
+В `config.json` в настройке `parser.baseDirs` указать пути до папок с интересующими тестами
+
 # Клиент
 
 Запуск приложения:
@@ -51,13 +55,3 @@ HotKeys:
 * `u` - обновить репозиторий git и запустить цепочку событий
 * `t` - показать оставшиеся задачи в текущем пуле
 * `e` - очистка пула и остановка выполнения тестов клиентами
-
-
-# Запуск
-
-1. В `config.json` в настройке `parser.baseDirs` указать пути до папок с интересующими тестами
-2. Создать БД `b2bcenter_cluster_test` командой `echo "CREATE DATABASE IF NOT EXISTS b2bcenter_cluster_test" | mysql -uroot`
-
-
-
-
