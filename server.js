@@ -22,6 +22,7 @@ var queueTasks = new (require('./queue'));
 var task = new Task(queueTasks);
 var stats = require('./stats');
 var users = [];
+var tasks_pool_count = 0;
 
 /** Запускаемся */
 var io = require('socket.io').listen(params.port);
@@ -36,8 +37,8 @@ queueTasks.on('fill.complete', function () {
     stats.resetStats();
     stats.start_time = Date.now();
 
-    var tasks_total = queueTasks.tasks.length;
-    console.log('[' + getDate() + '] Всего задач: ' + tasks_total);
+    tasks_pool_count = queueTasks.tasks.length;
+    console.log('[' + getDate() + '] Всего задач: ' + tasks_pool_count);
     console.log('[' + getDate() + '] Раздаём задачи...');
     io.sockets.emit('readyForJob');
 });
@@ -137,6 +138,7 @@ io.sockets.on('connection', function (socket) {
         users.push(data.username);
 
         console.log('[' + getDate() + '] ' + socket.username + ' подключился к системе');
+		socket.emit('userMessage', { message: 'Регистрация прошла успешно!' });
         socket.emit('readyForJob');
     });
 
@@ -152,8 +154,13 @@ io.sockets.on('connection', function (socket) {
         if (queueTasks.tasks.length > 0) {
             socket.emit('readyForJob');
         } else {
-            stats.finish_time = Date.now();
-        }
+			socket.emit('userMessage', { message: 'Свободных задач в пуле нет' });
+		}
+
+		if (tasks_pool_count == stats.tests.length) {
+			console.log('[' + getDate() + '] Все задачи из текущего пула выполнены');
+			stats.finish_time = Date.now();
+		}
     });
 
     /**
@@ -166,12 +173,11 @@ io.sockets.on('connection', function (socket) {
         if (task !== false) {
             console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: ' + task.taskName);
             socket.current_task = task;
-            socket.emit('processTask', {commit_hash: params.commit_hash, task: task});
+			socket.emit('userMessage', { message: 'Свободных задач в пуле: ' + queueTasks.tasks.length });
+            socket.emit('processTask', { task: task, commit_hash: params.commit_hash });
         } else {
-            // Если задач нет
+			socket.emit('userMessage', { message: 'Свободных задач в пуле нет' });
         }
-
-        socket.emit('updateTasksInfo', queueTasks.tasks.length);
     });
 
     /** Участник отключается от системы */

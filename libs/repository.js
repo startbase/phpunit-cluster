@@ -36,7 +36,6 @@ var Repository = function () {
     };
 
     this.checkout = function (commit_hash, callback) {
-        var local_branch = this.local_branch;
         var repository_path = this.repository_path;
 
         var sh = 'cd '+repository_path+' '

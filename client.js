@@ -11,7 +11,6 @@ var params = {
 };
 
 var repository = require('./libs/repository.js');
-var repository_updated = 0;
 
 var is_task_aborted = false;
 
@@ -44,15 +43,18 @@ socket.on('disconnect', function() {
 /**
  * Регистрация в системе
  *
- * Если участника нет в списках - сервер отправит запрос на регистрацию.
- * После прохождения регистрации вернётся событие "readyForJob" если репозитории совпадают.
- * Если не совпадают - сервер попросит обновить
+ * Сервер присылает текущую версию системы:
+ * - совпадает с клиентом -> пользователь регистрируется
+ * - не совпадает -> выводится сообщение и client.js останавливается
+ *
+ * @todo 1: вместо завершения процесса сделать автообновление клиента и перезапуск (с параметрами)
+ * @todo 2: проверять не просто версию из конфига а хеш-сумму client.js
  */
 socket.on('needUserReg', function(server_version) {
 	console.log('[' + getDate() + '] Проверяю версию клиента...');
 
 	if (server_version == params.version) {
-		console.log('[' + getDate() + '] Версия клиента корректна! Регистрируюсь в системе');
+		console.log('[' + getDate() + '] Версия клиента корректна! Регистрируюсь в системе...');
 		socket.emit('registerUser', { username: params.user });
 	} else {
 		console.log('[' + getDate() + '] Версия клиента не подходит для работы с сервером. Обновись!');
@@ -67,40 +69,40 @@ socket.on('needUserReg', function(server_version) {
  * Участник запрашивает у сервера свободную задачу.
  */
 socket.on('readyForJob', function() {
-	console.log('[' + getDate() + '] Готов для работы!');
+	console.log('[' + getDate() + '] Запрашиваю свободную задачу...');
 	socket.emit('getTask');
-});
-
-/**
- * @todo не нужно
- * Обновляем репозитарий и просим дать задачу
- */
-socket.on('updateRepository', function() {
-    socket.emit('getTask');
 });
 
 /**
  * Выполнение задачи
  *
- * Участник выполняет задачу и отправляет результаты серверу.
+ * data: { task: 'path теста', commit_hash: 'текущий коммит хэш сервера' }
+ *
+ * Сервер присылает тест и текущий коммит хеш:
+ * - коммит хеши совпадают -> клиент выполняет тест
+ * - не совпадают -> клиент обновляет репозитарий, переключается в нужный коммит и выполняет тест
  */
 socket.on('processTask', function(data) {
     var task = data.task;
-    if(params.commit_hash != data.commit_hash) {
-        updateRepository(data.commit_hash, function() {
+	console.log('[' + getDate() + '] Получил задачу ID: ' + task.taskName);
+
+    if (params.commit_hash != data.commit_hash) {
+		console.log('[' + getDate() + '] Для её выполнения нужно синхронизировать commit hash');
+        syncRepository(data.commit_hash, function() {
             processTask(task, socket);
         });
-    }
-    else {
+    } else {
         processTask(task, socket);
     }
 });
 
 /**
- * Показать информацию о свободных задачах
+ * Вывод уведомлений от сервера
+ *
+ * data: { message: 'сообщение' }
  */
-socket.on('updateTasksInfo', function(tasks_count) {
-	console.log('[' + getDate() + '] Свободных задач: ' + tasks_count);
+socket.on('userMessage', function(data) {
+	console.log('[' + getDate() + '] ' + data.message);
 });
 
 /**
@@ -112,36 +114,45 @@ socket.on('abortTask', function() {
     is_task_aborted = true;
 });
 
+/**
+ * Выполнение теста клиентом
+ *
+ * @param task
+ * @param socket
+ */
 function processTask(task, socket) {
-    console.log('[' + getDate() + '] Выполняю задачу ID: ' + task.taskName);
     var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
-    phpunitRunner.run(test_path, function (response) {
+
+	phpunitRunner.run(test_path, function (response) {
         if (is_task_aborted) {
             is_task_aborted = false;
-            console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером.');
-        }
-        else {
+            console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером');
+        } else {
             task.params.response = response;
-            console.log('[' + getDate() + '] Посылаю результаты выполнения на сервер...');
+			console.log('[' + getDate() + '] Выполнил задачу ID: ' + task.taskName);
             socket.emit('readyTask', task);
         }
     });
 }
 
-function updateRepository(commit_hash, callback) {
-    console.log('[' + getDate() + '] Перехожу в ревизию ' + commit_hash + '...');
-//    repository_updated = 0;
+/**
+ * Выполняет синхронизацию репозитария клиента с требуемым commit hash
+ *
+ * @param commit_hash
+ * @param callback
+ */
+function syncRepository(commit_hash, callback) {
+    console.log('[' + getDate() + '] Синхронизация с ' + commit_hash + ' ...');
+
     repository.checkout(commit_hash, function () {
-//        repository_updated = 1;
         callback();
         params.commit_hash = commit_hash;
-        //console.log('[' + getDate() + '] Беру задачу из пула...');
-        //socket.emit('getTask');
     });
 }
 
 /**
  * Человеко понятное время
+ *
  * @returns {string}
  */
 function getDate() {

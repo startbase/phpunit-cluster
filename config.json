@@ -1,27 +1,27 @@
 {
-  "version": "0.0.1",
-  "repository": {
-    "local_branch": "master",
-    "repository_path": "../phpunit-cluster-tests"
-  },
-  "server_socket": {
-    "port": 8099
-  },
-  "stats_socket": {
-    "port": 8101
-  },
-  "web": {
-    "port": 8100
-  },
-  "phpunit_runner": {
-    "cmd": "BAMBOO_UNIT_TEST_DATABASE=b2bcenter_cluster_test php /opt/phpunit/phpunit-4.8.15.phar",
-    "cmd_suffix": "--bootstrap /raid/vhosts/b2bcenter/www_b2b/includes/tests/bootstrap.php -c /raid/vhosts/b2bcenter/www_b2b/includes/tests/configuration.xml",
-    "result_json_file": "../phpunit-cluster-tests/result.json"
-  },
-
-  "parser" : {
-    "baseDirs" : [
-      "/raid/vhosts/b2bcenter/tests/Unit/Broker"
-    ]
-  }
+	"version": "0.0.1",
+	"repository": {
+		"local_branch": "master",
+		"repository_path": "../phpunit-cluster-tests"
+	},
+	"server_socket": {
+		"port": 8099
+	},
+	"stats_socket": {
+		"port": 8101
+	},
+	"web": {
+		"port": 8100
+	},
+	"phpunit_runner": {
+		"cmd": "BAMBOO_UNIT_TEST_DATABASE=b2bcenter_cluster_test php /opt/phpunit/phpunit-4.8.15.phar",
+		"cmd_suffix": "--bootstrap /raid/vhosts/b2bcenter/www_b2b/includes/tests/bootstrap.php -c /raid/vhosts/b2bcenter/www_b2b/includes/tests/configuration.xml",
+		"result_json_file": "../phpunit-cluster-tests/result.json"
+	},
+	"parser" : {
+		"baseDirs" : [
+			"/raid/vhosts/b2bcenter/tests/Unit/Broker",
+			"/raid/vhosts/b2bcenter/tests/Unit/NC"
+		]
+	}
 }
