@@ -72,12 +72,13 @@ rl.on('line', function (line) {
             break;
         case 'u':
 			// обновляем репозиторий только есть текущий пул задач выполнен
-			if (queueTasks.tasks.length == 0 && tasks_pool_count == stats.tests.length) {
+			//if (queueTasks.tasks.length == 0 && tasks_pool_count == stats.tests.length) {
+                tasks_pool_count = 0;
 				queueTasks.tasks = [];
 				queueEvents.addTask('update.repo');
-			} else {
-				console.log('[' + getDate() + '] Невозможно обновить репозиторий - в текущем пуле есть задачи');
-			}
+			//} else {
+			//	console.log('[' + getDate() + '] Невозможно обновить репозиторий - в текущем пуле есть задачи');
+			//}
             return;
         default:
             console.log('bad command `' + line.trim() + '`');
