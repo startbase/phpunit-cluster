@@ -4,17 +4,22 @@ var path = require('path');
 var TestParser = function() {
     this.base_dirs = [];
 
-    this.processParse = function(callback) {
+    this.processParse = function (callback) {
         var instance = this;
         var res = [];
         var complete = 0;
-        this.base_dirs.forEach(function(directory) {
-            instance.getTestsArray(directory, function(error, result) {
-                res = res.concat(result);
-                complete++;
-                if(complete == instance.base_dirs.length) {
-                    callback(error, res);
+        this.base_dirs.forEach(function (directory) {
+            fs.stat(directory, function (err, stats) {
+                if (stats.isFile()) {
+                    res = res.concat(directory);
                 }
+                instance.getTestsArray(directory, function (error, result) {
+                    res = res.concat(result);
+                    complete++;
+                    if (complete == instance.base_dirs.length) {
+                        callback(error, res);
+                    }
+                });
             });
         });
     };

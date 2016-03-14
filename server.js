@@ -154,7 +154,7 @@ io.sockets.on('connection', function (socket) {
 		stats.addStat(task.params.response);
 
         socket.current_task = false;
-		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: ' + task.taskName + ' за ' + (task.params.response.time).toFixed(4) + ' сек.');
+		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.params.response.time).toFixed(4) + ' сек.');
 
         if (queueTasks.tasks.length > 0) {
             socket.emit('readyForJob');
@@ -185,7 +185,7 @@ io.sockets.on('connection', function (socket) {
         var task = queueTasks.getTask();
 
         if (task !== false) {
-            console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: ' + task.taskName);
+            console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: \n' + task.taskName);
             socket.current_task = task;
             socket.emit('processTask', { task: task, commit_hash: params.commit_hash });
 			socket.emit('userMessage', { message: 'Свободных задач в пуле: ' + queueTasks.tasks.length });
