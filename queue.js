@@ -4,19 +4,6 @@ const util = require('util');
 var Task = function (taskName, params) {
     this.taskName = taskName;
     this.params = params;
-
-    /**
-     * @param {Object} newParams
-     */
-    //this.updateParams = function (newParams) {
-    //    for (var i in newParams) {
-    //        for (var j in this.params) {
-    //            if (i == j) {
-    //                this.params[j] = newParams[i];
-    //            }
-    //        }
-    //    }
-    //};
 };
 
 var Queue = function () {
@@ -69,7 +56,7 @@ var Queue = function () {
         }
 
         if (!isNaN(index)) {
-            delete this.tasks[index];
+			this.tasks.splice(index, 1);
             return true;
         }
         return false;
@@ -87,8 +74,6 @@ var Queue = function () {
         }
         return false;
     };
-
-
 
     /**
      * Проверить есть ли такая задача в очереди

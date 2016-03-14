@@ -71,14 +71,12 @@ rl.on('line', function (line) {
             console.log(stats.getConsoleStats());
             break;
         case 'u':
-			// обновляем репозиторий только есть текущий пул задач выполнен
-			//if (queueTasks.tasks.length == 0 && tasks_pool_count == stats.tests.length) {
-                tasks_pool_count = 0;
-				queueTasks.tasks = [];
-				queueEvents.addTask('update.repo');
-			//} else {
-			//	console.log('[' + getDate() + '] Невозможно обновить репозиторий - в текущем пуле есть задачи');
-			//}
+			if (!queueEvents.hasTask('need.update.repo')) {
+				console.log('[' + getDate() + '] Задача по обновлению репозитория добавлена в очередь');
+				queueEvents.addTask('need.update.repo');
+			} else {
+				console.log('[' + getDate() + '] Задача по обновлению репозитория уже есть в очереди');
+			}
             return;
         default:
             console.log('bad command `' + line.trim() + '`');
@@ -102,7 +100,7 @@ function getDate() {
 
 function show_help() {
     console.log('help:');
-    console.log('u - update tests repository');
+    console.log('u - update repository');
     console.log('e - erase queue with tasks');
     console.log('d - show stats');
     console.log('t - show tasks');
@@ -167,6 +165,15 @@ io.sockets.on('connection', function (socket) {
 		if (tasks_pool_count == stats.tests.length) {
 			console.log('[' + getDate() + '] Все задачи из текущего пула выполнены');
 			stats.finish_time = Date.now();
+
+			/** Освобождаем сервер */
+			queueEvents.rmTask('in.process');
+			console.log('[' + getDate() + '] Сервер свободен для создания нового пула задач');
+			/** Если в очереди есть задача на обновление репозитария - just do it! */
+			if (queueEvents.hasTask('need.update.repo')) {
+				queueEvents.rmTask('need.update.repo');
+				queueEvents.addTask('update.repo');
+			}
 		}
     });
 
@@ -213,11 +220,19 @@ io.sockets.on('connection', function (socket) {
 
 queueEvents.on('add', function (taskName) {
     switch (taskName) {
+		case 'need.update.repo':
+			if (!queueEvents.hasTask('in.process')) {
+				queueEvents.rmTask('need.update.repo');
+				queueEvents.addTask('update.repo');
+			}
+			break;
         case 'update.repo':
-            repository.update(function () {
-                queueEvents.rmTask('update.repo');
-                queueEvents.addTask('set.commit.hash');
-            });
+			queueEvents.addTask('in.process');
+			queueTasks.tasks = [];
+			repository.update(function () {
+				queueEvents.rmTask('update.repo');
+				queueEvents.addTask('set.commit.hash');
+			});
             break;
         case 'set.commit.hash':
             repository.getLastCommitHash(function(commit_hash) {
@@ -238,6 +253,9 @@ queueEvents.on('add', function (taskName) {
             queueEvents.rmTask('task.generate');
             io.sockets.emit('stats.update', stats.getWebStats());
             task.generateQueue(taskEventObj.params['data']);
+            break;
+        case 'in.process':
+			console.log('[' + getDate() + '] Сервер перешёл в режим создания и раздачи задач');
             break;
     }
 });
