@@ -10,16 +10,18 @@ var TestParser = function() {
         var complete = 0;
         this.base_dirs.forEach(function (directory) {
             fs.stat(directory, function (err, stats) {
-                if (stats.isFile()) {
+                if (!err && stats.isFile()) {
                     res = res.concat(directory);
+                    callback(err, res);
+                } else {
+                    instance.getTestsArray(directory, function (error, result) {
+                        res = res.concat(result);
+                        complete++;
+                        if (complete == instance.base_dirs.length) {
+                            callback(error, res);
+                        }
+                    });
                 }
-                instance.getTestsArray(directory, function (error, result) {
-                    res = res.concat(result);
-                    complete++;
-                    if (complete == instance.base_dirs.length) {
-                        callback(error, res);
-                    }
-                });
             });
         });
     };
