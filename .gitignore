@@ -33,4 +33,8 @@ node_modules
 # Optional REPL history
 .node_repl_history
 
+# Main Config file
 local.config.json
+
+# Result file from phpunit
+result.json

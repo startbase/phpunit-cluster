@@ -196,6 +196,8 @@ io.sockets.on('connection', function (socket) {
 
     /** Участник отключается от системы */
     socket.on('disconnect', function () {
+        /** @todo Выпилить логи от Веб-сервера, либо перевесить его**/
+        
         /** Удаляем участника из обешго списка **/
         var index = users.indexOf(socket.username);
         if (index != -1) {

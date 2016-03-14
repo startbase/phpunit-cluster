@@ -1,0 +1,8 @@
+<tr>
+    <th>{{tests_overall_count}}</th>
+    <th>{{tests_success_count}}</th>
+    <th>{{tests_failed_count}}</th>
+    <th>{{time_average}}</th>
+    <th>{{time_overall}}</th>
+    <th>{{time_pool}}</th>
+</tr>
