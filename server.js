@@ -12,6 +12,31 @@ if (argv.p && typeof argv.p == "number") {
     params.port = argv.p
 }
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+var dgram = require('dgram');
+var udp_receiver = dgram.createSocket('udp4');
+
+udp_receiver.on('error', function (err) {
+	console.log('[' + getDate() + '] UDP: ' + err);
+	//udp_receiver.close();
+});
+
+udp_receiver.on('message', function (message, info) {
+	console.log('[' + getDate() + '] UDP пакет:');
+	console.log(message, info);
+	/*
+	if (нужное нам событие) {
+		if (!queueEvents.hasTask('need.update.repo')) {
+			console.log('[' + getDate() + '] Задача по обновлению репозитория добавлена в очередь');
+			queueEvents.addTask('need.update.repo');
+		} else {
+			console.log('[' + getDate() + '] Задача по обновлению репозитория уже есть в очереди');
+		}
+	}
+	*/
+});
+
+udp_receiver.bind(configParams.udp_socket.port);
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
 var Task = require('./task');

@@ -10,6 +10,9 @@
 	"stats_socket": {
 		"port": 8101
 	},
+	"udp_socket": {
+		"port": 8095
+	},
 	"web": {
 		"port": 8100
 	},
