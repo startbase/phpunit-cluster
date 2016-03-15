@@ -1,11 +1,6 @@
 const EventEmitter = require('events');
 const util = require('util');
 
-var fs = require('fs');
-var mustache = require('mustache');
-
-var path_to_mustache_template = './web/template.mst';
-
 var Stats = function () {
     /** @type {number} Время старта раздач тестов клиентам, миллисекунды */
     this.start_time = 0;
@@ -14,15 +9,8 @@ var Stats = function () {
 
     this.tests = [];
 
-    this.buildHtml = function(object_to_render) {
-        var template = fs.readFileSync(path_to_mustache_template, 'utf8');
-        console.log(object_to_render);
-        return mustache.to_html(template, object_to_render);
-    };
-
     this.getWebStats = function() {
-        var stats_data = this.getStatsData();
-        return this.buildHtml(stats_data);
+        return this.getStatsData();
     };
 
     this.getRawStats = function () {
