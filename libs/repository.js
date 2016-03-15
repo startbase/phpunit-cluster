@@ -1,62 +1,34 @@
 var config = require('../config.js');
-
 var config_params = config.getParams();
+
+var git = require('simple-git')(config_params.repository.repository_path);
+git.outputHandler(function (command, stdout, stderr) {
+    stdout.pipe(process.stdout);
+    stderr.pipe(process.stderr);
+});
+
 var Repository = function () {
-    this.local_branch = config_params.repository.local_branch;
-    this.repository_path = config_params.repository.repository_path;
 
     /**
      * @param callback
      */
     this.update = function (callback) {
-        var local_branch = this.local_branch;
-        var repository_path = this.repository_path;
-
-        var sh = 'cd '+repository_path+' '
-            + ' && git reset --hard origin/'+local_branch+ ' '
-            + ' && git fetch origin '
-            + ' && git rebase origin/'+local_branch+' ';
-
-        var exec = require('child_process').exec;
-        var child = exec(sh);
-        child.stdout.on('data', function(data) {
-            console.log(data);
-        });
-        child.stderr.on('data', function(data) {
-            console.log(data);
-        });
-        child.on('close', function(code) {
-            console.log('repository updated!');
-
-            if (callback != undefined) {
-                callback();
-            }
-
-        });
+        var branch = 'origin/' + config_params.repository.local_branch;
+        git.fetch('origin')
+            ._run(['reset', '--hard', branch], function() {
+                git._run(['rebase', branch], function(err) {
+                    if(!err) {
+                        callback();
+                    }
+                });
+            });
     };
 
     this.checkout = function (commit_hash, callback) {
-        var repository_path = this.repository_path;
-
-        var sh = 'cd '+repository_path+' '
-            + ' && git fetch origin && git reset --hard ' + commit_hash + ' ';
-
-        var exec = require('child_process').exec;
-        var child = exec(sh);
-
-        child.stdout.on('data', function(data) {
-            console.log(data);
-        });
-        child.stderr.on('data', function(data) {
-            console.log(data);
-        });
-        child.on('close', function(code) {
-            console.log('repository updated!');
-
-            if (callback != undefined) {
+        git.fetch('origin')._run(['reset', '--hard', commit_hash], function(err) {
+            if(!err) {
                 callback();
             }
-
         });
     };
 
@@ -65,24 +37,9 @@ var Repository = function () {
      * @param callback
      */
     this.getLastCommitHash = function(callback) {
-        var commit_hash = '';
-        var sh = 'cd ' + this.repository_path + ' '
-            + '&& git log -n 1 --pretty=format:"%H"';
-
-        var exec = require('child_process').exec;
-        var child = exec(sh);
-
-        child.stdout.on('data', function(data) {
-            commit_hash = data;
-        });
-
-        child.stderr.on('data', function(data) {
-            console.log(data);
-        });
-
-        child.on('close', function() {
-            if (callback != undefined) {
-                callback(commit_hash);
+        git.log(['-n', '1', '--pretty=format:"%H"'], function(err, data) {
+            if(!err) {
+                callback(data.latest.hash)
             }
         });
     };

@@ -1,3 +1,4 @@
+var git = require('simple-git')();
 var child_process = require('child_process'),
     spawn = child_process.spawn;
 
@@ -13,8 +14,7 @@ var Forker = function(command) {
     this.restartApp = function()
     {
         var self = this;
-        //@todo сделать обновление по нормальному
-        spawn('git', ['pull']).on('close', function() {
+        git.fetch('origin').pull(function() {
             console.log('Repository has been updated');
             spawn('npm', ['install']).on('close', function() {
                 console.log('npm install completed');

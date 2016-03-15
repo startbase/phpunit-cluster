@@ -12,7 +12,8 @@
 		"socket.io": "^1.4.5",
 		"socket.io-client": "^1.4.5",
 		"minimist": "^1.2.0",
-		"mustache": "latest"
+		"mustache": "latest",
+		"simple-git": "^1.28.1"
 	},
 	"repository": {
 		"type": "git",
