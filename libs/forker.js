@@ -1,28 +1,24 @@
-var git = require('simple-git')();
-var child_process = require('child_process'),
-    spawn = child_process.spawn;
+var spawn = require('child_process').spawn;
 
 /**
  * @param command
+ * @param {function} before_start_callback
  * @constructor
  */
-var Forker = function(command) {
+var Forker = function(command, before_start_callback) {
     var child;
     this.app_params_array = command instanceof Array ? command : command.split(' ');
     this.app_command = this.app_params_array.splice(0, 1)[0];
+    this.before_start = before_start_callback || this.defaultBeforeStart;
 
     this.restartApp = function()
     {
         var self = this;
-        git.fetch('origin').pull(function() {
-            console.log('Repository has been updated');
-            spawn('npm', ['install']).on('close', function() {
-                console.log('npm install completed');
-                if (child) {
-                    child.kill();
-                }
-                self.startApp();
-            });
+        this.before_start(function() {
+            if (child) {
+                child.kill();
+            }
+            self.startApp();
         });
     };
 
@@ -35,6 +31,8 @@ var Forker = function(command) {
             self.restartApp();
         });
     };
+
+    this.defaultBeforeStart = function() {};
 };
 
 module.exports = Forker;
