@@ -3,7 +3,6 @@ var fs = require('fs');
 var localConfigPath = __dirname + '/local.config.json';
 var isExistLocalConfig = fs.existsSync(localConfigPath); // Если существует локальный конфиг
 
-
 var params = require('./config.json');
 
 if (isExistLocalConfig) {
