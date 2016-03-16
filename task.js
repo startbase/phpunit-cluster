@@ -1,3 +1,5 @@
+var weightBase = require('./libs/weight-base');
+
 var Task = function(queue) {
 	this.queue = queue;
 
@@ -15,7 +17,9 @@ var Task = function(queue) {
 			instance.queue.addTask(item, params);
 		});
 
-		instance.queue.emit('fill.complete');
+		weightBase.sortTasks(this.queue, function() {
+			instance.queue.emit('fill.complete');
+		});
 	};
 };
 

@@ -38,3 +38,6 @@ local.config.json
 
 # Result file from phpunit
 result.json
+
+# Weight DataBase
+weight.json

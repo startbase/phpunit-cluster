@@ -46,6 +46,7 @@ var queueEvents = new (require('./queue'));
 var queueTasks = new (require('./queue'));
 var task = new Task(queueTasks);
 var stats = require('./stats');
+var weightBase = require('./libs/weight-base');
 var users = [];
 var tasks_pool_count = 0;
 
@@ -59,7 +60,8 @@ show_help();
  * и говорим участникам, что они могут разбирать тесты
  */
 queueTasks.on('fill.complete', function () {
-    stats.resetStats();
+	stats.resetStats();
+	weightBase.resetPool();
     stats.start_time = Date.now();
 
     tasks_pool_count = queueTasks.tasks.length;
@@ -177,6 +179,7 @@ io.sockets.on('connection', function (socket) {
      */
     socket.on('readyTask', function (task) {
 		stats.addStat(task.params.response);
+		weightBase.addWeight({ taskName: task.taskName, weight: task.params.response.time });
 
         socket.current_task = false;
 		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.params.response.time).toFixed(4) + ' сек.');
@@ -189,6 +192,9 @@ io.sockets.on('connection', function (socket) {
 
 		if (tasks_pool_count == stats.tests.length) {
 			console.log('[' + getDate() + '] Все задачи из текущего пула выполнены');
+			weightBase.saveWeights(function() {
+				console.log('[' + getDate() + '] Данные по времени выполнения тестов последнего пула сохранены');
+			});
 			stats.finish_time = Date.now();
 
 			/** Освобождаем сервер */
