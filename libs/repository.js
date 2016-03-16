@@ -37,7 +37,7 @@ var Repository = function () {
      * @param callback
      */
     this.getLastCommitHash = function(callback) {
-        git.log(['-n', '1', '--pretty=format:"%H"'], function(err, data) {
+        git.log(['-n', '1', '--pretty=format:%H'], function(err, data) {
             if(!err) {
                 callback(data.latest.hash)
             }

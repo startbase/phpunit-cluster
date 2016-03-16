@@ -19,7 +19,7 @@
 	"phpunit_runner": {
 		"cmd": "BAMBOO_UNIT_TEST_DATABASE=b2bcenter_cluster_test php /opt/phpunit/phpunit-4.8.15.phar",
 		"cmd_suffix": "--bootstrap /var/reps/b2bcenter/www_b2b/includes/tests/bootstrap.php -c /var/reps/b2bcenter/www_b2b/includes/tests/configuration.xml",
-		"result_json_file": "../phpunit-cluster-tests/result.json"
+		"result_json_file": "result.json"
 	},
 	"parser" : {
 		"baseDirs" : [
