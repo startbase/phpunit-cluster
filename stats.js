@@ -42,6 +42,12 @@ var Stats = function () {
         var failed_tests_names = [];
         var failed_test_suites = [];
 
+        var succeded_tests_names = [];
+
+        raw_stats.tests_completed.forEach(function(test) {
+            succeded_tests_names.push(test.file);
+        });
+
         raw_stats.tests_failed.forEach(function(test) {
             failed_tests_names.push(test.file);
 
@@ -69,7 +75,9 @@ var Stats = function () {
             'time_overall': raw_stats.time_overall,
             'time_pool' : time_pool,
             'failed_tests_names': failed_tests_names,
-            'failed_tests_suites': failed_test_suites
+            'failed_tests_suites': failed_test_suites,
+
+            'succeded_tests_names': succeded_tests_names
         };
     };
 
