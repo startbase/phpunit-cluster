@@ -1,6 +1,21 @@
 const EventEmitter = require('events');
 const util = require('util');
 
+var config = require('./config.js');
+var configParams = config.getParams();
+
+function cut(str, substr) {
+    var cutStart = str.indexOf(substr);
+    var cutEnd = cutStart + substr.length - 1;
+
+    if (cutStart == -1) {
+        return str;
+    }
+
+    
+    return str.substr(0, cutStart) + str.substr(cutEnd+1);
+}
+
 var Stats = function () {
     /** @type {number} Время старта раздач тестов клиентам, миллисекунды */
     this.start_time = 0;
@@ -8,6 +23,41 @@ var Stats = function () {
     this.finish_time = 0;
 
     this.tests = [];
+
+    this.processDirArr = function(dir_arr) {
+        var base_dirs_raw = configParams.parser.baseDirs;
+        var base_dirs = [];
+        var new_dir_arr = [];
+
+        base_dirs_raw.forEach(function(base_dir_raw) {
+            base_arr = base_dir_raw.split('/');
+
+            if (base_arr.indexOf('.') != - 1) {
+                sl = -2;
+            }
+            else {
+                sl = -1;
+            }
+
+            base_arr = base_arr.slice(0, sl);
+
+            base_dir = base_arr.join('/');
+
+            base_dirs.push(base_dir);
+        });
+        
+        console.log(base_dirs);
+
+        dir_arr.forEach(function(dir) {
+            base_dirs.forEach(function(base_dir) {
+                new_dir_arr.push(cut(dir, base_dir));
+            });
+        });
+
+        console.log(new_dir_arr);
+
+        return new_dir_arr;
+    };
 
     this.getWebStats = function() {
         return this.getStatsData();
@@ -77,7 +127,7 @@ var Stats = function () {
             'failed_tests_names': failed_tests_names,
             'failed_tests_suites': failed_test_suites,
 
-            'succeded_tests_names': succeded_tests_names
+            'succeded_tests_names': this.processDirArr(succeded_tests_names)
         };
     };
 
