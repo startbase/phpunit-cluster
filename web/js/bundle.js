@@ -637,11 +637,111 @@ var mustache = require('mustache');
 var path_to_mustache_template = 'template.mst';
 
 
-socket.on('stats.update', function (data) {
-    $.get(path_to_mustache_template, function(template) {
-        var rendered = mustache.to_html(template, data);
-        console.log(rendered);
-        $('.table.table-striped tbody').prepend(rendered);
+  socket.on('stats.update', function (data) {
+    $.get(path_to_mustache_template, function (template) {
+      var rendered = mustache.to_html(template, data);
+      $('.table.table-striped tbody').prepend(rendered);
+      console.log(data.succeded_tests_names);
+      var files = data.succeded_tests_names;
+
+
+      console.log(files);
+      var idcount = 0;
+      var treeJSON = [];
+      var idmap = {};
+
+      function add(dirs) {
+        if (!dirs.length) return "#";
+        var name = dirs.join("/");
+        if (name in idmap) return idmap[name];
+        var dir = dirs.pop();
+        var parent = add(dirs);
+        var id = "ajson" + ++idcount;
+        treeJSON.push({
+          id: id,
+          parent: parent,
+          text: dir
+        });
+        return idmap[name] = id;
+      }
+
+      for (var i = 0; i < files.length; ++i) {
+        var name = files[i];
+        add(name.split("/"));
+      }
+
+      // setTimeout(function () {
+        $('#jstree_demo_div').jstree({
+          // themes: {
+          //   theme: 'default', // название темы, для смены темы поменять url недостаточно, нужно ещё и сменить название (т.к. названия стилей содержат в себе его)
+          //   url: 'js/dist/themes/default/style.css' // URL к файлу стилей (рядом должны лежать картинки, как в архиве с плагином)
+          // },
+          'core': {
+            'check_callback': true,
+            'data': function (node, cb) {
+              cb.call(this, treeJSON);
+            }
+          },
+          // тут мы перечисляем все плагины, которые используем
+          plugins: ['themes', 'json_data', 'ui']
+        });
+
+      // }, 1000);
     });
-});
-},{"mustache":1}]},{},[2]);
+
+    // var files = [
+    //   {webkitRelativePath: "Simple Root Node"},
+    //   {webkitRelativePath: "Root Node 2"},
+    //   {webkitRelativePath: "Root Node 2/Child 1"},
+    //   {webkitRelativePath: "Root Node 2/Child 2"}
+    // ];
+
+
+
+
+
+    // $('#jstree_demo_div').jstree({
+    //   themes: {
+    //     theme: 'default', // название темы, для смены темы поменять url недостаточно, нужно ещё и сменить название (т.к. названия стилей содержат в себе его)
+    //     url: 'js/dist/themes/default/style.css' // URL к файлу стилей (рядом должны лежать картинки, как в архиве с плагином)
+    //   },
+    //   json_data: { // это всё конфигурация плагина 'json_data'
+    //     data: [ // тестовые данные - массив из объектов, в каждом из которых есть набор атрибутов и массив дочерних элементов
+    //       {
+    //         // заголовок элемента, может быть представлен не только строкой, но и объектом (см документацию по json_data)
+    //         // это может быть использовано для того, чтобы установить дополнительные атрибуты ссылке (тегу <a>), генерируемой при конвертации
+    //         // json-данных в код разметки
+    //         data: "First node",
+    //         attr: { // attr
+    //           id: 1
+    //         },
+    //         state: 'open', // по наличию одного из ключей 'state' или 'children' jsTree определяет, что этот узел содержит детей
+    //         children: [
+    //           {
+    //             data: "Child1",
+    //             attr: {
+    //               id: 3
+    //             }
+    //           },
+    //           {
+    //             data: "Child2",
+    //             attr: {
+    //               id: 4
+    //             }
+    //           }
+    //         ]
+    //       },
+    //       {
+    //         data: "Second node - leaf",
+    //         attr: {
+    //           id: 2
+    //         }
+    //       }
+    //     ]
+    //   },
+    //   // тут мы перечисляем все плагины, которые используем
+    //   plugins: ['themes', 'json_data', 'ui']
+    // });
+  });
+}, {"mustache": 1}]
+}, {}, [2]);
