@@ -128,7 +128,7 @@ function processTask(task, socket) {
 			is_task_aborted = false;
 			console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером');
 		} else {
-			task.params.response = response;
+			task.response = response;
 			console.log('[' + getDate() + '] Выполнил задачу ID: \n' + task.taskName);
 			socket.emit('readyTask', task);
 		}

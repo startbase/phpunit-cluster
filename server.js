@@ -65,7 +65,7 @@ queueTasks.on('fill.complete', function () {
     stats.start_time = Date.now();
 
     tasks_pool_count = queueTasks.tasks.length;
-    console.log('[' + getDate() + '] Всего задач: ' + tasks_pool_count);
+    console.log('\n[' + getDate() + '] Всего задач: ' + tasks_pool_count);
     console.log('[' + getDate() + '] Раздаём задачи...');
     io.sockets.emit('readyForJob');
 });
@@ -178,11 +178,11 @@ io.sockets.on('connection', function (socket) {
      * Задача выполнена участником и он готов к новой работе
      */
     socket.on('readyTask', function (task) {
-		stats.addStat(task.params.response);
-		weightBase.addWeight({ taskName: task.taskName, weight: task.params.response.time });
+		stats.addStat(task.response);
+		weightBase.addWeight({ taskName: task.taskName, weight: task.response.time });
 
         socket.current_task = false;
-		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.params.response.time).toFixed(4) + ' сек.');
+		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.response.time).toFixed(4) + ' сек.');
 
         if (queueTasks.tasks.length > 0) {
             socket.emit('readyForJob');
@@ -240,7 +240,7 @@ io.sockets.on('connection', function (socket) {
         /** Если клиент выполнял задачу - возвращаем её в очередь */
         if (socket.current_task) {
             console.log('[' + getDate() + '] Задача ID: ' + socket.current_task.taskName + ' возвращена в очередь');
-            queueTasks.addTask(socket.current_task.taskName, {});
+            queueTasks.addTask(socket.current_task.taskName);
         }
 
         socket.username = undefined;

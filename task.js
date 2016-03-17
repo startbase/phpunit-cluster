@@ -13,8 +13,7 @@ var Task = function(queue) {
 		var instance = this;
 
 		result.forEach(function(item) {
-			var params = {};
-			instance.queue.addTask(item, params);
+			instance.queue.addTask(item);
 		});
 
 		weightBase.sortTasks(this.queue, function() {
