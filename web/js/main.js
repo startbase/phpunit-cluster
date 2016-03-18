@@ -2,6 +2,13 @@ var App = App || {};
 var socket = io('http://' + window.location.hostname + ':8099');
 
 App.main = function () {
+    var self = this;
+
+    this.repaintIframe = function () {
+        var iframe = $('#ourframe', parent.document.body);
+        iframe.height($(document.body).height());
+    };
+
     this.start = function (data) {
         console.log('start', data);
         var progressBarHtml = '<div class="progress" id="tests-progress">' +
@@ -42,11 +49,15 @@ App.main = function () {
         }
 
         $('#tests-result-info').html(resultHtml);
+
+        self.repaintIframe();
     };
 
     socket.on('web.start', this.start);
     socket.on('web.update', this.update);
     socket.on('web.complete', this.complete);
+
+    this.repaintIframe();
 };
 
 App.main = new App.main();
