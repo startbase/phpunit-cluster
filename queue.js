@@ -7,6 +7,7 @@ var Task = function (taskName, params) {
 };
 
 var Queue = function () {
+    this.observers = [];
     /**
      * @type {Task[]}
      */
@@ -25,6 +26,9 @@ var Queue = function () {
     this.addTask = function (taskName, params) {
         this.tasks.push(new Task(taskName, params));
         this.emit('add', taskName);
+        this.observers.forEach(function (item) {
+            item.emit(taskName, params);
+        });
         return this;
     };
 

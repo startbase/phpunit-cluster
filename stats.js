@@ -22,6 +22,8 @@ var Stats = function () {
     /** @type {number} Время выполнения последнего теста, миллисекунды */
     this.finish_time = 0;
 
+    this.count_tasks = 0;
+
     this.tests = [];
 
     this.processDirArr = function(dir_arr) {
@@ -126,7 +128,7 @@ var Stats = function () {
             'time_pool' : time_pool,
             'failed_tests_names': failed_tests_names,
             'failed_tests_suites': failed_test_suites,
-
+            'count_tasks': this.count_tasks,
             'succeded_tests_names': this.processDirArr(succeded_tests_names)
         };
     };
@@ -166,6 +168,7 @@ var Stats = function () {
         this.start_time = 0;
         this.finish_time = 0;
         this.tests = [];
+        this.count_tasks = 0;
     };
 
     EventEmitter.call(this);

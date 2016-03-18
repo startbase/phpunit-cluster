@@ -1,14 +1,52 @@
+var App = App || {};
 var socket = io('http://' + window.location.hostname + ':8099');
 
-var mustache = require('mustache');
+App.main = function () {
+    this.start = function (data) {
+        console.log('start', data);
+        var progressBarHtml = '<div class="progress" id="tests-progress">' +
+            '<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0;">' +
+            '<span>0</span>' +
+            '</div>' +
+            '</div>' +
+            '<div id="tests-result-info"></div>';
+        $('#info-tests').empty().html(progressBarHtml);
+    };
 
-var path_to_mustache_template = 'template.mst';
+    this.update = function (data) {
+        console.log('update', data);
+        var tp = $('#tests-progress');
+        if (!tp) {
+            this.start(data);
+        }
+        var pb = tp.find('.progress-bar');
+        pb.attr('aria-valuemax', data.count_tasks);
+        var percent = Math.ceil((100 / parseInt(pb.attr('aria-valuemax'))) * data.tests_overall_count);
+        pb.css('width', percent + '%');
+        pb.find('span').text(percent + '% Complete');
+    };
 
+    this.complete = function (data) {
+        var resultHtml = '<table class="table table-striped">' +
+            '<tr><td>Всего пройдено тестов:</td><td>' + data.tests_overall_count + '</td></tr>' +
+            '<tr><td>Успешно пройдено тестов: </td><td>' + data.tests_success_count + '</td></tr>' +
+            '<tr><td>Завалено тестов: </td><td>' + data.tests_failed_count + '</td></tr>' +
+            '</table>';
 
-socket.on('stats.update', function (data) {
-    $.get(path_to_mustache_template, function(template) {
-        var rendered = mustache.to_html(template, data);
-        console.log(rendered);
-        $('.table.table-striped tbody').prepend(rendered);
-    });
-});
+        // progress-bar-success
+        var pb = $('#tests-progress').find('.progress-bar');
+        if (data.tests_failed_count) {
+            pb.addClass('progress-bar-danger');
+        } else {
+            pb.addClass('progress-bar-success');
+        }
+
+        $('#tests-result-info').html(resultHtml);
+    };
+
+    socket.on('web.start', this.start);
+    socket.on('web.update', this.update);
+    socket.on('web.complete', this.complete);
+};
+
+App.main = new App.main();

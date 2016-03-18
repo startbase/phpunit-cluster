@@ -65,6 +65,8 @@ queueTasks.on('fill.complete', function () {
     stats.start_time = Date.now();
 
     tasks_pool_count = queueTasks.tasks.length;
+
+    stats.count_tasks = tasks_pool_count;
     console.log('\n[' + getDate() + '] Всего задач: ' + tasks_pool_count);
     console.log('[' + getDate() + '] Раздаём задачи...');
     io.sockets.emit('readyForJob');
@@ -206,7 +208,9 @@ io.sockets.on('connection', function (socket) {
 				queueEvents.rmTask('need.update.repo');
 				queueEvents.addTask('update.repo');
 			}
-		}
+            io.sockets.emit('web.update', stats.getWebStats());
+            io.sockets.emit('web.complete', stats.getWebStats());
+        }
     });
 
     /**
@@ -224,6 +228,7 @@ io.sockets.on('connection', function (socket) {
         } else {
 			socket.emit('userMessage', { message: 'Свободных задач в пуле нет' });
         }
+        io.sockets.emit('web.update', stats.getWebStats());
     });
 
     /** Участник отключается от системы */
@@ -291,6 +296,7 @@ queueEvents.on('add', function (taskName) {
             var taskEventObj = queueEvents.find('task.generate');
             queueEvents.rmTask('task.generate');
             io.sockets.emit('stats.update', stats.getWebStats());
+            io.sockets.emit('web.start', stats.getWebStats());
             task.generateQueue(taskEventObj.params['data']);
             break;
         case 'in.process':
