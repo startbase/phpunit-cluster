@@ -92,6 +92,7 @@ rl.on('line', function (line) {
         case 'e':
             console.log('Очищение очереди задач');
             queueTasks.tasks = [];
+			queueEvents.rmTask('in.process');
             io.sockets.emit('abortTask');
             break;
         case 'd':
@@ -141,7 +142,7 @@ function show_online_clients() {
 
     console.log('Список пользователей в системе:');
     for (var i = 0; i < users.length; i++) {
-        console.log(user_index + '. ' + users[i]);
+        console.log(user_index + '. ' + users[i][0] + ' (' + users[i][1] + ')');
         user_index++;
     }
     console.log('\n');
@@ -167,7 +168,7 @@ io.sockets.on('connection', function (socket) {
 		console.log('[' + getDate() + '] Новое подключение!');
 
         socket.username = data.username;
-        users.push(data.username);
+        users.push([data.username, data.userinfo]);
 
         console.log('[' + getDate() + '] ' + socket.username + ' подключился к системе');
 		socket.emit('userMessage', { message: 'Регистрация прошла успешно!' });
@@ -230,7 +231,12 @@ io.sockets.on('connection', function (socket) {
         /** @todo Выпилить логи от Веб-сервера, либо перевесить его**/
         
         /** Удаляем участника из обешго списка **/
-        var index = users.indexOf(socket.username);
+		var index = -1;
+		users.forEach(function(user, i) {
+			if (user[0] == socket.username) {
+				index = i;
+			}
+		});
         if (index != -1) {
             users.splice(index, 1);
         }

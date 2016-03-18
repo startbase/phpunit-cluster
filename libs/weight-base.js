@@ -41,12 +41,6 @@ var WeightBase = function () {
 
 				queueTasks.tasks.sort(sortByWeight);
 
-				/** DEBUG **/
-				fs.writeFile('./weight-debug.json', JSON.stringify(queueTasks.tasks), function(err) {
-					if (err) throw err;
-				});
-				//
-
 				callback();
 			});
 		} else {

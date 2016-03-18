@@ -1,3 +1,4 @@
+var os = require('os');
 var path = require('path');
 
 var config = require('./config.js');
@@ -13,6 +14,7 @@ var params = {
 var repository = require('./libs/repository.js');
 
 var is_task_aborted = false;
+var connect_status = false;
 
 var phpunitRunner = require('./libs/phpunit_runner.js');
 phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
@@ -33,10 +35,12 @@ console.log('[' + getDate() + '] Выбранный сервер: http://' + par
 console.log('[' + getDate() + '] Запрашиваю статус сервера...');
 
 socket.on('connect', function() {
+	connect_status = true;
 	console.log('[' + getDate() + '] Сервер доступен. Присоединяюсь...');
 });
 
 socket.on('disconnect', function() {
+	connect_status = false;
 	console.log('[' + getDate() + '] Сервер недоступен');
 });
 
@@ -55,7 +59,8 @@ socket.on('needUserReg', function(server_version) {
 
 	if (server_version == params.version) {
 		console.log('[' + getDate() + '] Версия клиента корректна! Регистрируюсь в системе...');
-		socket.emit('registerUser', { username: params.user });
+		var cpus = os.cpus();
+		socket.emit('registerUser', { username: params.user, userinfo: os.type() + ' ' + os.arch() + ', ' + cpus[0].model + ' ' + cpus[0].speed + ' MHz' });
 	} else {
 		console.log('[' + getDate() + '] Версия клиента не подходит для работы с сервером. Обновись!');
 		process.exit(0);
@@ -128,9 +133,11 @@ function processTask(task, socket) {
 			is_task_aborted = false;
 			console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером');
 		} else {
-			task.response = response;
-			console.log('[' + getDate() + '] Выполнил задачу ID: \n' + task.taskName);
-			socket.emit('readyTask', task);
+			if (connect_status) {
+				task.response = response;
+				console.log('[' + getDate() + '] Выполнил задачу ID: \n' + task.taskName);
+				socket.emit('readyTask', task);
+			}
 		}
 	});
 }
