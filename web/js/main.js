@@ -23,8 +23,8 @@ App.main = function () {
     this.update = function (data) {
         console.log('update', data);
         var tp = $('#tests-progress');
-        if (!tp) {
-            this.start(data);
+        if (!tp.size()) {
+            self.start(data);
         }
         var pb = tp.find('.progress-bar');
         pb.attr('aria-valuemax', data.count_tasks);
