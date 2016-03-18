@@ -194,6 +194,7 @@ io.sockets.on('connection', function (socket) {
 		}
 
 		if (tasks_pool_count == stats.tests.length) {
+            io.sockets.emit('stats.update', stats.getWebStats());
 			console.log('[' + getDate() + '] Все задачи из текущего пула выполнены');
 			weightBase.saveWeights(function() {
 				console.log('[' + getDate() + '] Данные по времени выполнения тестов последнего пула сохранены');
@@ -295,7 +296,6 @@ queueEvents.on('add', function (taskName) {
         case 'task.generate':
             var taskEventObj = queueEvents.find('task.generate');
             queueEvents.rmTask('task.generate');
-            io.sockets.emit('stats.update', stats.getWebStats());
             io.sockets.emit('web.start', stats.getWebStats());
             task.generateQueue(taskEventObj.params['data']);
             break;

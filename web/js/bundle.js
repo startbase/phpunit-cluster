@@ -641,11 +641,8 @@ var path_to_mustache_template = 'template.mst';
     $.get(path_to_mustache_template, function (template) {
       var rendered = mustache.to_html(template, data);
       $('.table.table-striped tbody').prepend(rendered);
-      console.log(data.succeded_tests_names);
       var files = data.succeded_tests_names;
-
-
-      console.log(files);
+      
       var idcount = 0;
       var treeJSON = [];
       var idmap = {};

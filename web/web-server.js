@@ -13,7 +13,6 @@ server.on('request', function (request, response) {
 
     fs.readFile(filepath, 'utf8', function (err, data) {
         if (err) {
-            console.log(fs.existsSync(content), content, err);
             response.statusCode = 500;
             response.write("Error");
             response.end();

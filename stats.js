@@ -47,16 +47,12 @@ var Stats = function () {
 
             base_dirs.push(base_dir);
         });
-        
-        console.log(base_dirs);
 
         dir_arr.forEach(function(dir) {
             base_dirs.forEach(function(base_dir) {
                 new_dir_arr.push(cut(dir, base_dir));
             });
         });
-
-        console.log(new_dir_arr);
 
         return new_dir_arr;
     };
