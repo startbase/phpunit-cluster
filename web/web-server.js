@@ -5,13 +5,13 @@ var path = require('path');
 const __DIR__ = path.dirname(process.mainModule.filename);
 
 server.on('request', function (request, response) {
-    var filepath = __DIR__ + '/index2.html';
+    var filepath = __DIR__ + '/index.html';
 
     if (fs.existsSync(__DIR__ + request.url) && !fs.lstatSync(__DIR__ + request.url).isDirectory()) {
         filepath = __DIR__ + request.url;
     }
 
-    fs.readFile(filepath, 'utf8', function (err, data) {
+    fs.readFile(filepath, function (err, data) {
         if (err) {
             response.statusCode = 500;
             response.write("Error");
