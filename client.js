@@ -1,6 +1,6 @@
 var os = require('os');
 var path = require('path');
-var db_manager = require('./libs/db-manager.js');
+var migration_manager = require('./libs/migration-manager.js');
 
 var config = require('./config.js');
 var configParams = config.getParams();
@@ -153,7 +153,7 @@ function syncRepository(commit_hash, callback) {
 	console.log('[' + getDate() + '] Синхронизация с ' + commit_hash + ' ...');
 
 	repository.checkout(commit_hash, function () {
-		db_manager.migrateUp(callback);
+		migration_manager.migrateUp(callback);
 		params.commit_hash = commit_hash;
 	});
 }
