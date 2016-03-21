@@ -69,9 +69,16 @@ App.main = function () {
         self.repaintIframe();
     };
 
+    this.reset = function () {
+        setTimeout(function () {
+            window.location.reload();
+        }, 3000);
+    };
+
     socket.on('web.start', this.start);
     socket.on('web.update', this.update);
     socket.on('web.complete', this.complete);
+    socket.on('web.reset', this.reset);
 
     this.repaintIframe();
     this.addManualRunnerHandler();

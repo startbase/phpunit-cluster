@@ -96,6 +96,8 @@ rl.on('line', function (line) {
             queueTasks.tasks = [];
 			queueEvents.rmTask('in.process');
             io.sockets.emit('abortTask');
+            stats.count_tasks = 0;
+            io.sockets.emit('web.reset');
             break;
         case 'd':
             console.log(stats.getConsoleStats());
@@ -213,6 +215,7 @@ io.sockets.on('connection', function (socket) {
 				queueEvents.rmTask('need.update.repo');
 				queueEvents.addTask('update.repo');
 			}
+            stats.count_tasks = 0;
             io.sockets.emit('web.update', stats.getWebStats());
             io.sockets.emit('web.complete', stats.getWebStats());
         }
