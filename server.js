@@ -304,7 +304,7 @@ queueEvents.on('add', function (taskName) {
         case 'task.generate':
             var taskEventObj = queueEvents.find('task.generate');
             queueEvents.rmTask('task.generate');
-            io.sockets.emit('web.start', stats.getWebStats());
+            io.sockets.emit('web.start');
             task.generateQueue(taskEventObj.params['data']);
             break;
         case 'in.process':

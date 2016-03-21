@@ -17,11 +17,7 @@ App.main = function () {
         });
     };
 
-    this.start = function (data) {
-        console.log('start', data);
-        if (!data.count_tasks) {
-            return;
-        }
+    this.start = function () {
         var progressBarHtml = '<div class="progress" id="tests-progress">' +
             '<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0;">' +
             '<span>0</span>' +
@@ -29,6 +25,9 @@ App.main = function () {
             '</div>' +
             '<div id="tests-result-info"></div>';
         $('#info-tests').empty().html(progressBarHtml);
+        
+        var treeHtml = '<div id="tree"></div>';
+        $('#tree-block').empty().html(treeHtml);
     };
 
     this.update = function (data) {
@@ -79,6 +78,52 @@ App.main = function () {
     socket.on('web.update', this.update);
     socket.on('web.complete', this.complete);
     socket.on('web.reset', this.reset);
+
+    socket.on('stats.update', function (data) {
+            var tests_all = data.all_tests_data;
+
+            var tree = new Tree();
+            tree.addArr(tests_all);
+            var treeJSON = tree.asArray();
+
+            $('#tree').jstree({
+                themes: {
+                    theme: 'default'
+                },
+                "types": {
+                    "#": {
+                        // "max_children": 1,
+                        // "max_depth": 4,
+                        "valid_children": ["root"]
+                    },
+                    "root": {
+                        "icon": "folder",
+                        "valid_children": ["default"]
+                    },
+                    "default": {
+                        "icon": "folder",
+                        "valid_children": ["default", "file"]
+                    },
+                    "file": {
+                        "icon": "file-php",
+                        "valid_children": []
+                    },
+                    "file-error": {
+                        "icon": "file-php-error",
+                        "valid_children": []
+                    },
+                    "folder-error": {
+                        "icon": "folder-error",
+                        "valid_children": []
+                    }
+                },
+                'core': {
+                    'data': treeJSON
+                },
+                // тут мы перечисляем все плагины, которые используем
+                plugins: ['themes', 'json_data', 'ui', 'types', 'state']
+            });
+        });
 
     this.repaintIframe();
     this.addManualRunnerHandler();

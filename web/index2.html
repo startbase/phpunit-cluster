@@ -5,6 +5,8 @@
     <title>Unit test cluster statistic</title>
     <link type="text/css" rel="stylesheet" href="css/bootstrap.css"/>
     <link type="text/css" rel="stylesheet" href="css/bootstrap-theme.css"/>
+    <link type="text/css" rel="stylesheet" href="css/fstree.css"/>
+    <link type="text/css" rel="stylesheet" href="js/jstree/themes/default/style.css"/>
     <script type="text/javascript" src="js/jquery.min.js"></script>
 </head>
 <body>
@@ -30,9 +32,25 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    Test Files
+                </div>
+                <div class="panel-body">
+                    <div id="tree-block">
+                        <div id="tree"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 <script type="text/javascript" src="js/bootstrap.min.js"></script>
 <script type="text/javascript" src="js/socket.io.js"></script>
-<script type="text/javascript" src="/js/main.js"></script>
+<script type="text/javascript" src="js/jstree/jstree.js"></script>
+<script type="text/javascript" src="js/fstree.js"></script>
+<script type="text/javascript" src="js/main.js"></script>
 </html>

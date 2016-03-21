@@ -652,12 +652,6 @@ var path_to_mustache_template = 'template.mst';
         themes: {
           theme: 'default' // название темы, для смены темы поменять url недостаточно, нужно ещё и сменить название (т.к. названия стилей содержат в себе его)
         },
-        'core': {
-          'check_callback': true,
-          'data': function (node, cb) {
-            cb.call(this, treeJSON);
-          }
-        },
         "types" : {
           "#" : {
             "max_children" : 1,
@@ -685,9 +679,9 @@ var path_to_mustache_template = 'template.mst';
             "valid_children" : []
           }
         },
-        // 'core': {
-        //     'data': treeJSON
-        // },
+        'core': {
+            'data': treeJSON
+        },
         // тут мы перечисляем все плагины, которые используем
         plugins: ['themes', 'json_data', 'ui', 'types', 'state']
       });
