@@ -259,6 +259,7 @@ io.sockets.on('connection', function (socket) {
         socket.current_task = false;
     });
 
+    socket.emit('web.update', stats.getWebStats());
 });
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
