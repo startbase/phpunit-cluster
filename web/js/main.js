@@ -9,6 +9,14 @@ App.main = function () {
         iframe.height($(document.body).height());
     };
 
+    this.addManualRunnerHandler = function () {
+        var btn = $('#manual-runner');
+        btn.on('click', function () {
+            $(this).prop('disabled', true);
+            socket.emit('manual.run');
+        });
+    };
+
     this.start = function (data) {
         console.log('start', data);
         if (!data.count_tasks) {
@@ -25,6 +33,11 @@ App.main = function () {
 
     this.update = function (data) {
         console.log('update', data);
+
+        if (!data.count_tasks) {
+            return;
+        }
+
         var tp = $('#tests-progress');
         if (!tp.size()) {
             self.start(data);
@@ -61,6 +74,7 @@ App.main = function () {
     socket.on('web.complete', this.complete);
 
     this.repaintIframe();
+    this.addManualRunnerHandler();
 };
 
 App.main = new App.main();

@@ -177,6 +177,10 @@ io.sockets.on('connection', function (socket) {
         socket.emit('readyForJob');
     });
 
+    socket.on('manual.run', function () {
+        rl.emit('line', 'u');
+    });
+
     /**
      * Задача выполнена участником и он готов к новой работе
      */
