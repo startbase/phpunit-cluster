@@ -26,3 +26,5 @@ var DbManager = function() {
 
     };
 };
+
+module.exports = new DbManager();
