@@ -2,7 +2,9 @@
 	"version": "0.0.3",
 	"repository": {
 		"local_branch": "master",
-		"repository_path": "../phpunit-cluster-tests"
+		"repository_path": "../phpunit-cluster-tests",
+		"server_connection_timeout": 15000,
+		"client_connection_timeout": 15000
 	},
 	"server_socket": {
 		"port": 8099
@@ -23,7 +25,8 @@
 	},
 	"parser" : {
 		"baseDirs" : [
-			"example1"
+			"/var/reps/b2bcenter/tests/Unit",
+			"/var/reps/b2bcenter/www_b2b/includes/tests/includes"
 		]
 	},
 	"db": {

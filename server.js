@@ -258,12 +258,15 @@ io.sockets.on('connection', function (socket) {
 
         /** Если клиент выполнял задачу - возвращаем её в очередь */
         if (socket.current_task) {
-            console.log('[' + getDate() + '] Задача ID: ' + socket.current_task.taskName + ' возвращена в очередь');
-            queueTasks.addTask(socket.current_task.taskName);
+            returnTaskToQueue(socket.current_task);
         }
 
         socket.username = undefined;
         socket.current_task = false;
+    });
+
+    socket.on('rejectTask', function(data) {
+        returnTaskToQueue(data);
     });
 
     socket.emit('web.update', stats.getWebStats());
@@ -282,9 +285,16 @@ queueEvents.on('add', function (taskName) {
         case 'update.repo':
 			queueEvents.addTask('in.process');
 			queueTasks.tasks = [];
+            var updateTimeout = setTimeout(function() {
+                updateTimeout = null;
+                queueEvents.tasks = [];
+            }, configParams.repository.server_connection_timeout);
 			repository.update(function () {
-				queueEvents.rmTask('update.repo');
-				queueEvents.addTask('set.commit.hash');
+                if (updateTimeout) {
+                    clearTimeout(updateTimeout);
+                    queueEvents.rmTask('update.repo');
+                    queueEvents.addTask('set.commit.hash');
+                }
 			});
             break;
         case 'set.commit.hash':
@@ -323,3 +333,8 @@ stats_socket.on('connection', function (socket) {
     });
 
 });
+
+function returnTaskToQueue(current_task) {
+    console.log('[' + getDate() + '] Задача ID: ' + current_task.taskName + ' возвращена в очередь');
+    queueTasks.addTask(current_task.taskName);
+}

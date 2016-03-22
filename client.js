@@ -75,8 +75,7 @@ socket.on('needUserReg', function(server_version) {
  * Участник запрашивает у сервера свободную задачу.
  */
 socket.on('readyForJob', function() {
-	console.log('[' + getDate() + '] Запрашиваю свободную задачу...');
-	socket.emit('getTask');
+	readyForJob(socket);
 });
 
 /**
@@ -94,7 +93,7 @@ socket.on('processTask', function(data) {
 
 	if (params.commit_hash != data.commit_hash) {
 		console.log('[' + getDate() + '] Для её выполнения нужно синхронизировать commit hash');
-		syncRepository(data.commit_hash, function() {
+		syncRepository(data, socket, function() {
 			processTask(task, socket);
 		});
 	} else {
@@ -146,16 +145,36 @@ function processTask(task, socket) {
 /**
  * Выполняет синхронизацию репозитория клиента с требуемым commit hash
  *
- * @param commit_hash
+ * @param data
+ * @param socket
  * @param callback
  */
-function syncRepository(commit_hash, callback) {
+function syncRepository(data, socket, callback) {
+	var commit_hash = data.commit_hash;
 	console.log('[' + getDate() + '] Синхронизация с ' + commit_hash + ' ...');
 
+	var updateTimeout = setTimeout(function() {
+		var attempt_delay = 1500;
+		updateTimeout = null;
+		console.log('[' + getDate() + '] Ошибка синхронизации. Задача возвращена на сервер');
+		socket.emit('rejectTask', data.task);
+
+		setTimeout(function() {
+			readyForJob(socket);
+		}, attempt_delay);
+	}, configParams.repository.client_connection_timeout);
 	repository.checkout(commit_hash, function () {
-		migration_manager.migrateUp(callback);
-		params.commit_hash = commit_hash;
+		if (updateTimeout) {
+			clearTimeout(updateTimeout);
+			migration_manager.migrateUp(callback);
+			params.commit_hash = commit_hash;
+		}
 	});
+}
+
+function readyForJob(socket) {
+	console.log('[' + getDate() + '] Запрашиваю свободную задачу...');
+	socket.emit('getTask');
 }
 
 /**
