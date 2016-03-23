@@ -3,6 +3,7 @@ var socket = io('http://' + window.location.hostname + ':8099');
 
 App.main = function () {
     var self = this;
+    var stats_fails_only = true;
 
     this.repaintIframe = function () {
         var iframe = $('#ourframe', parent.document.body);
@@ -89,6 +90,68 @@ App.main = function () {
 		$('#users-list').html(users_list);
 	};
 
+    this.stats_update = function (data) {
+        var tests_all = data.all_tests_data;
+
+        var tests_fails = [];
+        tests_all.forEach(function (test) {
+            if (!test.status) {
+                tests_fails.push(test);
+            }
+        });
+
+        var tree_arr;
+        var tree = new Tree();
+
+        if (stats_fails_only) {
+            tree_arr = tests_fails;
+        }
+        else {
+            tree_arr = tests_all;
+        }
+
+        tree.addArr(tree_arr);
+        var treeJSON = tree.asArray();
+
+        $('#tree').jstree({
+            themes: {
+                theme: 'default'
+            },
+            "types": {
+                "#": {
+                    // "max_children": 1,
+                    // "max_depth": 4,
+                    "valid_children": ["root"]
+                },
+                "root": {
+                    "icon": "folder",
+                    "valid_children": ["default"]
+                },
+                "default": {
+                    "icon": "folder",
+                    "valid_children": ["default", "file"]
+                },
+                "file": {
+                    "icon": "file-php",
+                    "valid_children": []
+                },
+                "file-error": {
+                    "icon": "file-php-error",
+                    "valid_children": []
+                },
+                "folder-error": {
+                    "icon": "folder-error",
+                    "valid_children": []
+                }
+            },
+            'core': {
+                'data': treeJSON
+            },
+            // тут мы перечисляем все плагины, которые используем
+            plugins: ['themes', 'json_data', 'ui', 'types', 'state']
+        });
+    };
+
     socket.on('web.start', this.start);
     socket.on('web.update', this.update);
     socket.on('web.complete', this.complete);
@@ -96,51 +159,7 @@ App.main = function () {
 
     socket.on('web.users.update', this.users_update);
 
-    socket.on('stats.update', function (data) {
-            var tests_all = data.all_tests_data;
-
-            var tree = new Tree();
-            tree.addArr(tests_all);
-            var treeJSON = tree.asArray();
-
-            $('#tree').jstree({
-                themes: {
-                    theme: 'default'
-                },
-                "types": {
-                    "#": {
-                        // "max_children": 1,
-                        // "max_depth": 4,
-                        "valid_children": ["root"]
-                    },
-                    "root": {
-                        "icon": "folder",
-                        "valid_children": ["default"]
-                    },
-                    "default": {
-                        "icon": "folder",
-                        "valid_children": ["default", "file"]
-                    },
-                    "file": {
-                        "icon": "file-php",
-                        "valid_children": []
-                    },
-                    "file-error": {
-                        "icon": "file-php-error",
-                        "valid_children": []
-                    },
-                    "folder-error": {
-                        "icon": "folder-error",
-                        "valid_children": []
-                    }
-                },
-                'core': {
-                    'data': treeJSON
-                },
-                // тут мы перечисляем все плагины, которые используем
-                plugins: ['themes', 'json_data', 'ui', 'types', 'state']
-            });
-        });
+    socket.on('stats.update', this.stats_update);
 
     this.repaintIframe();
     this.addManualRunnerHandler();

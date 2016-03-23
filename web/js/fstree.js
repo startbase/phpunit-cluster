@@ -58,10 +58,10 @@ function Tree() {
                 type = 'file';
                 if (!node.data.status) {
                     type = 'file-error';
+                    state = {
+                        'opened' : true, 'selected' : true
+                    };
                 }
-                state = {
-                    'opened' : true, 'selected' : true
-                };
             }
 
             if (is_folder || is_root){
