@@ -1,5 +1,5 @@
 {
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"repository": {
 		"local_branch": "master",
 		"repository_path": "../phpunit-cluster-tests",
@@ -24,10 +24,7 @@
 		"result_json_file": "result.json"
 	},
 	"parser" : {
-		"baseDirs" : [
-			"/var/reps/b2bcenter/tests/Unit",
-			"/var/reps/b2bcenter/www_b2b/includes/tests/includes"
-		]
+		"baseDirs" : []
 	},
 	"db": {
 		"cmd_update": "php /var/reps/b2bcenter/automation/bamboo/update_db_all.php"
