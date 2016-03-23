@@ -16,21 +16,21 @@
 		"port": 8095
 	},
 	"web": {
-		"port": 8100
+		"port": 8097
 	},
 	"phpunit_runner": {
 		"cmd": "BAMBOO_UNIT_TEST_DATABASE=b2bcenter_cluster_test php /opt/phpunit/phpunit-4.8.15.phar",
-		"cmd_suffix": "--bootstrap /var/reps/b2bcenter/www_b2b/includes/tests/bootstrap.php -c /var/reps/b2bcenter/www_b2b/includes/tests/configuration.xml",
+		"cmd_suffix": "--bootstrap /var/reps/phpunit-b2bcenter/www_b2b/includes/tests/bootstrap.php -c /var/reps/phpunit-b2bcenter/www_b2b/includes/tests/configuration.xml",
 		"result_json_file": "result.json"
 	},
 	"parser" : {
 		"baseDirs" : []
 	},
 	"db": {
-		"cmd_update": "php /var/reps/b2bcenter/automation/bamboo/update_db_all.php"
+		"cmd_update": "php /var/reps/phpunit-b2bcenter/automation/bamboo/update_db_all.php"
 	},
 	"fs": {
-		"cmd_update": "php /var/reps/b2bcenter/www_b2b/admin/cli/make_files_root_dirs.php"
+		"cmd_update": "php /var/reps/phpunit-b2bcenter/www_b2b/admin/cli/make_files_root_dirs.php"
 	},
 	"statistic": {
 		"exec_time_log": "./weight.json"
