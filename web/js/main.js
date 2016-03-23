@@ -74,10 +74,24 @@ App.main = function () {
         }, 3000);
     };
 
+	this.users_update = function (users) {
+		var users_block = $('.users');
+		// Количество
+		users_block.find('span.users-count').html(users.length);
+		// Список пользователей
+		var users_list = '';
+		users.forEach(function (user) {
+			users_list += user[0] + ', ';
+		});
+		users_block.find('#users-list').html(users_list.substring(0, users_list.length-2));
+	};
+
     socket.on('web.start', this.start);
     socket.on('web.update', this.update);
     socket.on('web.complete', this.complete);
     socket.on('web.reset', this.reset);
+
+    socket.on('web.users.update', this.users_update);
 
     socket.on('stats.update', function (data) {
             var tests_all = data.all_tests_data;

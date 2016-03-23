@@ -30,10 +30,10 @@
 		]
 	},
 	"db": {
-		"cmd_update": "php automation/bamboo/update_db_all.php"
+		"cmd_update": "php /var/reps/b2bcenter/automation/bamboo/update_db_all.php"
 	},
 	"fs": {
-		"cmd_update": "php www_b2b/admin/cli/make_files_root_dirs.php"
+		"cmd_update": "php /var/reps/b2bcenter/www_b2b/admin/cli/make_files_root_dirs.php"
 	},
 	"statistic": {
 		"exec_time_log": "./weight.json"

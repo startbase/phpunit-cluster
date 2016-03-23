@@ -175,6 +175,8 @@ io.sockets.on('connection', function (socket) {
         users.push([data.username, data.userinfo]);
 
         console.log('[' + getDate() + '] ' + socket.username + ' подключился к системе');
+        io.sockets.emit('web.users.update', users);
+
 		socket.emit('userMessage', { message: 'Регистрация прошла успешно!' });
         socket.emit('readyForJob');
     });
@@ -255,6 +257,7 @@ io.sockets.on('connection', function (socket) {
         }
 
         console.log('[' + getDate() + '] ' + socket.username + ' отключился от системы');
+		io.sockets.emit('web.users.update', users);
 
         /** Если клиент выполнял задачу - возвращаем её в очередь */
         if (socket.current_task) {
