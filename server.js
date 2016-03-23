@@ -118,6 +118,7 @@ rl.on('line', function (line) {
     rl.prompt();
 }).on('close', function () {
     console.log('Bye!');
+	io.sockets.emit('web.users.update', []);
     process.exit(0);
 });
 
@@ -273,6 +274,7 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.emit('web.update', stats.getWebStats());
+	socket.emit('web.users.update', users);
 });
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

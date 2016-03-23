@@ -74,16 +74,19 @@ App.main = function () {
         }, 3000);
     };
 
-	this.users_update = function (users) {
-		var users_block = $('.users');
-		// Количество
-		users_block.find('span.users-count').html(users.length);
-		// Список пользователей
+	this.users_update = function (data) {
+		var users_count = data.length;
 		var users_list = '';
-		users.forEach(function (user) {
-			users_list += user[0] + ', ';
-		});
-		users_block.find('#users-list').html(users_list.substring(0, users_list.length-2));
+		// Количество
+		$('span.users-count').html(users_count);
+		// Список пользователей
+		if (users_count > 0) {
+			data.forEach(function (user) {
+				users_list += user[0] + ', ';
+			});
+			users_list = users_list.substring(0, users_list.length - 2)
+		}
+		$('#users-list').html(users_list);
 	};
 
     socket.on('web.start', this.start);
