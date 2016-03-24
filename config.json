@@ -1,5 +1,5 @@
 {
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"repository": {
 		"local_branch": "master",
 		"repository_path": "../phpunit-cluster-tests",
@@ -20,7 +20,7 @@
 	},
 	"phpunit_runner": {
 		"cmd": "BAMBOO_UNIT_TEST_DATABASE=b2bcenter_cluster_test php /opt/phpunit/phpunit-4.8.15.phar",
-		"cmd_suffix": "--bootstrap /var/reps/b2bcenter/www_b2b/includes/tests/bootstrap.php -c /var/reps/phpunit-b2bcenter/www_b2b/includes/tests/configuration.xml",
+		"cmd_suffix": "--bootstrap /var/reps/b2bcenter/www_b2b/includes/tests/bootstrap.php -c /var/reps/b2bcenter/www_b2b/includes/tests/configuration.xml",
 		"result_json_file": "result.json"
 	},
 	"parser" : {

@@ -16,6 +16,7 @@ var repository = require('./libs/repository.js');
 
 var is_task_aborted = false;
 var connect_status = false;
+var is_busy = false;
 
 var phpunitRunner = require('./libs/phpunit_runner.js');
 phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
@@ -119,6 +120,10 @@ socket.on('abortTask', function() {
 	is_task_aborted = true;
 });
 
+socket.on('unbusyClient', function() {
+	is_busy = false;
+});
+
 /**
  * Выполнение теста клиентом
  *
@@ -136,6 +141,7 @@ function processTask(task, socket) {
 			if (connect_status) {
 				task.response = response;
 				console.log('[' + getDate() + '] Выполнил задачу ID: \n' + task.taskName);
+				is_busy = false;
 				socket.emit('readyTask', task);
 			}
 		}
@@ -157,6 +163,7 @@ function syncRepository(data, socket, callback) {
 		var attempt_delay = 1500;
 		updateTimeout = null;
 		console.log('[' + getDate() + '] Ошибка синхронизации. Задача возвращена на сервер');
+		is_busy = false;
 		socket.emit('rejectTask', data.task);
 
 		setTimeout(function() {
@@ -173,8 +180,11 @@ function syncRepository(data, socket, callback) {
 }
 
 function readyForJob(socket) {
-	console.log('[' + getDate() + '] Запрашиваю свободную задачу...');
-	socket.emit('getTask');
+	if (!is_busy) {
+		is_busy = true;
+		console.log('[' + getDate() + '] Запрашиваю свободную задачу...');
+		socket.emit('getTask');
+	}
 }
 
 /**

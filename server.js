@@ -238,6 +238,7 @@ io.sockets.on('connection', function (socket) {
 			socket.emit('userMessage', { message: 'Свободных задач в пуле: ' + queueTasks.tasks.length });
         } else {
 			socket.emit('userMessage', { message: 'Свободных задач в пуле нет' });
+			socket.emit('unbusyClient');
         }
         io.sockets.emit('web.update', stats.getWebStats());
     });
@@ -262,15 +263,14 @@ io.sockets.on('connection', function (socket) {
 
         /** Если клиент выполнял задачу - возвращаем её в очередь */
         if (socket.current_task) {
-            returnTaskToQueue(socket.current_task);
+            returnTaskToQueue(socket, socket.current_task);
         }
 
         socket.username = undefined;
-        socket.current_task = false;
     });
 
     socket.on('rejectTask', function(data) {
-        returnTaskToQueue(data);
+        returnTaskToQueue(socket, data);
     });
 
     socket.emit('web.update', stats.getWebStats());
@@ -339,7 +339,9 @@ stats_socket.on('connection', function (socket) {
 
 });
 
-function returnTaskToQueue(current_task) {
+function returnTaskToQueue(socket, current_task) {
     console.log('[' + getDate() + '] Задача ID: ' + current_task.taskName + ' возвращена в очередь');
     queueTasks.addTask(current_task.taskName);
+	socket.current_task = false;
+	io.sockets.emit('readyForJob');
 }
