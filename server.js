@@ -327,7 +327,6 @@ queueEvents.on('add', function (taskName) {
             var taskEventObj = queueEvents.find('task.generate');
             queueEvents.rmTask('task.generate');
             io.sockets.emit('web.start');
-            console.log(taskEventObj.params['data']);
             taskBalancer.fillTaskQueue(taskEventObj.params['data']);
             break;
         case 'in.process':
