@@ -49,11 +49,11 @@ var TaskBalancer = function() {
             if(task == false || !Boolean(this.repeat_attempts_number)) {
                 break;
             }
-            var has_client_fail = !!this.prohStates.count(client_name, task.taskName);
-            if(has_client_fail) {
+            var has_client_fail = this.prohStates.count(client_name, task.taskName);
+            if(!!has_client_fail) {
                 this.queueTasks.addTask(task.taskName, task.params);
             }
-        } while(has_client_fail || this.isFailedTask(task.taskName));
+        } while(has_client_fail != this.tasksCount() && (!!has_client_fail || this.isFailedTask(task.taskName)));
 
         return task;
     };
