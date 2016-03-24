@@ -5,7 +5,7 @@ var git = require('simple-git')();
 var ClientForker = function() {
 
     this.updateClient = function(callback) {
-        git.fetch('origin').pull(function() {
+        git.fetch('origin').reset('hard').pull(function() {
             console.log('Repository has been updated');
             spawn('npm', ['install']).on('close', function() {
                 console.log('npm install completed');
