@@ -39,12 +39,10 @@ udp_receiver.bind(configParams.udp_socket.port);
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
-var Task = require('./task');
+var taskBalancer = new (require('./task-balancer.js'));
 var testParser = require('./libs/test-parser');
 var repository = require('./libs/repository.js');
 var queueEvents = new (require('./queue'));
-var queueTasks = new (require('./queue'));
-var task = new Task(queueTasks);
 var stats = require('./stats');
 var weightBase = require('./libs/weight-base');
 var users = [];
@@ -59,12 +57,12 @@ show_help();
  * Когда очередь готова для раздачи обнуляем статистику
  * и говорим участникам, что они могут разбирать тесты
  */
-queueTasks.on('fill.complete', function () {
+taskBalancer.queueTasks.on('fill.complete', function () {
 	stats.resetStats();
 	weightBase.resetPool();
     stats.start_time = Date.now();
 
-    tasks_pool_count = queueTasks.tasks.length;
+    tasks_pool_count = taskBalancer.tasksCount();
 
     stats.count_tasks = tasks_pool_count;
     console.log('\n[' + getDate() + '] Всего задач: ' + tasks_pool_count);
@@ -86,14 +84,14 @@ rl.on('line', function (line) {
             console.log('Текущий commit hash сервера: ' + params.commit_hash);
             break;
         case 't':
-            console.log('Всего невыполненных задач: ' + queueTasks.tasks.length);
-            queueTasks.tasks.forEach(function (task, i) {
+            console.log('Всего невыполненных задач: ' + taskBalancer.tasksCount());
+            taskBalancer.queueTasks.tasks.forEach(function (task, i) {
                 console.log((i + 1) + ': ' + task.taskName);
             });
             break;
         case 'e':
             console.log('Очищение очереди задач');
-            queueTasks.tasks = [];
+            taskBalancer.clearTaskQueue();
 			queueEvents.rmTask('in.process');
             io.sockets.emit('abortTask');
             stats.count_tasks = 0;
@@ -174,6 +172,7 @@ io.sockets.on('connection', function (socket) {
 
         socket.username = data.username;
         users.push([data.username, data.userinfo]);
+        taskBalancer.clients_number++;
 
         console.log('[' + getDate() + '] ' + socket.username + ' подключился к системе');
         io.sockets.emit('web.users.update', users);
@@ -190,13 +189,20 @@ io.sockets.on('connection', function (socket) {
      * Задача выполнена участником и он готов к новой работе
      */
     socket.on('readyTask', function (task) {
+        socket.current_task = false;
+        console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.response.time).toFixed(4) + ' сек.');
+
+        //check finished task
+        if(!task.response.status && taskBalancer.returnFailedToQueue(socket.username, task)) {
+            console.log('[' + getDate() + '] Задача ID: ' + task.taskName + ' возвращена в очередь');
+            socket.emit('readyForJob');
+            return;
+        }
+
 		stats.addStat(task.response);
 		weightBase.addWeight({ taskName: task.taskName, weight: task.response.time });
 
-        socket.current_task = false;
-		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.response.time).toFixed(4) + ' сек.');
-
-        if (queueTasks.tasks.length > 0) {
+        if (taskBalancer.tasksCount() > 0) {
             socket.emit('readyForJob');
         } else {
 			socket.emit('userMessage', { message: 'Свободных задач в пуле нет' });
@@ -229,15 +235,15 @@ io.sockets.on('connection', function (socket) {
      * Отправляем участнику и говорим сколько ещё задач осталось
      */
     socket.on('getTask', function () {
-        var task = queueTasks.getTask();
+        var task = taskBalancer.getTask(socket.username);
 
         if (task !== false) {
             console.log('[' + getDate() + '] ' + socket.username + ' взял задачу ID: \n' + task.taskName);
             socket.current_task = task;
             socket.emit('processTask', { task: task, commit_hash: params.commit_hash });
-			socket.emit('userMessage', { message: 'Свободных задач в пуле: ' + queueTasks.tasks.length });
+			socket.emit('userMessage', { message: 'Свободных задач в пуле: ' + taskBalancer.tasksCount() });
         } else {
-			socket.emit('userMessage', { message: 'Свободных задач в пуле нет' });
+            socket.emit('userMessage', { message: 'Свободных задач в пуле нет для клиента' });
 			socket.emit('unbusyClient');
         }
         io.sockets.emit('web.update', stats.getWebStats());
@@ -257,6 +263,7 @@ io.sockets.on('connection', function (socket) {
         if (index != -1) {
             users.splice(index, 1);
         }
+        taskBalancer.clients_number--;
 
         console.log('[' + getDate() + '] ' + socket.username + ' отключился от системы');
 		io.sockets.emit('web.users.update', users);
@@ -289,7 +296,7 @@ queueEvents.on('add', function (taskName) {
 			break;
         case 'update.repo':
 			queueEvents.addTask('in.process');
-			queueTasks.tasks = [];
+            taskBalancer.clearTaskQueue();
             var updateTimeout = setTimeout(function() {
                 updateTimeout = null;
                 queueEvents.tasks = [];
@@ -320,7 +327,8 @@ queueEvents.on('add', function (taskName) {
             var taskEventObj = queueEvents.find('task.generate');
             queueEvents.rmTask('task.generate');
             io.sockets.emit('web.start');
-            task.generateQueue(taskEventObj.params['data']);
+            console.log(taskEventObj.params['data']);
+            taskBalancer.fillTaskQueue(taskEventObj.params['data']);
             break;
         case 'in.process':
 			console.log('[' + getDate() + '] Сервер перешёл в режим создания и раздачи задач');
@@ -341,7 +349,7 @@ stats_socket.on('connection', function (socket) {
 
 function returnTaskToQueue(socket, current_task) {
     console.log('[' + getDate() + '] Задача ID: ' + current_task.taskName + ' возвращена в очередь');
-    queueTasks.addTask(current_task.taskName);
+    taskBalancer.queueTasks.addTask(current_task.taskName, current_task.params);
 	socket.current_task = false;
 	io.sockets.emit('readyForJob');
 }

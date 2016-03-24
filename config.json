@@ -6,6 +6,9 @@
 		"server_connection_timeout": 15000,
 		"client_connection_timeout": 15000
 	},
+	"task_balancer": {
+		"failed_attempts": 2
+	},
 	"server_socket": {
 		"port": 8099
 	},
@@ -24,7 +27,9 @@
 		"result_json_file": "result.json"
 	},
 	"parser" : {
-		"baseDirs" : []
+		"baseDirs" : [
+			"example"
+		]
 	},
 	"db": {
 		"cmd_update": "php /var/reps/b2bcenter/automation/bamboo/update_db_all.php"
