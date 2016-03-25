@@ -61,13 +61,7 @@ var TaskBalancer = function() {
 
     this.needReturnTask = function(client_name, task) {
         if(!!this.repeat_attempts_number) {
-            if(this.isFailedTask(task.taskName)) {
-                //not return task to the queue
-                return false;
-            }
-            else {
-                //return task to the queue
-                this.queueTasks.addTask(task.taskName, task.params);
+            if(!this.isFailedTask(task.taskName)) {
                 return true;
             }
         }
