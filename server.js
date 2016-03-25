@@ -195,10 +195,12 @@ io.sockets.on('connection', function (socket) {
         console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.response.time).toFixed(4) + ' сек.');
 
         //check finished task
-        if(!task.response.status && taskBalancer.returnFailedToQueue(socket.username, task)) {
-            console.log('[' + getDate() + '] Задача ID: ' + task.taskName + ' возвращена в очередь');
-            socket.emit('readyForJob');
-            return;
+        if(!task.response.status) {
+            taskBalancer.registerFailed(socket.username, task);
+            if(taskBalancer.needReturnTask(socket.username, task)) {
+                returnTaskToQueue(socket, task);
+                return;
+            }
         }
 
 		stats.addStat(task.response);

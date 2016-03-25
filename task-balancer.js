@@ -40,27 +40,27 @@ var TaskBalancer = function() {
 
     this.isFailedTask = function(task_name) {
         var fail_count = this.prohStates.countByTask(task_name);
-        return fail_count != 0 && (fail_count > this.repeat_attempts_number || fail_count >= this.clients_number);
+        return fail_count != 0 && (fail_count >= this.repeat_attempts_number || fail_count >= this.clients_number);
     };
 
     this.getTask = function(client_name) {
-        do {
-            var task = this.queueTasks.getTask();
-            if(task == false || !Boolean(this.repeat_attempts_number)) {
+        var task = false;
+        if(!Boolean(this.repeat_attempts_number)) {
+            return false;
+        }
+        for(var i in this.queueTasks.tasks) {
+            var item = this.queueTasks.tasks[i];
+            if(!this.isFailedTask(item.taskName) && !this.prohStates.count(client_name, item.taskName)) {
+                this.queueTasks.rmTask(item.taskName);
+                task = item;
                 break;
             }
-            var has_client_fail = this.prohStates.count(client_name, task.taskName);
-            if(!!has_client_fail) {
-                this.queueTasks.addTask(task.taskName, task.params);
-            }
-        } while(has_client_fail != this.tasksCount() && (!!has_client_fail || this.isFailedTask(task.taskName)));
-
+        }
         return task;
     };
 
-    this.returnFailedToQueue = function(client_name, task) {
+    this.needReturnTask = function(client_name, task) {
         if(!!this.repeat_attempts_number) {
-            this.prohStates.add(client_name, task.taskName);
             if(this.isFailedTask(task.taskName)) {
                 //not return task to the queue
                 return false;
@@ -72,6 +72,10 @@ var TaskBalancer = function() {
             }
         }
         return false;
+    };
+
+    this.registerFailed = function(client_name, task) {
+        this.prohStates.add(client_name, task.taskName);
     };
 
     this.fillTaskQueue = function(data) {
