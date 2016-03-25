@@ -117,6 +117,7 @@ rl.on('line', function (line) {
 }).on('close', function () {
     console.log('Bye!');
 	io.sockets.emit('web.users.update', []);
+    io.sockets.emit('unbusyClient');
     process.exit(0);
 });
 
@@ -178,6 +179,7 @@ io.sockets.on('connection', function (socket) {
         io.sockets.emit('web.users.update', users);
 
 		socket.emit('userMessage', { message: 'Регистрация прошла успешно!' });
+        socket.emit('unbusyClient');
         socket.emit('readyForJob');
     });
 
@@ -278,6 +280,10 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('rejectTask', function(data) {
         returnTaskToQueue(socket, data);
+    });
+
+    socket.on('serverMessage', function(data) {
+        console.log('[' + getDate() + '] ' + data.message);
     });
 
     socket.emit('web.update', stats.getWebStats());

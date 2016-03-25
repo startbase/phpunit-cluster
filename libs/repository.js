@@ -16,8 +16,11 @@ var Repository = function () {
         var branch = 'origin/' + config_params.repository.local_branch;
         git.fetch('origin')
             ._run(['reset', '--hard', branch], function() {
+				console.log('DEBUG: repository.js : update() > fetch run [reset] callback');
                 git._run(['rebase', branch], function(err) {
+					console.log('DEBUG: repository.js : update() > fetch run [reset] callback > run [rebase] callback');
                     if(!err) {
+						console.log('DEBUG: repository.js : update() > fetch run [reset] callback > run [rebase] > no errors');
                         callback();
                     }
                 });
@@ -26,7 +29,9 @@ var Repository = function () {
 
     this.checkout = function (commit_hash, callback) {
         git.fetch('origin')._run(['reset', '--hard', commit_hash], function(err) {
+			console.log('DEBUG: repository.js : checkout() > fetch run [reset] callback');
             if(!err) {
+				console.log('DEBUG: repository.js : checkout() > fetch run [reset] callback > no errors');
                 callback();
             }
         });
@@ -38,7 +43,9 @@ var Repository = function () {
      */
     this.getLastCommitHash = function(callback) {
         git.log(['-n', '1', '--pretty=format:%H'], function(err, data) {
+			console.log('DEBUG: repository.js : getLastCommitHash() > log callback');
             if(!err) {
+				console.log('DEBUG: repository.js : getLastCommitHash() > log callback > no errors');
                 callback(data.latest.hash)
             }
         });

@@ -1,6 +1,6 @@
 {
 	"name": "phpunit-cluster",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"description": "",
 	"author": "Startbase Team <startbase-dev-team@b2b-center.ru>",
 	"scripts": {

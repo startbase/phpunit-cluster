@@ -65,6 +65,7 @@ socket.on('needUserReg', function(server_version) {
 		socket.emit('registerUser', { username: params.user, userinfo: os.type() + ' ' + os.arch() + ', ' + cpus[0].model + ' ' + cpus[0].speed + ' MHz' });
 	} else {
 		console.log('[' + getDate() + '] Версия клиента не подходит для работы с сервером. Обновись!');
+		socket.emit('serverMessage', { message: params.user + ' отключился, т.к. версия клиента не корректна' });
 		process.exit(0);
 	}
 });
@@ -91,10 +92,12 @@ socket.on('readyForJob', function() {
 socket.on('processTask', function(data) {
 	var task = data.task;
 	console.log('[' + getDate() + '] Получил задачу ID: ' + task.taskName);
+	socket.emit('serverMessage', { message: params.user + ' получил задачу ID: ' + task.taskName });
 
 	if (params.commit_hash != data.commit_hash) {
 		console.log('[' + getDate() + '] Для её выполнения нужно синхронизировать commit hash');
 		syncRepository(data, socket, function() {
+			socket.emit('serverMessage', { message: params.user + ' успешно синхронизировался' });
 			processTask(task, socket);
 		});
 	} else {
@@ -132,6 +135,7 @@ socket.on('unbusyClient', function() {
  */
 function processTask(task, socket) {
 	var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
+	socket.emit('serverMessage', { message: params.user + ' запускает PHPUnit' });
 
 	phpunitRunner.run(test_path, function (response) {
 		if (is_task_aborted) {
@@ -158,11 +162,13 @@ function processTask(task, socket) {
 function syncRepository(data, socket, callback) {
 	var commit_hash = data.commit_hash;
 	console.log('[' + getDate() + '] Синхронизация с ' + commit_hash + ' ...');
+	socket.emit('serverMessage', { message: params.user + ' синхронизируется с commit hash сервера' });
 
 	var updateTimeout = setTimeout(function() {
 		var attempt_delay = 1500;
 		updateTimeout = null;
 		console.log('[' + getDate() + '] Ошибка синхронизации. Задача возвращена на сервер');
+		socket.emit('serverMessage', { message: params.user + ' не смог синхронизироваться и возвращает задачу' });
 		is_busy = false;
 		socket.emit('rejectTask', data.task);
 
@@ -171,8 +177,10 @@ function syncRepository(data, socket, callback) {
 		}, attempt_delay);
 	}, configParams.repository.client_connection_timeout);
 	repository.checkout(commit_hash, function () {
+		socket.emit('serverMessage', { message: params.user + ' выполнил checkout' });
 		if (updateTimeout) {
 			clearTimeout(updateTimeout);
+			socket.emit('serverMessage', { message: params.user + ' запускает миграцию' });
 			migration_manager.migrateUp(callback);
 			params.commit_hash = commit_hash;
 		}
@@ -184,6 +192,8 @@ function readyForJob(socket) {
 		is_busy = true;
 		console.log('[' + getDate() + '] Запрашиваю свободную задачу...');
 		socket.emit('getTask');
+	} else {
+		socket.emit('serverMessage', { message: params.user + ' получил запрос readyForJob, хотя is_busy = true' });
 	}
 }
 

@@ -1,5 +1,5 @@
 {
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"repository": {
 		"local_branch": "master",
 		"repository_path": "../phpunit-cluster-tests",
