@@ -1,8 +1,8 @@
 {
 	"version": "0.0.7",
 	"repository": {
-		"local_branch": "master",
-		"repository_path": "../phpunit-cluster-tests",
+		"local_branch": "integration",
+		"repository_path": "/var/reps/b2bcenter",
 		"server_connection_timeout": 15000,
 		"client_connection_timeout": 15000
 	},
@@ -27,9 +27,7 @@
 		"result_json_file": "result.json"
 	},
 	"parser" : {
-		"baseDirs" : [
-			"example"
-		]
+		"baseDirs" : []
 	},
 	"db": {
 		"cmd_update": "php /var/reps/b2bcenter/automation/bamboo/update_db_all.php"
