@@ -34,6 +34,7 @@ if (argv.p && typeof argv.p == "number") { params.port = argv.p }
 var socket = require('socket.io-client')('http://' + params.domain + ':' + params.port);
 
 socket.emit('serverMessage', { message: params.user + ' ; ' + params.domain + ' ; ' + params.port + ' ; ' + params.commit_hash + ' ; ' + params.version });
+console.log(params.user + ' ; ' + params.domain + ' ; ' + params.port + ' ; ' + params.commit_hash + ' ; ' + params.version);
 
 console.log('[' + getDate() + '] Выбранный сервер: http://' + params.domain + ':' + params.port);
 console.log('[' + getDate() + '] Запрашиваю статус сервера...');
@@ -61,12 +62,14 @@ socket.on('disconnect', function() {
 socket.on('needUserReg', function(server_version) {
 	console.log('[' + getDate() + '] Проверяю версию клиента...');
 
+	console.log('Client version ' + params.version);
+	console.log('Server version ' + server_version);
 	if (server_version == params.version) {
 		console.log('[' + getDate() + '] Версия клиента корректна! Регистрируюсь в системе...');
 		var cpus = os.cpus();
-		socket.emit('registerUser', { username: params.user, userinfo: os.type() + ' ' + os.arch() + ', ' + cpus[0].model + ' ' + cpus[0].speed + ' MHz' });
+		socket.emit('registerUser', { username: params.user, userinfo: os.type() + ' ' + os.arch() + ', ' + cpus[0].model + ' ' + cpus[0].speed + ' MHz'});
 	} else {
-		console.log('[' + getDate() + '] Версия клиента не подходит для работы с сервером. Обновись!');
+		console.log('[' + getDate() + '] Версия клиента ' + params.version + 'не подходит для работы с сервером. Обновись!');
 		socket.emit('serverMessage', { message: params.user + ' отключился, т.к. версия клиента не корректна' });
 		process.exit(0);
 	}
