@@ -33,6 +33,8 @@ if (argv.p && typeof argv.p == "number") { params.port = argv.p }
 /** Запускаемся */
 var socket = require('socket.io-client')('http://' + params.domain + ':' + params.port);
 
+socket.emit('serverMessage', { message: params.user + ' ; ' + params.domain + ' ; ' + params.port + ' ; ' + params.commit_hash + ' ; ' + params.version });
+
 console.log('[' + getDate() + '] Выбранный сервер: http://' + params.domain + ':' + params.port);
 console.log('[' + getDate() + '] Запрашиваю статус сервера...');
 
