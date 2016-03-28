@@ -24,7 +24,7 @@ var Queue = function () {
      * @returns Queue
      */
     this.addTask = function (taskName, params) {
-        this.tasks.push(new Task(taskName, params));
+        this.tasks.unshift(new Task(taskName, params));
         this.emit('add', taskName);
         this.observers.forEach(function (item) {
             item.emit(taskName, params);

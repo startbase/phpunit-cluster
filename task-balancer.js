@@ -10,7 +10,7 @@ var TaskBalancer = function() {
         this.add = function(client, taskname) {
             states.push({client: client, task: taskname});
 			console.log('Task Balancer debug [add]');
-			console.log(this.states);
+			console.log(states);
 			console.log('\n');
         };
 
@@ -33,6 +33,10 @@ var TaskBalancer = function() {
             });
             return cnt;
         };
+
+		this.clear = function () {
+			states = [];
+		};
     })();
     this.queueTasks = new Queue();
     this.task = new Task(this.queueTasks);
@@ -91,7 +95,7 @@ var TaskBalancer = function() {
 
     this.clearTaskQueue = function() {
         this.queueTasks.tasks = [];
-        this.prohStates.states = [];
+        this.prohStates.clear();
     };
 
     this.tasksCount = function() {
