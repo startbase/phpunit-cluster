@@ -98,6 +98,7 @@ rl.on('line', function (line) {
             taskBalancer.clearTaskQueue();
 			queueEvents.rmTask('in.process');
             io.sockets.emit('abortTask');
+			io.sockets.emit('unbusyClient');
             stats.count_tasks = 0;
             io.sockets.emit('web.reset');
             break;
@@ -121,7 +122,9 @@ rl.on('line', function (line) {
 }).on('close', function () {
     console.log('Bye!');
 	io.sockets.emit('web.users.update', []);
-    io.sockets.emit('unbusyClient');
+	io.sockets.emit('web.reset');
+	io.sockets.emit('abortTask');
+	io.sockets.emit('unbusyClient');
     process.exit(0);
 });
 
