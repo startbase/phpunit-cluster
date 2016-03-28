@@ -94,25 +94,31 @@ var Stats = function () {
         var succeded_tests_names = [];
 
         var all_tests_data = [];
-
+        
+        var failed_test_suites_names = {};
+        
         raw_stats.tests_completed.forEach(function(test) {
             succeded_tests_names.push(test.file);
             all_tests_data.push({path: test.file, status: 1});
         });
 
         raw_stats.tests_failed.forEach(function(test) {
-            failed_tests_names.push(test.file);
+            var file_path = test.file;
+            failed_tests_names.push(file_path);
 
-            var test_suite = [];
+            var test_suites = [];
 
             test.suites.forEach(function(suite) {
                 if (suite.status == 'fail') {
-                    var stat_msg = "\t\t" + suite.test + " [" + suite.message + "]\n";
-                    test_suite.push(stat_msg);
+                    var stat_msg = suite.test + " [" + suite.message + "]\n";
+                    test_suites.push(stat_msg);
                 }
             });
 
-            failed_test_suites.push(test_suite);
+            failed_test_suites.push(test_suites);
+
+            failed_test_suites_names[file_path] = test_suites;
+            
             all_tests_data.push({path: test.file, status: 0});
         });
 
@@ -132,7 +138,8 @@ var Stats = function () {
             'count_tasks': this.count_tasks,
             'succeded_tests_names': this.processDirArr(succeded_tests_names),
             'phpunit_repeat_time': this.phpunit_repeat,
-            'all_tests_data': all_tests_data
+            'all_tests_data': all_tests_data,
+            'failed_test_suites_names': failed_test_suites_names
         };
     };
 

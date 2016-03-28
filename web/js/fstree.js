@@ -80,9 +80,7 @@ function Tree() {
 
             idmap[name] = id;
         }
-
-        // console.log(arr);
-        // console.log(arr);
+        
         asArray(this.root);
         return arr;
     };
@@ -95,10 +93,10 @@ function Tree() {
         function print(tree, depth) {
 
             if (tree == null || tree.length == 0) {
-                console.log("%s %s --", Array(depth).join(tab), tree.data.name);
+                // console.log("%s %s --", Array(depth).join(tab), tree.data.name);
             }
             tree.childrens.forEach(function (children) {
-                console.log("%s %s", Array(depth).join(tab), tree.data.name);
+                // console.log("%s %s", Array(depth).join(tab), tree.data.name);
                 print(children, depth + 1);
             });
 
