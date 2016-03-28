@@ -204,6 +204,8 @@ io.sockets.on('connection', function (socket) {
 			taskBalancer.registerFailed(socket.username, task);
 			// Нужно отправить на повторную проверку?
 			if (taskBalancer.needReturnTask(socket.username, task)) {
+				// Сохраним время выполнения phpunit
+				stats.phpunit_repeat += task.response.time;
 				returnTaskToQueue(socket, task);
 				return;
 			}
@@ -267,8 +269,10 @@ io.sockets.on('connection', function (socket) {
 
     /** Участник отключается от системы */
     socket.on('disconnect', function () {
-        /** @todo Выпилить логи от Веб-сервера, либо перевесить его**/
-        
+		if (socket.username === undefined) {
+			return;
+		}
+
         /** Удаляем участника из обешго списка **/
 		var index = -1;
 		users.forEach(function(user, i) {

@@ -11,7 +11,6 @@ function cut(str, substr) {
     if (cutStart == -1) {
         return str;
     }
-
     
     return str.substr(0, cutStart) + str.substr(cutEnd+1);
 }
@@ -25,6 +24,8 @@ var Stats = function () {
     this.count_tasks = 0;
 
     this.tests = [];
+
+    this.phpunit_repeat = 0;
 
     this.processDirArr = function(dir_arr) {
         var base_dirs_raw = configParams.parser.baseDirs;
@@ -120,7 +121,7 @@ var Stats = function () {
         }
 
         return {
-            'tests_overall_count': this.count_tasks,
+            'tests_overall_count': this.tests.length,
             'tests_success_count': raw_stats.tests_completed.length,
             'tests_failed_count': raw_stats.tests_failed.length,
             'time_average': raw_stats.time_overall / this.tests.length,
@@ -130,7 +131,7 @@ var Stats = function () {
             'failed_tests_suites': failed_test_suites,
             'count_tasks': this.count_tasks,
             'succeded_tests_names': this.processDirArr(succeded_tests_names),
-            
+            'phpunit_repeat_time': this.phpunit_repeat,
             'all_tests_data': all_tests_data
         };
     };
@@ -143,6 +144,7 @@ var Stats = function () {
             stat_msg = "\nУспешно пройдено " + stats_data.tests_success_count + "/" + stats_data.tests_overall_count + " тестов\n"
                 + "Время выполнения последнего пула тестов: " + stats_data.time_pool + "\n"
                 + "Общее время выполнения тестов в PHPUnit: " + stats_data.time_overall + " сек.\n"
+				+ "Общее время первых прохождений заваленых тестов в PHPUnit: " + stats_data.phpunit_repeat_time + " сек.\n"
                 + "Среднее время выполнения тестов в PHPUnit: " + stats_data.time_average + " сек.\n";
 
             if (stats_data.tests_failed_count > 0) {
@@ -171,6 +173,7 @@ var Stats = function () {
         this.finish_time = 0;
         this.tests = [];
         this.count_tasks = 0;
+        this.phpunit_repeat = 0;
     };
 
     EventEmitter.call(this);
