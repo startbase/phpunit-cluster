@@ -90,7 +90,7 @@ rl.on('line', function (line) {
             });
 			console.log('\n');
 			console.log('Task Balancer Stats:');
-			console.log(taskBalancer.prohStates.states);
+			console.log(taskBalancer.prohStates.showState());
 			console.log('\n');
             break;
         case 'e':

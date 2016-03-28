@@ -34,6 +34,10 @@ var TaskBalancer = function() {
             return cnt;
         };
 
+		this.showState = function () {
+			console.log(states);
+		};
+
 		this.clear = function () {
 			states = [];
 		};
