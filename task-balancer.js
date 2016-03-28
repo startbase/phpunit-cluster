@@ -44,12 +44,17 @@ var TaskBalancer = function() {
     };
 
     this.getTask = function(client_name) {
+        console.log('Task Balancer debug [getTask]: ' + client_name);
         var task = false;
         if(!Boolean(this.repeat_attempts_number)) {
+            console.log('Task Balancer debug [getTask]: repeat number - ' + this.repeat_attempts_number + ' => false');
             return false;
         }
         for(var i in this.queueTasks.tasks) {
             var item = this.queueTasks.tasks[i];
+            console.log('Task Balancer debug [getTask]: item - ' + item);
+            console.log('Task Balancer debug [getTask]: is failed task - ' + this.isFailedTask(item.taskName));
+            console.log('Task Balancer debug [getTask]: prohStates.count - ' + this.prohStates.count(client_name, item.taskName));
             if(!this.isFailedTask(item.taskName) && !this.prohStates.count(client_name, item.taskName)) {
                 this.queueTasks.rmTask(item.taskName);
                 task = item;
