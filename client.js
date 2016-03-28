@@ -100,6 +100,7 @@ socket.on('processTask', function(data) {
 	socket.emit('serverMessage', { message: params.user + ' получил задачу ID: ' + task.taskName });
 
 	if (params.commit_hash != data.commit_hash) {
+		socket.emit('serverMessage', { message: params.user + ' нужно синхронизировать commit hash' });
 		console.log('[' + getDate() + '] Для её выполнения нужно синхронизировать commit hash');
 		syncRepository(data, socket, function() {
 			socket.emit('serverMessage', { message: params.user + ' успешно синхронизировался' });
@@ -126,6 +127,7 @@ socket.on('userMessage', function(data) {
  */
 socket.on('abortTask', function() {
 	is_task_aborted = true;
+	console.log('[' + getDate() + '] Выполнение теста было отменено сервером');
 });
 
 socket.on('unbusyClient', function() {
@@ -143,16 +145,18 @@ function processTask(task, socket) {
 	socket.emit('serverMessage', { message: params.user + ' запускает PHPUnit' });
 
 	phpunitRunner.run(test_path, function (response) {
-		if (is_task_aborted) {
-			is_task_aborted = false;
-			console.log('[' + getDate() + '] Произошла очистка очереди, задание было отменено сервером');
-		} else {
+		if (!is_task_aborted) {
 			if (connect_status) {
-				task.response = response;
-				console.log('[' + getDate() + '] Выполнил задачу ID: \n' + task.taskName);
 				is_busy = false;
+				task.response = response;
+
+				console.log('[' + getDate() + '] Выполнил задачу ID: \n' + task.taskName);
 				socket.emit('readyTask', task);
+			} else {
+				console.log('[' + getDate() + '] Сервер offline и отправить результаты теста не получится');
 			}
+		} else {
+			socket.emit('serverMessage', { message: params.user + ' не вернёт результат, т.к. is_task_aborted = true' });
 		}
 	});
 }
@@ -193,6 +197,8 @@ function syncRepository(data, socket, callback) {
 }
 
 function readyForJob(socket) {
+	is_task_aborted = false;
+
 	if (!is_busy) {
 		is_busy = true;
 		console.log('[' + getDate() + '] Запрашиваю свободную задачу...');

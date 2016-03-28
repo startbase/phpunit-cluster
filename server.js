@@ -191,19 +191,25 @@ io.sockets.on('connection', function (socket) {
      * Задача выполнена участником и он готов к новой работе
      */
     socket.on('readyTask', function (task) {
-        socket.current_task = false;
-        console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.response.time).toFixed(4) + ' сек.');
+		socket.current_task = false;
+		console.log('[' + getDate() + '] ' + socket.username + ' прислал данные по задаче ID: \n' + task.taskName);
 
-        //check finished task
-        if(!task.response.status) {
-            taskBalancer.registerFailed(socket.username, task);
-            if(taskBalancer.needReturnTask(socket.username, task)) {
-                returnTaskToQueue(socket, task);
-                return;
-            }
-        }
+		if (!task.response.status) {
+			// Тест был завален
+			console.log('[' + getDate() + '] ' + socket.username + ' завалил задачу ID: \n' + task.taskName);
+			taskBalancer.registerFailed(socket.username, task);
+			// Нужно отправить на повторную проверку?
+			if (taskBalancer.needReturnTask(socket.username, task)) {
+				returnTaskToQueue(socket, task);
+				return;
+			}
+		}
 
+		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.response.time).toFixed(4) + ' сек.');
+
+		// Записываем статистику
 		stats.addStat(task.response);
+		// Сохраняем данные по тяжести теста
 		weightBase.addWeight({ taskName: task.taskName, weight: task.response.time });
 
         if (taskBalancer.tasksCount() > 0) {
@@ -212,13 +218,15 @@ io.sockets.on('connection', function (socket) {
 			socket.emit('userMessage', { message: 'Свободных задач в пуле нет' });
 		}
 
+		// если в статистике столько же тестов, сколько было изначально, то пул выполнен
 		if (tasks_pool_count == stats.tests.length) {
-            io.sockets.emit('stats.update', stats.getWebStats());
 			console.log('[' + getDate() + '] Все задачи из текущего пула выполнены');
+			stats.finish_time = Date.now();
+
+            io.sockets.emit('stats.update', stats.getWebStats());
 			weightBase.saveWeights(function() {
 				console.log('[' + getDate() + '] Данные по времени выполнения тестов последнего пула сохранены');
 			});
-			stats.finish_time = Date.now();
 
 			/** Освобождаем сервер */
 			queueEvents.rmTask('in.process');
