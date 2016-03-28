@@ -247,7 +247,7 @@ io.sockets.on('connection', function (socket) {
 			}
             stats.count_tasks = 0;
             io.sockets.emit('web.update', stats.getWebStats());
-            io.sockets.emit('web.complete', { stats: stats.getWebStats(), commit: params.commit_hash });
+            io.sockets.emit('web.complete', { stats: stats.getWebStats(), commit_hash: params.commit_hash });
         }
     });
 
