@@ -120,7 +120,7 @@ var Stats = function () {
         }
 
         return {
-            'tests_overall_count': this.tests.length,
+            'tests_overall_count': this.count_tasks,
             'tests_success_count': raw_stats.tests_completed.length,
             'tests_failed_count': raw_stats.tests_failed.length,
             'time_average': raw_stats.time_overall / this.tests.length,

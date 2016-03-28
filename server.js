@@ -88,6 +88,10 @@ rl.on('line', function (line) {
             taskBalancer.queueTasks.tasks.forEach(function (task, i) {
                 console.log((i + 1) + ': ' + task.taskName);
             });
+			console.log('\n');
+			console.log('Task Balancer Stats:');
+			console.log(taskBalancer.prohStates.states);
+			console.log('\n');
             break;
         case 'e':
             console.log('Очищение очереди задач');
@@ -320,6 +324,7 @@ queueEvents.on('add', function (taskName) {
 			repository.update(function () {
 				console.log('UPDATE REPO CALLBACK:');
 				console.log(updateTimeout);
+				console.log('\n');
                 if (updateTimeout) {
                     clearTimeout(updateTimeout);
                     queueEvents.rmTask('update.repo');
