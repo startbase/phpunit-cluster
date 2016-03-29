@@ -373,18 +373,14 @@ queueEvents.on('add', function (taskName) {
             var updateTimeout = setTimeout(function() {
                 updateTimeout = null;
                 queueEvents.tasks = [];
+                console.log('Git update timeout. Waiting for a new update event...');
             }, configParams.repository.server_connection_timeout);
 			repository.update(function () {
-				console.log('UPDATE REPO CALLBACK:');
-				console.log(updateTimeout);
-				console.log('\n');
                 if (updateTimeout) {
                     clearTimeout(updateTimeout);
                     queueEvents.rmTask('update.repo');
                     queueEvents.addTask('set.commit.hash');
-                } else {
-					console.log('Что-то не так с updateTimeout');
-				}
+                }
 			});
             break;
         case 'set.commit.hash':
