@@ -5,18 +5,9 @@ const fs = require('fs');
 var config = require('./config.js');
 var configParams = config.getParams();
 
-function cut(str, substr) {
-    var cutStart = str.indexOf(substr);
-    var cutEnd = cutStart + substr.length - 1;
-
-    if (cutStart == -1) {
-        return str;
-    }
-    
-    return str.substr(0, cutStart) + str.substr(cutEnd+1);
-}
 
 var Stats = function () {
+    var self = this;
     /** @type {number} Время старта раздач тестов клиентам, миллисекунды */
     this.start_time = 0;
     /** @type {number} Время выполнения последнего теста, миллисекунды */
@@ -30,38 +21,7 @@ var Stats = function () {
 
 	this.commitLog = [];
 	this.lastPoolFile = configParams.statistic.last_pool;
-
-    this.processDirArr = function(dir_arr) {
-        var base_dirs_raw = configParams.parser.base_dirs;
-        var base_dirs = [];
-        var new_dir_arr = [];
-
-        base_dirs_raw.forEach(function(base_dir_raw) {
-            base_arr = base_dir_raw.split('/');
-
-            if (base_arr.indexOf('.') != - 1) {
-                sl = -2;
-            }
-            else {
-                sl = -1;
-            }
-
-            base_arr = base_arr.slice(0, sl);
-
-            base_dir = base_arr.join('/');
-
-            base_dirs.push(base_dir);
-        });
-
-        dir_arr.forEach(function(dir) {
-            base_dirs.forEach(function(base_dir) {
-                new_dir_arr.push(cut(dir, base_dir));
-            });
-        });
-
-        return new_dir_arr;
-    };
-
+    
     this.getWebStats = function() {
         return this.getStatsData();
     };
@@ -95,14 +55,11 @@ var Stats = function () {
         var failed_tests_names = [];
         var failed_test_suites = [];
 
-        var succeded_tests_names = [];
-
         var all_tests_data = [];
         
         var failed_test_suites_names = {};
         
         raw_stats.tests_completed.forEach(function(test) {
-            succeded_tests_names.push(test.file);
             all_tests_data.push({path: test.file, status: 1});
         });
 
@@ -140,9 +97,9 @@ var Stats = function () {
             'failed_tests_names': failed_tests_names,
             'failed_tests_suites': failed_test_suites,
             'count_tasks': this.count_tasks,
-            'succeded_tests_names': this.processDirArr(succeded_tests_names),
             'phpunit_repeat_time': this.phpunit_repeat,
             'all_tests_data': all_tests_data,
+            'failed_test_suites_names': failed_test_suites_names,
 			'commit_history': this.commitLog
         };
     };

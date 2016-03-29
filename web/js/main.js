@@ -1,6 +1,24 @@
 var App = App || {};
 var socket = io('http://' + window.location.hostname + ':8099');
 
+
+function cut(str, substr) {
+    var cutStart = str.indexOf(substr);
+    var cutEnd = cutStart + substr.length - 1;
+
+    if (cutStart == -1) {
+        return str;
+    }
+
+    return str.substr(0, cutStart) + str.substr(cutEnd+1);
+}
+
+function processDir(dir) {
+    var base_dir = '/var/reps/b2bcenter';
+
+    return cut(dir, base_dir);
+}
+
 App.main = function () {
     var self = this;
     var stats_fails_only = true;
@@ -107,8 +125,15 @@ App.main = function () {
 
     this.stats_update = function (data) {
         var tests_all = data.all_tests_data;
-        
         var failed_test_suites_names = data.failed_test_suites_names;
+
+        tests_all.forEach(function (test) {
+            var path = test.path;
+            var new_path = processDir(path);
+            failed_test_suites_names[new_path] = failed_test_suites_names[path];
+            delete failed_test_suites_names[path];
+            test.path = new_path;
+        });
 
         var tests_fails = [];
         tests_all.forEach(function (test) {
@@ -133,20 +158,19 @@ App.main = function () {
         $('#tree')
             // listen for event
             .on('changed.jstree', function (e, data) {
-                var i, j, r = {};
+                var i, j, node_suites_arr = {};
 
                 for (i = 0, j = data.selected.length; i < j; i++) {
                     var node_id = data.instance.get_node(data.selected[i]).id;
-                    var test_suites_arr = failed_test_suites_names[node_id];
-                    r[node_id] = failed_test_suites_names[node_id];
+                    node_suites_arr[node_id] = failed_test_suites_names[node_id];
                 }
 
                 var event_result_html = '';
-                Object.keys(r).forEach(function (key) {
-                    var value = r[key];
+                Object.keys(node_suites_arr).forEach(function (node) {
+                    var value = node_suites_arr[node];
 
                     event_result_html += '<table class="table table-striped"><tbody>';
-                    event_result_html += '<tr><th>Test name:</th><td>' + key + '</td></tr>';
+                    event_result_html += '<tr><th>Test name:</th><td>' + node + '</td></tr>';
                     event_result_html += '<tr><th>Failed Test Suites:</th><td>' + value.join('<br>') + '</td></tr>';
                     event_result_html += '</tr></tbody></table>';
                 });
