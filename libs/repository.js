@@ -55,9 +55,9 @@ var Repository = function () {
 		git.log({ from: lastCommit, to: currentCommit }, function (err, data) {
 			if (!err) {
 				var commits = data.all;
-				var logs = '';
+				var logs = [];
 				commits.forEach(function (commit) {
-					logs += '[' + commit.author_name + '] ' + commit.message + '\n';
+					logs.push('[' + commit.author_name + '] ' + commit.message);
 				});
 
 				callback(logs);

@@ -28,7 +28,7 @@ var Stats = function () {
 
     this.phpunit_repeat = 0;
 
-	this.commitLog = '';
+	this.commitLog = [];
 	this.lastPoolFile = configParams.statistic.last_pool;
 
     this.processDirArr = function(dir_arr) {
@@ -217,7 +217,7 @@ var Stats = function () {
         this.tests = [];
         this.count_tasks = 0;
         this.phpunit_repeat = 0;
-		this.commitLog = '';
+		this.commitLog = [];
     };
 
     EventEmitter.call(this);
