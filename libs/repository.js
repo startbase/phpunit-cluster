@@ -57,7 +57,9 @@ var Repository = function () {
 				var commits = data.all;
 				var logs = [];
 				commits.forEach(function (commit) {
-					logs.push('[' + commit.author_name + '] ' + commit.message);
+					if (commit.author_name !== undefined && commit.message !== undefined) {
+						logs.push('[' + commit.author_name + '] ' + commit.message);
+					}
 				});
 
 				callback(logs);
