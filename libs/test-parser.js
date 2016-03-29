@@ -3,6 +3,7 @@ var path = require('path');
 
 var TestParser = function() {
     this.base_dirs = [];
+    this.excluded_dirs = [];
 
     this.processParse = function (callback) {
         var instance = this;
@@ -50,7 +51,7 @@ var TestParser = function() {
                         });
                     }
                     else {
-                        if(instance.isTest(file)) {
+                        if(instance.isTest(file) && !instance.isExcluded(file)) {
                             result.push(file);
                         }
                         --length;
@@ -61,6 +62,12 @@ var TestParser = function() {
                 })
             });
         });
+    };
+
+    this.isExcluded = function(item) {
+        return this.excluded_dirs.findIndex(function(element) {
+            return (new RegExp("^" + element)).test(item);
+        }) != -1;
     };
 
     this.isTest = function(item) {

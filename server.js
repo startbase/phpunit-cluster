@@ -392,7 +392,8 @@ queueEvents.on('add', function (taskName) {
             });
             break;
         case 'parser.start':
-            testParser.base_dirs = configParams.parser.baseDirs;
+            testParser.base_dirs = configParams.parser.base_dirs;
+            testParser.excluded_dirs = configParams.parser.excluded_dirs;
             testParser.processParse(function (err, result) {
                 queueEvents.rmTask('parser.start');
                 queueEvents.addTask('task.generate', {data: testParser.getCleanResults(result, configParams.repository.repository_path)});
