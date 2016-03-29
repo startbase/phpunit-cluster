@@ -191,10 +191,10 @@ var Stats = function () {
 
 		if (stats.failed_tests_suites.length > 0) {
 			stats.failed_tests_suites.forEach(function(item, i) {
-				var test = [
-					{ name: stats.failed_tests_names[i] },
-					{ suites: stats.failed_tests_suites[i] }
-				];
+				var test = {
+					name: stats.failed_tests_names[i],
+					suites: stats.failed_tests_suites[i]
+				};
 
 				data.testsFailedList.push(test);
 			});
