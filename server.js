@@ -169,10 +169,12 @@ function setLastCommitHash() {
 			if (err) throw err;
 
 			var last_pool = JSON.parse(data);
-			console.log('LAST POOL: \n');
-			console.log(last_pool);
-			console.log('\n');
-			console.log(last_pool.commit_hash);
+
+			last_pool.forEach(function(stat) {
+				if (stat.commit_hash) {
+					params.last_commit_hash = stat.commit_hash;
+				}
+			});
 		});
 	} else {
 		console.log('[' + getDate() + '] Данных по последнему выполненому пулу не обнаружено');
