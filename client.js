@@ -134,6 +134,10 @@ socket.on('unbusyClient', function() {
 	is_busy = false;
 });
 
+socket.on('changeClientName', function(username) {
+	params.user = username;
+});
+
 /**
  * Выполнение теста клиентом
  *

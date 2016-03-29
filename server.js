@@ -207,6 +207,7 @@ io.sockets.on('connection', function (socket) {
 
 		if (isExistUser(data.username)) {
 			data.username = data.username + '_' +  + Date.now();
+			socket.emit('changeClientName', data.username);
 			socket.emit('userMessage', { message: 'Пользователь с таким именем уже есть в системе. Вас переименовали в ' + data.username });
 		}
 
