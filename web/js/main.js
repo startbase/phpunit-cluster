@@ -29,6 +29,9 @@ App.main = function () {
         
         var treeHtml = '<div id="tree"></div>';
         $('#tree-block').empty().html(treeHtml);
+        
+        var testSuitesHtml = '<div id="event_result"></div>';
+        $('#event-block').empty().html(testSuitesHtml);
     };
 
     this.update = function (data) {
@@ -96,6 +99,8 @@ App.main = function () {
 
     this.stats_update = function (data) {
         var tests_all = data.all_tests_data;
+        
+        var failed_test_suites_names = data.failed_test_suites_names;
 
         var tests_fails = [];
         tests_all.forEach(function (test) {
@@ -117,7 +122,33 @@ App.main = function () {
         tree.addArr(tree_arr);
         var treeJSON = tree.asArray();
 
-        $('#tree').jstree({
+        $('#tree')
+            // listen for event
+            .on('changed.jstree', function (e, data) {
+                var i, j, r = {};
+
+                for (i = 0, j = data.selected.length; i < j; i++) {
+                    var node_id = data.instance.get_node(data.selected[i]).id;
+                    var test_suites_arr = failed_test_suites_names[node_id];
+                    r[node_id] = failed_test_suites_names[node_id];
+                }
+
+                var event_result_html = '';
+                Object.keys(r).forEach(function (key) {
+                    var value = r[key];
+
+                    event_result_html += '<table class="table table-striped"><tbody>';
+                    event_result_html += '<tr><th>Test name:</th><td>' + key + '</td></tr>';
+                    event_result_html += '<tr><th>Failed Test Suites:</th><td>' + value.join('<br>') + '</td></tr>';
+                    event_result_html += '</tr></tbody></table>';
+                });
+                event_result_html += '';
+
+
+
+                $('#event_result').html(event_result_html);
+            })
+            .jstree({
             themes: {
                 theme: 'default'
             },
@@ -151,6 +182,9 @@ App.main = function () {
             'core': {
                 'data': treeJSON
             },
+            // "ui": {
+            //     "select_limit": 1
+            // },
             // тут мы перечисляем все плагины, которые используем
             plugins: ['themes', 'json_data', 'ui', 'types', 'state']
         });
