@@ -6,6 +6,7 @@ var params = {
     port: configParams.server_socket.port,
     stats_port: configParams.stats_socket.port,
     commit_hash: 'none',
+	last_commit_hash: 'none',
     version: configParams.version
 };
 if (argv.p && typeof argv.p == "number") {
@@ -238,8 +239,17 @@ io.sockets.on('connection', function (socket) {
 			});
 
 			/** Освобождаем сервер */
+			params.last_commit_hash = params.commit_hash;
 			queueEvents.rmTask('in.process');
 			console.log('[' + getDate() + '] Сервер свободен для создания нового пула задач');
+
+			/** Сразу покажем статистику */
+			rl.emit('line', 'd');
+
+			stats.saveLastPool(params.commit_hash, function () {
+				console.log('[' + getDate() + '] Результаты выполнения последнего пула сохранены');
+			});
+
 			/** Если в очереди есть задача на обновление репозитария - just do it! */
 			if (queueEvents.hasTask('need.update.repo')) {
 				queueEvents.rmTask('need.update.repo');
@@ -343,6 +353,11 @@ queueEvents.on('add', function (taskName) {
             break;
         case 'set.commit.hash':
             repository.getLastCommitHash(function(commit_hash) {
+				if (params.last_commit_hash != 'none') {
+					repository.getCommitHistory(params.last_commit_hash, commit_hash, function(history) {
+						stats.commitLog = history;
+					});
+				}
                 params.commit_hash = commit_hash;
                 queueEvents.rmTask('set.commit.hash');
                 queueEvents.addTask('parser.start');

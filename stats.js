@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const util = require('util');
+const fs = require('fs');
 
 var config = require('./config.js');
 var configParams = config.getParams();
@@ -26,6 +27,9 @@ var Stats = function () {
     this.tests = [];
 
     this.phpunit_repeat = 0;
+
+	this.commitLog = '';
+	this.lastPoolFile = configParams.statistic.last_pool;
 
     this.processDirArr = function(dir_arr) {
         var base_dirs_raw = configParams.parser.baseDirs;
@@ -132,7 +136,8 @@ var Stats = function () {
             'count_tasks': this.count_tasks,
             'succeded_tests_names': this.processDirArr(succeded_tests_names),
             'phpunit_repeat_time': this.phpunit_repeat,
-            'all_tests_data': all_tests_data
+            'all_tests_data': all_tests_data,
+			'commit_history': this.commitLog
         };
     };
 
@@ -164,6 +169,38 @@ var Stats = function () {
         return stat_msg;
     };
 
+	this.saveLastPool = function (commit_hash, callback) {
+		var stats = this.getStatsData();
+
+		var data = [
+			{ branch: "integration" },
+			{ commit_hash: commit_hash },
+			{ testsTotal: stats.tests_overall_count },
+			{ testsSuccess: stats.tests_success_count },
+			{ testsFailed: stats.tests_overall_count - stats.tests_success_count },
+			{ poolTime: stats.time_pool },
+			{ phpunitTime: stats.time_overall },
+			{ testsFailedList: [] }
+		];
+
+		stats.failed_tests_suites.forEach(function(item, i) {
+			var test = [
+				{ name: stats.failed_tests_names[i] },
+				{ suites: stats.failed_tests_suites[i] }
+			];
+
+			data.testsFailedList.push(test);
+		});
+
+		data = JSON.stringify(data);
+
+		fs.writeFile(this.lastPoolFile, data, function(err) {
+			if (err) throw err;
+
+			callback();
+		});
+	};
+
     this.addStat = function (data) {
         this.tests.push(data);
     };
@@ -174,6 +211,7 @@ var Stats = function () {
         this.tests = [];
         this.count_tasks = 0;
         this.phpunit_repeat = 0;
+		this.commitLog = '';
     };
 
     EventEmitter.call(this);

@@ -46,9 +46,23 @@ var Repository = function () {
 			console.log('DEBUG: repository.js : getLastCommitHash() > log callback');
             if(!err) {
 				console.log('DEBUG: repository.js : getLastCommitHash() > log callback > no errors');
-                callback(data.latest.hash)
+                callback(data.latest.hash);
             }
         });
+    };
+
+    this.getCommitHistory = function(lastCommit, currentCommit, callback) {
+		git.log({ from: lastCommit, to: currentCommit }, function (err, data) {
+			if (!err) {
+				var commits = data.all;
+				var logs = '';
+				commits.forEach(function (commit) {
+					logs += '[' + commit.author_name + '] ' + commit.message + '\n';
+				});
+
+				callback(logs);
+			}
+		});
     };
 };
 

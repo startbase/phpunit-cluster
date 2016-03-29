@@ -36,6 +36,7 @@
 		"cmd_update": "php /var/reps/b2bcenter/www_b2b/admin/cli/make_files_root_dirs.php"
 	},
 	"statistic": {
-		"exec_time_log": "./weight.json"
+		"exec_time_log": "./weight.json",
+		"last_pool": "./last_pool.json"
 	}
 }
