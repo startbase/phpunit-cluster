@@ -53,6 +53,12 @@ App.main = function () {
     };
 
     this.complete = function (data) {
+		console.log('\n DATA STATS:');
+		console.log(data.stats);
+		console.log('\n COMMITS:');
+		console.log(data.stats.commit_history);
+		console.log('\n');
+
         var resultHtml = '<table class="table table-striped">' +
 			'<tr><td>Ветка: </td><td> integration </td></tr>' +
 			'<tr><td>Commit Hash: </td><td>' + data.commit_hash + '<br /><br />' + data.stats.commit_history + '</td></tr>' +
