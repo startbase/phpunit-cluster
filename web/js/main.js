@@ -53,15 +53,14 @@ App.main = function () {
     };
 
     this.complete = function (data) {
-		console.log('\n DATA STATS:');
-		console.log(data.stats);
-		console.log('\n COMMITS:');
-		console.log(data.stats.commit_history);
-		console.log('\n');
+		var commits_history = '';
+		data.stats.commit_history.forEach(function(commit) {
+			commits_history += '<p>' + commit + '</p>';
+		});
 
         var resultHtml = '<table class="table table-striped">' +
-			'<tr><td>Ветка: </td><td> integration </td></tr>' +
-			'<tr><td>Commit Hash: </td><td>' + data.commit_hash + '<br /><br />' + data.stats.commit_history + '</td></tr>' +
+			'<tr><td class="col-xs-3">Ветка: </td><td class="col-xs-9"> integration </td></tr>' +
+			'<tr><td>Commit Hash: </td><td>' + data.commit_hash + '<br /><br />' + commits_history + '</td></tr>' +
             '<tr><td>Всего пройдено тестов: </td><td>' + data.stats.tests_overall_count + '</td></tr>' +
             '<tr><td>Успешно пройдено тестов: </td><td>' + data.stats.tests_success_count + '</td></tr>' +
             '<tr><td>Завалено тестов: </td><td>' + data.stats.tests_failed_count + '</td></tr>' +
