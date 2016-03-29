@@ -9,9 +9,6 @@ var TaskBalancer = function() {
 
         this.add = function(client, taskname) {
             states.push({client: client, task: taskname});
-			console.log('Task Balancer debug [add]');
-			console.log(states);
-			console.log('\n');
         };
 
         this.countByTask = function(taskname) {
@@ -51,28 +48,19 @@ var TaskBalancer = function() {
 
     this.isFailedTask = function(task_name) {
         var fail_count = this.prohStates.countByTask(task_name);
-		console.log('Task Balancer debug [isFailedTask]: fail_count = ' + fail_count);
-		console.log('Task Balancer debug [isFailedTask]: repeat_attempts_number = ' + this.repeat_attempts_number);
-		console.log('Task Balancer debug [isFailedTask]: clients_number = ' + this.clients_number);
         return fail_count != 0 && (fail_count >= this.repeat_attempts_number || fail_count >= this.clients_number);
     };
 
     this.getTask = function(client_name) {
-        console.log('Task Balancer debug [getTask]: ' + client_name);
         var task = false;
         if(!Boolean(this.repeat_attempts_number)) {
-            console.log('Task Balancer debug [getTask]: repeat number - ' + this.repeat_attempts_number + ' => false');
             return false;
         }
         for(var i in this.queueTasks.tasks) {
             var item = this.queueTasks.tasks[i];
-            console.log('Task Balancer debug [getTask]: item - ' + item.taskName);
-            console.log('Task Balancer debug [getTask]: is failed task - ' + this.isFailedTask(item.taskName));
-            console.log('Task Balancer debug [getTask]: prohStates.count - ' + this.prohStates.count(client_name, item.taskName));
             if(!this.isFailedTask(item.taskName) && !this.prohStates.count(client_name, item.taskName)) {
                 this.queueTasks.rmTask(item.taskName);
                 task = item;
-				console.log('Task Balancer debug [getTask]: task - ' + task.taskName);
                 break;
             }
         }
@@ -89,7 +77,6 @@ var TaskBalancer = function() {
     };
 
     this.registerFailed = function(client_name, task) {
-		console.log('Task Balancer debug [registerFailed]');
         this.prohStates.add(client_name, task.taskName);
     };
 

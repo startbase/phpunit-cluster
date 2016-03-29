@@ -67,8 +67,8 @@ App.main = function () {
             '<tr><td>Всего пройдено тестов: </td><td>' + data.stats.tests_overall_count + '</td></tr>' +
             '<tr><td>Успешно пройдено тестов: </td><td>' + data.stats.tests_success_count + '</td></tr>' +
             '<tr><td>Завалено тестов: </td><td>' + data.stats.tests_failed_count + '</td></tr>' +
-            '<tr><td>Время выполнения последнего пула тестов: </td><td>' + data.stats.time_pool + '</td></tr>' +
-            '<tr><td>Общее время выполнения тестов в PHPUnit: </td><td>' + (data.stats.time_overall).toFixed(4) + ' сек.</td></tr>' +
+            '<tr><td>Время выполнения пула: </td><td>' + data.stats.time_pool + '</td></tr>' +
+            '<tr><td>Общее время выполнения в PHPUnit: </td><td>' + (data.stats.time_overall).toFixed(4) + ' сек.</td></tr>' +
             '</table>';
 
         // progress-bar-success
