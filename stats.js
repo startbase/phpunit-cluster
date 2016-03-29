@@ -32,7 +32,7 @@ var Stats = function () {
 	this.lastPoolFile = configParams.statistic.last_pool;
 
     this.processDirArr = function(dir_arr) {
-        var base_dirs_raw = configParams.parser.baseDirs;
+        var base_dirs_raw = configParams.parser.base_dirs;
         var base_dirs = [];
         var new_dir_arr = [];
 

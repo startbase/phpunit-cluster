@@ -8,7 +8,7 @@ $ sudo npm install
 
 Создать БД `b2bcenter_cluster_test` командой `echo "CREATE DATABASE IF NOT EXISTS b2bcenter_cluster_test" | mysql -uroot`
 
-В `config.json` в настройке `parser.baseDirs` указать пути до папок с интересующими тестами
+В `config.json` в настройке `parser.base_dirs` указать пути до папок с интересующими тестами
 
 # Клиент
 
@@ -26,7 +26,7 @@ $ node client.js [options]
 Пример:
 
 ```
-$ node client.js -u startbase -d dashboard.b2b-center.ru -p 8089
+$ node client_runner.js client.js -u startbase -d dashboard.b2b-center.ru -p 8089
 ```
 
 # Сервер
