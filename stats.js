@@ -178,16 +178,20 @@ var Stats = function () {
 	this.saveLastPool = function (commit_hash, callback) {
 		var stats = this.getStatsData();
 
-		var data = [
-			{ branch: "integration" },
-			{ commit_hash: commit_hash },
-			{ testsTotal: stats.tests_overall_count },
-			{ testsSuccess: stats.tests_success_count },
-			{ testsFailed: stats.tests_overall_count - stats.tests_success_count },
-			{ poolTime: stats.time_pool },
-			{ phpunitTime: stats.time_overall },
-			{ testsFailedList: [] }
-		];
+		var data = {
+			branch: "integration",
+			commit_hash: commit_hash,
+			testsTotal: stats.tests_overall_count,
+			testsSuccess: stats.tests_success_count,
+			testsFailed: (stats.tests_overall_count - stats.tests_success_count),
+			poolTime: stats.time_pool,
+			phpunitTime: stats.time_overall,
+			testsFailedList: []
+		};
+
+		console.log('\n SUITES: \n');
+		console.log(stats.failed_tests_suites);
+		console.log('\n');
 
 		if (stats.failed_tests_suites.length > 0) {
 			stats.failed_tests_suites.forEach(function(item, i) {
@@ -195,6 +199,10 @@ var Stats = function () {
 					name: stats.failed_tests_names[i],
 					suites: stats.failed_tests_suites[i]
 				};
+
+				console.log('\n');
+				console.log(test);
+				console.log('\n');
 
 				data.testsFailedList.push(test);
 			});
