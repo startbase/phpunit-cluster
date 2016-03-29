@@ -1,4 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+var colors = require('colors');
+
 var argv = require('minimist')(process.argv.slice(2));
 var config = require('./config.js');
 var configParams = config.getParams();
@@ -24,7 +26,9 @@ var stats = require('./stats');
 var weightBase = require('./libs/weight-base');
 var users = [];
 var tasks_pool_count = 0;
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+var logAgregator = new (require('./log-agregator'))(config.getParams());
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** Запускаемся */
 var io = require('socket.io').listen(params.port);
 console.log('[' + getDate() + '] Сервер запущен. Порт: ' + params.port);
@@ -285,6 +289,7 @@ io.sockets.on('connection', function (socket) {
             stats.count_tasks = 0;
             io.sockets.emit('web.update', stats.getWebStats());
             io.sockets.emit('web.complete', { stats: stats.getWebStats(), commit_hash: params.commit_hash });
+            logAgregator.push({ stats: stats.getWebStats(), commit_hash: params.commit_hash });
         }
     });
 

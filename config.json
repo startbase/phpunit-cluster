@@ -41,5 +41,11 @@
 	"statistic": {
 		"exec_time_log": "./weight.json",
 		"last_pool": "./last_pool.json"
+	},
+	"logAgregator": {
+		"database": "b2bcenter_cluster",
+		"user": "root",
+		"password": "",
+		"table": "cluster_logs"
 	}
 }
