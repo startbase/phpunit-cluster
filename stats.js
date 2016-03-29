@@ -161,10 +161,12 @@ var Stats = function () {
             if (stats_data.tests_failed_count > 0) {
                 stat_msg += "\nЗавалены тесты: \n";
 
-                stats_data.failed_tests_suites.forEach(function(item, i) {
-                    stat_msg += "\t" + stats_data.failed_tests_names[i] + "\n";
-                    stat_msg += stats_data.failed_tests_suites[i];
-                });
+				if (stats_data.failed_tests_suites.length > 0) {
+					stats_data.failed_tests_suites.forEach(function(item, i) {
+						stat_msg += '\t' + stats_data.failed_tests_names[i] + "\n";
+						stat_msg += '\t\t' + stats_data.failed_tests_suites[i] + "\n";
+					});
+				}
             }
 
         }
@@ -189,20 +191,12 @@ var Stats = function () {
 			testsFailedList: []
 		};
 
-		console.log('\n SUITES: \n');
-		console.log(stats.failed_tests_suites);
-		console.log('\n');
-
 		if (stats.failed_tests_suites.length > 0) {
 			stats.failed_tests_suites.forEach(function(item, i) {
 				var test = {
 					name: stats.failed_tests_names[i],
 					suites: stats.failed_tests_suites[i]
 				};
-
-				console.log('\n');
-				console.log(test);
-				console.log('\n');
 
 				data.testsFailedList.push(test);
 			});
