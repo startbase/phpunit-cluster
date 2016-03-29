@@ -163,6 +163,16 @@ function show_online_clients() {
     console.log('\n');
 }
 
+function isExistUser(username) {
+	for (var i = 0; i < users.length; i++) {
+		if (users[i][0] == username) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 function setLastCommitHash() {
 	if (fs.existsSync(configParams.statistic.last_pool)) {
 		fs.readFile(configParams.statistic.last_pool, function(err, data) {
@@ -199,6 +209,11 @@ io.sockets.on('connection', function (socket) {
      */
     socket.on('registerUser', function (data) {
 		console.log('[' + getDate() + '] Новое подключение!');
+
+		if (isExistUser(data.username)) {
+			data.username = data.username + '_' +  + Date.now();
+			socket.emit('userMessage', { message: 'Пользователь с таким именем уже есть в системе. Вас переименовали в ' + data.username });
+		}
 
         socket.username = data.username;
         users.push([data.username, data.userinfo]);
