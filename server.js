@@ -38,6 +38,7 @@ udp_receiver.on('message', function (message, info) {
 
 udp_receiver.bind(configParams.udp_socket.port);
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+var fs = require('fs');
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
 var taskBalancer = new (require('./task-balancer.js'));
@@ -52,6 +53,7 @@ var tasks_pool_count = 0;
 /** Запускаемся */
 var io = require('socket.io').listen(params.port);
 console.log('[' + getDate() + '] Сервер запущен. Порт: ' + params.port);
+setLastCommitHash();
 show_help();
 
 /**
@@ -82,6 +84,7 @@ rl.on('line', function (line) {
             show_online_clients();
             break;
         case 'c':
+			console.log('Прошлый commit hash сервера: ' + params.last_commit_hash);
             console.log('Текущий commit hash сервера: ' + params.commit_hash);
             break;
         case 't':
@@ -158,6 +161,22 @@ function show_online_clients() {
         user_index++;
     }
     console.log('\n');
+}
+
+function setLastCommitHash() {
+	if (fs.existsSync(configParams.statistic.last_pool)) {
+		fs.readFile(configParams.statistic.last_pool, function(err, data) {
+			if (err) throw err;
+
+			var last_pool = JSON.parse(data);
+			console.log('LAST POOL: \n');
+			console.log(last_pool);
+			console.log('\n');
+			console.log(last_pool.commit_hash);
+		});
+	} else {
+		console.log('[' + getDate() + '] Данных по последнему выполненому пулу не обнаружено');
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
