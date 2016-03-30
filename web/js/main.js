@@ -78,9 +78,9 @@ App.main = function () {
 
     this.complete = function (data) {
 		var commits_history = '';
-		if (data.stats.commit_history.length > 0) {
+		if (data.commit_history.length > 0) {
 			commits_history += '<br /><br />';
-			data.stats.commit_history.forEach(function(commit) {
+			data.commit_history.forEach(function(commit) {
 				commits_history += '<p>' + commit + '</p>';
 			});
 		}
@@ -88,18 +88,18 @@ App.main = function () {
         var resultHtml = '<p><strong>Данные по последнему выполненому пулу</strong></p>' +
 			'<table class="table table-striped">' +
 			'<tr><td class="col-xs-3">Время выполнения пула: </td><td class="col-xs-9">' + new Date(data.date_finish).toLocaleString() + '</td></tr>' +
-			'<tr><td>Ветка: </td><td> integration </td></tr>' +
+			'<tr><td>Ветка: </td><td>integration</td></tr>' +
 			'<tr><td>Commit Hash: </td><td>' + data.commit_hash + '' + commits_history + '</td></tr>' +
-            '<tr><td>Всего пройдено тестов: </td><td>' + data.stats.tests_overall_count + '</td></tr>' +
-            '<tr><td>Успешно пройдено тестов: </td><td>' + data.stats.tests_success_count + '</td></tr>' +
-            '<tr><td>Завалено тестов: </td><td>' + data.stats.tests_failed_count + '</td></tr>' +
-            '<tr><td>Время выполнения пула: </td><td>' + data.stats.time_pool + '</td></tr>' +
-            '<tr><td>Общее время выполнения в PHPUnit: </td><td>' + (data.stats.time_overall).toFixed(4) + ' сек.</td></tr>' +
+            '<tr><td>Всего пройдено тестов: </td><td>' + data.tests_overall_count + '</td></tr>' +
+            '<tr><td>Успешно пройдено тестов: </td><td>' + data.tests_success_count + '</td></tr>' +
+            '<tr><td>Завалено тестов: </td><td>' + data.tests_failed_count + '</td></tr>' +
+            '<tr><td>Время выполнения пула: </td><td>' + data.time_pool + '</td></tr>' +
+            '<tr><td>Общее время выполнения в PHPUnit: </td><td>' + (data.time_overall).toFixed(4) + ' сек.</td></tr>' +
             '</table>';
 
         // progress-bar-success
         var pb = $('#tests-progress').find('.progress-bar');
-        if (data.stats.tests_failed_count) {
+        if (data.tests_failed_count) {
             pb.addClass('progress-bar-danger');
         } else {
             pb.addClass('progress-bar-success');

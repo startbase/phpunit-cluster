@@ -273,8 +273,8 @@ io.sockets.on('connection', function (socket) {
 		if (tasks_pool_count == stats.tests.length) {
 			console.log('[' + getDate() + '] Все задачи из текущего пула выполнены');
 			stats.finish_time = Date.now();
+			stats.count_tasks = 0;
 
-            io.sockets.emit('stats.update', stats.getWebStats());
 			weightBase.saveWeights(function() {
 				console.log('[' + getDate() + '] Данные по времени выполнения тестов последнего пула сохранены');
 			});
@@ -296,9 +296,11 @@ io.sockets.on('connection', function (socket) {
 				queueEvents.rmTask('need.update.repo');
 				queueEvents.addTask('update.repo');
 			}
-            stats.count_tasks = 0;
-            io.sockets.emit('web.update', stats.getWebStats());
-            io.sockets.emit('web.complete', { stats: stats.getWebStats(), commit_hash: params.commit_hash });
+
+			var web_stats = stats.getWebStats();
+			io.sockets.emit('stats.update', web_stats);
+            io.sockets.emit('web.update', web_stats);
+            io.sockets.emit('web.complete', web_stats);
             logAgregator.push(stats.prepareForSave());
         }
     });
