@@ -287,7 +287,7 @@ io.sockets.on('connection', function (socket) {
 			/** Сразу покажем статистику */
 			rl.emit('line', 'd');
 
-			stats.saveLastPool(params.commit_hash, function () {
+			stats.saveLastPool(function () {
 				console.log('[' + getDate() + '] Результаты выполнения последнего пула сохранены');
 			});
 
@@ -299,7 +299,7 @@ io.sockets.on('connection', function (socket) {
             stats.count_tasks = 0;
             io.sockets.emit('web.update', stats.getWebStats());
             io.sockets.emit('web.complete', { stats: stats.getWebStats(), commit_hash: params.commit_hash });
-            logAgregator.push({ stats: stats.getWebStats(), commit_hash: params.commit_hash });
+            logAgregator.push(stats.prepareForSave());
         }
     });
 

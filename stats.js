@@ -72,7 +72,7 @@ var Stats = function () {
 
             test.suites.forEach(function(suite) {
                 if (suite.status == 'fail') {
-                    var stat_msg = suite.test + " [" + suite.message + "]\n";
+                    var stat_msg = suite.test + " [" + suite.message + "]";
                     test_suites.push(stat_msg);
                 }
             });
@@ -92,6 +92,8 @@ var Stats = function () {
 			'date_start': this.start_time,
 			'date_finish': this.finish_time,
 			'commit_hash': this.commit_hash,
+			'commit_history': this.commitLog,
+			'count_tasks': this.count_tasks,
             'tests_overall_count': this.tests.length,
             'tests_success_count': raw_stats.tests_completed.length,
             'tests_failed_count': raw_stats.tests_failed.length,
@@ -100,11 +102,9 @@ var Stats = function () {
             'time_pool' : time_pool,
             'failed_tests_names': failed_tests_names,
             'failed_tests_suites': failed_test_suites,
-            'count_tasks': this.count_tasks,
+			'failed_test_suites_names': failed_test_suites_names,
             'phpunit_repeat_time': this.phpunit_repeat,
-            'all_tests_data': all_tests_data,
-            'failed_test_suites_names': failed_test_suites_names,
-			'commit_history': this.commitLog
+            'all_tests_data': all_tests_data
         };
     };
 
@@ -120,12 +120,15 @@ var Stats = function () {
                 + "Среднее время выполнения тестов в PHPUnit: " + stats_data.time_average + " сек.\n";
 
             if (stats_data.tests_failed_count > 0) {
-                stat_msg += "\nЗавалены тесты: \n";
+                stat_msg += "\nЗавалены тесты:\n";
 
-				if (stats_data.failed_tests_suites.length > 0) {
-					stats_data.failed_tests_suites.forEach(function(item, i) {
-						stat_msg += '\t' + stats_data.failed_tests_names[i] + "\n";
-						stat_msg += '\t\t' + stats_data.failed_tests_suites[i] + "\n";
+				if (stats_data.failed_tests_names.length > 0) {
+					stats_data.failed_tests_names.forEach(function (failed_test, i) {
+						stat_msg += '\t' + failed_test + "\n";
+
+						stats_data.failed_tests_suites[i].forEach(function (failed_suite) {
+							stat_msg += '\t\t' + failed_suite + "\n";
+						});
 					});
 				}
             }
@@ -138,35 +141,20 @@ var Stats = function () {
         return stat_msg;
     };
 
-	this.saveLastPool = function (commit_hash, callback) {
-		var stats = this.getStatsData();
+	this.prepareForSave = function () {
+		var data = this.getStatsData();
 
-		var data = {
-			branch: "integration",
-			commit_hash: commit_hash,
-			testsTotal: stats.tests_overall_count,
-			testsSuccess: stats.tests_success_count,
-			testsFailed: (stats.tests_overall_count - stats.tests_success_count),
-			poolTime: stats.time_pool,
-			phpunitTime: stats.time_overall,
-			testsFailedList: []
-		};
+		delete data.failed_test_suites_names;
+		delete data.all_tests_data;
 
-		if (stats.failed_tests_suites.length > 0) {
-			stats.failed_tests_suites.forEach(function(item, i) {
-				var test = {
-					name: stats.failed_tests_names[i]
-					// @todo-r разобраться, что изменилось в структуре
-					//suites: stats.failed_tests_suites[i]
-				};
+		return data;
+	};
 
-				data.testsFailedList.push(test);
-			});
-		}
+	this.saveLastPool = function (callback) {
+		var stats = this.prepareForSave();
+		stats = JSON.stringify(stats);
 
-		data = JSON.stringify(data);
-
-		fs.writeFile(this.lastPoolFile, data, function(err) {
+		fs.writeFile(this.lastPoolFile, stats, function(err) {
 			if (err) throw err;
 
 			callback();

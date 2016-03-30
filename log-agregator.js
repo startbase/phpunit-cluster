@@ -41,10 +41,10 @@ var LogAgregator = function (config) {
 
             var data = self.stack.shift();
 
-            if (data && data.commit_hash && data.stats) {
+            if (data) {
                 var connection = self.getNewConnection();
                 connection.prepare("INSERT INTO `" + config.logAgregator.table + "` (`commit`, `data`) VALUES (?, ?)", function (err, statement) {
-                    statement.execute([data.commit_hash, JSON.stringify(data.stats)], function (err, rows, columns) {
+                    statement.execute([data.commit_hash, JSON.stringify(data)], function (err, rows, columns) {
                         if (err) {
                             console.log("CLUSTER: >>>>>>>>>>>>>>>\n".red);
                             console.log(err.red);
