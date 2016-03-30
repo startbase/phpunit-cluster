@@ -1,7 +1,6 @@
 var App = App || {};
 var socket = io('http://' + window.location.hostname + ':8099');
 
-
 function cut(str, substr) {
     var cutStart = str.indexOf(substr);
     var cutEnd = cutStart + substr.length - 1;
@@ -36,14 +35,17 @@ App.main = function () {
         });
     };
 
-    this.start = function () {
+    this.start = function (data) {
+		var currentTestInfoHtml = '<div class="col-xs-12">' +
+			'<p>Время запуска пула: ' + new Date().toLocaleString() + '</p>' +
+			'<p>Последний commit hash пула: ' + data + '</p>' +
+			'</div>';
         var progressBarHtml = '<div class="progress" id="tests-progress">' +
             '<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0;">' +
             '<span>0</span>' +
             '</div>' +
-            '</div>' +
-            '<div id="tests-result-info"></div>';
-        $('#info-tests').empty().html(progressBarHtml);
+            '</div>';
+        $('#current-info-tests').empty().html(currentTestInfoHtml + progressBarHtml);
         
         var treeHtml = '<div id="tree"></div>';
         $('#tree-block').empty().html(treeHtml);
@@ -79,8 +81,10 @@ App.main = function () {
 			});
 		}
 
-        var resultHtml = '<table class="table table-striped">' +
-			'<tr><td class="col-xs-3">Ветка: </td><td class="col-xs-9"> integration </td></tr>' +
+        var resultHtml = '<p><strong>Данные по последнему выполненому пулу</strong></p>' +
+			'<table class="table table-striped">' +
+			'<tr><td class="col-xs-3">Время выполнения пула: </td><td class="col-xs-9">' + new Date().toLocaleString() + '</td></tr>' +
+			'<tr><td>Ветка: </td><td> integration </td></tr>' +
 			'<tr><td>Commit Hash: </td><td>' + data.commit_hash + '' + commits_history + '</td></tr>' +
             '<tr><td>Всего пройдено тестов: </td><td>' + data.stats.tests_overall_count + '</td></tr>' +
             '<tr><td>Успешно пройдено тестов: </td><td>' + data.stats.tests_success_count + '</td></tr>' +
@@ -91,13 +95,13 @@ App.main = function () {
 
         // progress-bar-success
         var pb = $('#tests-progress').find('.progress-bar');
-        if (data.tests_failed_count) {
+        if (data.stats.tests_failed_count) {
             pb.addClass('progress-bar-danger');
         } else {
             pb.addClass('progress-bar-success');
         }
 
-        $('#tests-result-info').html(resultHtml);
+        $('#last-info-tests').html(resultHtml);
 
         self.repaintIframe();
     };
