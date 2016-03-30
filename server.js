@@ -40,15 +40,25 @@ show_help();
  * и говорим участникам, что они могут разбирать тесты
  */
 taskBalancer.queueTasks.on('fill.complete', function () {
-	stats.resetStats();
 	weightBase.resetPool();
-    stats.start_time = Date.now();
+	stats.resetStats();
+	tasks_pool_count = taskBalancer.tasksCount();
 
-    tasks_pool_count = taskBalancer.tasksCount();
+	// Сохраняем данные в статистику
+	stats.start_time = Date.now();
+	stats.commit_hash = params.commit_hash;
+	stats.count_tasks = tasks_pool_count;
 
-    stats.count_tasks = tasks_pool_count;
+	if (params.last_commit_hash != 'none' && params.last_commit_hash != commit_hash) {
+		repository.getCommitHistory(params.last_commit_hash, commit_hash, function(history) {
+			stats.commitLog = history;
+		});
+	}
+
     console.log('\n[' + getDate() + '] Всего задач: ' + tasks_pool_count);
     console.log('[' + getDate() + '] Раздаём задачи...');
+
+	io.sockets.emit('web.start', stats.getWebStats());
     io.sockets.emit('readyForJob');
 });
 
@@ -383,12 +393,6 @@ queueEvents.on('add', function (taskName) {
         case 'set.commit.hash':
             repository.getLastCommitHash(function(commit_hash) {
 				params.commit_hash = commit_hash;
-				stats.commit_hash = commit_hash;
-				if (params.last_commit_hash != 'none' && params.last_commit_hash != commit_hash) {
-					repository.getCommitHistory(params.last_commit_hash, commit_hash, function(history) {
-						stats.commitLog = history;
-					});
-				}
                 queueEvents.rmTask('set.commit.hash');
                 queueEvents.addTask('parser.start');
             });
@@ -404,7 +408,6 @@ queueEvents.on('add', function (taskName) {
         case 'task.generate':
             var taskEventObj = queueEvents.find('task.generate');
             queueEvents.rmTask('task.generate');
-            io.sockets.emit('web.start', params.commit_hash);
             taskBalancer.generateQueue(taskEventObj.params['data']);
             break;
         case 'in.process':

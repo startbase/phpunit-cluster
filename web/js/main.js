@@ -36,8 +36,8 @@ App.main = function () {
     };
 
     this.start = function (data) {
-		var currentTestInfoHtml = '<p><strong>Время запуска:</strong> <span class="start-time">' + new Date().toLocaleString() + '</span></p>' +
-			'<p><strong>Текущий commit hash</strong>: <span class="commit-hash">' + data + '</span></p>';
+		var currentTestInfoHtml = '<p><strong>Время запуска:</strong> <span class="start-time">' + data.date_start.toLocaleString() + '</span></p>' +
+			'<p><strong>Текущий commit hash</strong>: <span class="commit-hash">' + data.commit_hash + '</span></p>';
         var progressBarHtml = '<div class="progress" id="tests-progress">' +
             '<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0;">' +
             '<span>0</span>' +
@@ -61,7 +61,7 @@ App.main = function () {
 
 		var it = $('#current-info-tests');
 		// Обновление даты старта
-		it.find('span.start-time').html(data.start_time);
+		it.find('span.start-time').html(data.date_start.toLocaleString());
 		// Обновление commit hash
 		it.find('span.commit-hash').html(data.commit_hash);
 
