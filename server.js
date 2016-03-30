@@ -395,8 +395,19 @@ queueEvents.on('add', function (taskName) {
         case 'set.commit.hash':
             repository.getLastCommitHash(function(commit_hash) {
 				params.commit_hash = commit_hash;
-                queueEvents.rmTask('set.commit.hash');
-                queueEvents.addTask('parser.start');
+				queueEvents.rmTask('set.commit.hash');
+
+				/**
+				 * На данный момент UDP пакет присылается если кто-то освобождает ветку,
+				 * при этом push может не сделан. Если новый комит соотв. комиту прошлого пула,
+				 * то освобождаем сервер
+				 */
+				if (params.commit_hash == params.last_commit_hash) {
+					console.log('[' + getDate() + '] Последний commit hash совпал с текущим. Запуск пула отменён. Сервер свободен');
+					queueEvents.rmTask('in.process');
+				} else {
+					queueEvents.addTask('parser.start');
+				}
             });
             break;
         case 'parser.start':
