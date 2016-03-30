@@ -370,7 +370,7 @@ queueEvents.on('add', function (taskName) {
                 updateTimeout = null;
                 queueEvents.tasks = [];
                 queueEvents.rmTask('update.repo');
-                console.log('Git update timeout. Waiting for a new update event...');
+                console.log('[' + getDate() + '] Git update timeout. Waiting for a new update event...');
             }, configParams.repository.server_connection_timeout);
 			repository.update(function () {
                 if (updateTimeout) {
