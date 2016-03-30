@@ -36,10 +36,8 @@ App.main = function () {
     };
 
     this.start = function (data) {
-		var currentTestInfoHtml = '<div class="col-xs-12">' +
-			'<p><strong>Время запуска:</strong> ' + new Date().toLocaleString() + '</p>' +
-			'<p><strong>Текущий commit hash</strong>: ' + data + '</p>' +
-			'</div>';
+		var currentTestInfoHtml = '<p><strong>Время запуска:</strong> ' + new Date().toLocaleString() + '</p>' +
+			'<p><strong>Текущий commit hash</strong>: ' + data + '</p>';
         var progressBarHtml = '<div class="progress" id="tests-progress">' +
             '<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0;">' +
             '<span>0</span>' +
