@@ -49,8 +49,8 @@ taskBalancer.queueTasks.on('fill.complete', function () {
 	stats.commit_hash = params.commit_hash;
 	stats.count_tasks = tasks_pool_count;
 
-	if (params.last_commit_hash != 'none' && params.last_commit_hash != commit_hash) {
-		repository.getCommitHistory(params.last_commit_hash, commit_hash, function(history) {
+	if (params.last_commit_hash != 'none' && params.last_commit_hash != params.commit_hash) {
+		repository.getCommitHistory(params.last_commit_hash, params.commit_hash, function(history) {
 			stats.commitLog = history;
 		});
 	}
