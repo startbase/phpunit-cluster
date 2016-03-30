@@ -404,7 +404,7 @@ queueEvents.on('add', function (taskName) {
             var taskEventObj = queueEvents.find('task.generate');
             queueEvents.rmTask('task.generate');
             io.sockets.emit('web.start', params.commit_hash);
-            taskBalancer.fillTaskQueue(taskEventObj.params['data']);
+            taskBalancer.generateQueue(taskEventObj.params['data']);
             break;
         case 'in.process':
 			console.log('[' + getDate() + '] Сервер перешёл в режим создания и раздачи задач');
