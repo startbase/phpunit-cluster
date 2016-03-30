@@ -1,6 +1,6 @@
-var Task = require('./task');
 var Queue = require('./queue');
 var config = require('./config.js');
+var weightBase = require('./libs/weight-base');
 var config_params = config.getParams().task_balancer;
 
 var TaskBalancer = function() {
@@ -40,7 +40,6 @@ var TaskBalancer = function() {
 		};
     })();
     this.queueTasks = new Queue();
-    this.task = new Task(this.queueTasks);
 
     this.repeat_attempts_number = config_params.failed_attempts;
 
@@ -80,8 +79,22 @@ var TaskBalancer = function() {
         this.prohStates.add(client_name, task.taskName);
     };
 
-    this.fillTaskQueue = function(data) {
-        this.task.generateQueue(data);
+    /**
+     * Создаём очередь тестов из списка
+     * В конце вызываем событие "очередь наполнена и готова"
+     *
+     * @param data список тестов в виде массива
+     */
+    this.generateQueue = function (data) {
+        var instance = this;
+
+        data.forEach(function(item) {
+            instance.queueTasks.addTask(item);
+        });
+
+        weightBase.sortTasks(this.queueTasks, function() {
+            instance.queueTasks.emit('fill.complete');
+        });
     };
 
     this.clearTaskQueue = function() {
