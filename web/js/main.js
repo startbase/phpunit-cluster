@@ -44,12 +44,7 @@ App.main = function () {
             '</div>' +
             '</div>';
         $('#current-info-tests').empty().html(currentTestInfoHtml + progressBarHtml);
-        
-        var treeHtml = '<div id="tree"></div>';
-        $('#tree-block').empty().html(treeHtml);
-        
-        var testSuitesHtml = '<div id="event_result"></div>';
-        $('#event-block').empty().html(testSuitesHtml);
+
     };
 
     this.update = function (data) {
@@ -132,6 +127,12 @@ App.main = function () {
 	};
 
     this.stats_update = function (data) {
+        var treeHtml = '<div id="tree"></div>';
+        $('#tree-block').empty().html(treeHtml);
+
+        var testSuitesHtml = '<div id="event_result"></div>';
+        $('#event-block').empty().html(testSuitesHtml);
+
         var tests_all = data.all_tests_data;
         var failed_test_suites_names = data.failed_test_suites_names;
 
