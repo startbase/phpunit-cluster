@@ -20,6 +20,7 @@ var Stats = function () {
     this.phpunit_repeat = 0;
 
 	this.commitLog = [];
+	this.commit_hash = '';
 	this.lastPoolFile = configParams.statistic.last_pool;
     
     this.getWebStats = function() {
@@ -88,6 +89,9 @@ var Stats = function () {
         }
 
         return {
+			'date_start': this.start_time,
+			'date_finish': this.finish_time,
+			'commit_hash': this.commit_hash,
             'tests_overall_count': this.tests.length,
             'tests_success_count': raw_stats.tests_completed.length,
             'tests_failed_count': raw_stats.tests_failed.length,
@@ -179,6 +183,7 @@ var Stats = function () {
         this.tests = [];
         this.count_tasks = 0;
         this.phpunit_repeat = 0;
+		this.commit_hash = '';
 		this.commitLog = [];
     };
 
