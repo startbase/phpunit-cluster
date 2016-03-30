@@ -11,7 +11,7 @@ var LogAgregator = function (config) {
             "`id` INT(11) NOT NULL AUTO_INCREMENT," +
             "`commit` VARCHAR(32) NOT NULL," +
             "`data` TEXT NOT NULL," +
-            "`datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+            "`datetime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
             "PRIMARY KEY (`id`)" +
             ") COLLATE='utf8_general_ci' ENGINE=InnoDB", function (err, result) {
 
@@ -25,7 +25,11 @@ var LogAgregator = function (config) {
     };
 
     this.getNewConnection = function () {
-        return mysql.createConnection({user: config.logAgregator.user, database: config.logAgregator.database});
+        return mysql.createConnection({
+            user: config.logAgregator.user,
+            password: config.logAgregator.password,
+            database: config.logAgregator.database
+        });
     };
 
     this.startInterval = function () {
