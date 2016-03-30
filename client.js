@@ -178,16 +178,11 @@ function syncRepository(data, socket, callback) {
 	socket.emit('serverMessage', { message: params.user + ' синхронизируется с commit hash сервера' });
 
 	var updateTimeout = setTimeout(function() {
-		var attempt_delay = 1500;
 		updateTimeout = null;
 		console.log('[' + getDate() + '] Ошибка синхронизации. Задача возвращена на сервер');
 		socket.emit('serverMessage', { message: params.user + ' не смог синхронизироваться и возвращает задачу' });
 		is_busy = false;
 		socket.emit('rejectTask', data.task);
-
-		setTimeout(function() {
-			readyForJob(socket);
-		}, attempt_delay);
 	}, configParams.repository.client_connection_timeout);
 	repository.checkout(commit_hash, function () {
 		socket.emit('serverMessage', { message: params.user + ' выполнил checkout' });

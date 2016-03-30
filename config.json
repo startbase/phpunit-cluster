@@ -3,11 +3,11 @@
 	"repository": {
 		"local_branch": "integration",
 		"repository_path": "/var/reps/b2bcenter",
-		"server_connection_timeout": 30000,
-		"client_connection_timeout": 30000
+		"server_connection_timeout": 40000,
+		"client_connection_timeout": 40000
 	},
 	"task_balancer": {
-		"failed_attempts": 2
+		"failed_attempts": 1
 	},
 	"server_socket": {
 		"port": 8099

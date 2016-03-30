@@ -48,13 +48,13 @@ var TaskBalancer = function() {
 
     this.isFailedTask = function(task_name) {
         var fail_count = this.prohStates.countByTask(task_name);
-        return fail_count != 0 && (fail_count >= this.repeat_attempts_number || fail_count >= this.clients_number);
+        return fail_count != 0 && (fail_count > this.repeat_attempts_number || fail_count >= this.clients_number);
     };
 
     this.getTask = function(client_name) {
         var task = false;
         if(!Boolean(this.repeat_attempts_number)) {
-            return false;
+            return this.queueTasks.getTask();
         }
         for(var i in this.queueTasks.tasks) {
             var item = this.queueTasks.tasks[i];
