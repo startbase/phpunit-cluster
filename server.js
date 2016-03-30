@@ -381,12 +381,12 @@ queueEvents.on('add', function (taskName) {
             break;
         case 'set.commit.hash':
             repository.getLastCommitHash(function(commit_hash) {
+				params.commit_hash = commit_hash;
 				if (params.last_commit_hash != 'none' && params.last_commit_hash != params.commit_hash) {
 					repository.getCommitHistory(params.last_commit_hash, commit_hash, function(history) {
 						stats.commitLog = history;
 					});
 				}
-                params.commit_hash = commit_hash;
                 queueEvents.rmTask('set.commit.hash');
                 queueEvents.addTask('parser.start');
             });
