@@ -36,7 +36,7 @@ App.main = function () {
     };
 
     this.start = function (data) {
-		var currentTestInfoHtml = '<p><strong>Время запуска:</strong> <span class="start-time">' + data.date_start.toLocaleString() + '</span></p>' +
+		var currentTestInfoHtml = '<p><strong>Время запуска:</strong> <span class="start-time">' + new Date(data.date_start).toLocaleString() + '</span></p>' +
 			'<p><strong>Текущий commit hash</strong>: <span class="commit-hash">' + data.commit_hash + '</span></p>';
         var progressBarHtml = '<div class="progress" id="tests-progress">' +
             '<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0;">' +
@@ -61,7 +61,7 @@ App.main = function () {
 
 		var it = $('#current-info-tests');
 		// Обновление даты старта
-		it.find('span.start-time').html(data.date_start.toLocaleString());
+		it.find('span.start-time').html(new Date(data.date_start).toLocaleString());
 		// Обновление commit hash
 		it.find('span.commit-hash').html(data.commit_hash);
 
@@ -87,7 +87,7 @@ App.main = function () {
 
         var resultHtml = '<p><strong>Данные по последнему выполненому пулу</strong></p>' +
 			'<table class="table table-striped">' +
-			'<tr><td class="col-xs-3">Время выполнения пула: </td><td class="col-xs-9">' + new Date().toLocaleString() + '</td></tr>' +
+			'<tr><td class="col-xs-3">Время выполнения пула: </td><td class="col-xs-9">' + new Date(data.date_finish).toLocaleString() + '</td></tr>' +
 			'<tr><td>Ветка: </td><td> integration </td></tr>' +
 			'<tr><td>Commit Hash: </td><td>' + data.commit_hash + '' + commits_history + '</td></tr>' +
             '<tr><td>Всего пройдено тестов: </td><td>' + data.stats.tests_overall_count + '</td></tr>' +
