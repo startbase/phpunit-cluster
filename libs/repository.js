@@ -45,12 +45,14 @@ var Repository = function () {
     };
 
     this.getCommitHistory = function(lastCommit, currentCommit, callback) {
-		git.log({ from: lastCommit, to: currentCommit }, function (err, data) {
+		git.log({ from: lastCommit, to: currentCommit, options: options }, function (err, data) {
 			if (!err) {
 				var commits = data.all;
 				var logs = [];
+				var merge = /(.*?)Merge branch(.*?)into integration/i;
+
 				commits.forEach(function (commit) {
-					if (commit.author_name !== undefined && commit.message !== undefined) {
+					if (commit.author_name !== undefined && commit.message !== undefined && merge.test(commit.message)) {
 						logs.push('[' + commit.author_name + '] ' + commit.message);
 					}
 				});
