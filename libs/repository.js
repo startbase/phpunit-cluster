@@ -45,7 +45,7 @@ var Repository = function () {
     };
 
     this.getCommitHistory = function(lastCommit, currentCommit, callback) {
-		git.log({ from: lastCommit, to: currentCommit, options: options }, function (err, data) {
+		git.log({ from: lastCommit, to: currentCommit }, function (err, data) {
 			if (!err) {
 				var commits = data.all;
 				var logs = [];
