@@ -163,9 +163,12 @@ App.main = function () {
         tree.addArr(tree_arr);
         var treeJSON = tree.asArray();
 
+        var is_tree_new = true;
+
         $('#tree')
             // listen for event
-            .on('changed.jstree', function (e, data) {
+            .on('select_node.jstree', function (e, data) {
+                console.log(e);
                 var i, j, node_suites_arr = {};
 
                 for (i = 0, j = data.selected.length; i < j; i++) {
@@ -184,9 +187,24 @@ App.main = function () {
                 });
                 event_result_html += '';
 
-
-
                 $('#event_result').html(event_result_html);
+
+                // Scroll to test-cases head
+                jQuery.fn.exists = function () {
+                    return ($(this).length > 0);
+                };
+
+                var test_suite_last = $("#event-block").find('table :last');
+
+                if (!is_tree_new && test_suite_last.exists()) {
+                    console.log('sdsdsd');
+                    $('html, body').animate({
+                        scrollTop: test_suite_last.offset().top
+                    }, 100);
+                }
+
+                is_tree_new = false;
+
             })
             .jstree({
             themes: {

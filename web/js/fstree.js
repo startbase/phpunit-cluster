@@ -46,13 +46,12 @@ function Tree() {
             var is_folder = !is_leaf && !is_root;
 
             var parent = !is_root ? node.parent.path(): '#';
-            // var id = "ajson" + ++idcount;
             var id = name;
 
             var type = 'default';
             var state = {};
 
-            if (is_root) { type = 'root'};
+            if (is_root) { type = 'root'}
 
             if (is_leaf){
                 type = 'file';
