@@ -14,7 +14,6 @@ function cut(str, substr) {
 
 function processDir(dir) {
     var base_dir = '/var/reps/b2bcenter';
-
     return cut(dir, base_dir);
 }
 
