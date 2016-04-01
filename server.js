@@ -366,6 +366,13 @@ io.sockets.on('connection', function (socket) {
         console.log('[' + getDate() + '] ' + data.message);
     });
 
+    socket.on('stats.init_request', function () {
+        stats.getLastStatsData(function (data) {
+            io.sockets.emit('stats.init_result', data);
+            io.sockets.emit('stats.update', data);
+        });
+    });
+
     socket.emit('web.update', stats.getWebStats());
 	socket.emit('web.users.update', users);
 });

@@ -4,6 +4,7 @@ const fs = require('fs');
 
 var config = require('./config.js');
 var configParams = config.getParams();
+var logAgregator = new (require('./log-agregator'))(config.getParams());
 
 
 var Stats = function () {
@@ -47,6 +48,10 @@ var Stats = function () {
             'tests_failed': tests_failed,
             'tests_completed': tests_completed
         };
+    };
+    
+    this.getLastStatsData = function(callback) {
+        logAgregator.getLastPoolData(callback);
     };
 
     this.getStatsData = function () {

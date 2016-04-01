@@ -9,7 +9,7 @@ function cut(str, substr) {
         return str;
     }
 
-    return str.substr(0, cutStart) + str.substr(cutEnd+1);
+    return str.substr(0, cutStart) + str.substr(cutEnd + 1);
 }
 
 function processDir(dir) {
@@ -19,7 +19,6 @@ function processDir(dir) {
 
 App.main = function () {
     var self = this;
-    var stats_fails_only = true;
 
     this.repaintIframe = function () {
         var iframe = $('#ourframe', parent.document.body);
@@ -32,6 +31,12 @@ App.main = function () {
             $(this).prop('disabled', true);
             socket.emit('manual.run');
         });
+    };
+    
+    this.stats_init = function (data) {
+        var data_obj = JSON.parse(data);
+        data_obj.commits_history = self.getCommitsHistory(data_obj.commit_history);
+        self.renderStatsText(data_obj);
     };
 
     this.start = function (data) {
@@ -70,26 +75,36 @@ App.main = function () {
         pb.find('span').text(percent + '% Complete');
     };
 
-    this.complete = function (data) {
-		var commits_history = '';
-		if (data.commit_history.length > 0) {
-			commits_history += '<br /><br />';
-			data.commit_history.forEach(function(commit) {
-				commits_history += '<p>' + commit + '</p>';
-			});
-		}
-
+    this.renderStatsText = function(data) {
         var resultHtml = '<p><strong>Данные по последнему выполненому пулу</strong></p>' +
-			'<table class="table table-striped">' +
-			'<tr><td class="col-xs-3">Время выполнения пула: </td><td class="col-xs-9">' + new Date(data.date_finish).toLocaleString() + '</td></tr>' +
-			'<tr><td>Ветка: </td><td>integration</td></tr>' +
-			'<tr><td>Commit Hash: </td><td>' + data.commit_hash + '' + commits_history + '</td></tr>' +
+            '<table class="table table-striped">' +
+            '<tr><td class="col-xs-3">Время выполнения пула: </td><td class="col-xs-9">' + new Date(data.date_finish).toLocaleString() + '</td></tr>' +
+            '<tr><td>Ветка: </td><td>integration</td></tr>' +
+            '<tr><td>Commit Hash: </td><td>' + data.commit_hash + '' + data.commits_history + '</td></tr>' +
             '<tr><td>Всего пройдено тестов: </td><td>' + data.tests_overall_count + '</td></tr>' +
             '<tr><td>Успешно пройдено тестов: </td><td>' + data.tests_success_count + '</td></tr>' +
             '<tr><td>Завалено тестов: </td><td>' + data.tests_failed_count + '</td></tr>' +
             '<tr><td>Время выполнения пула: </td><td>' + data.time_pool + '</td></tr>' +
             '<tr><td>Общее время выполнения в PHPUnit: </td><td>' + (data.time_overall).toFixed(4) + ' сек.</td></tr>' +
             '</table>';
+
+        $('#last-info-tests').empty().html(resultHtml);
+    };
+
+    this.getCommitsHistory = function (commit_history) {
+        var commits_history = '';
+        if (commit_history.length > 0) {
+            commits_history += '<br /><br />';
+            commit_history.forEach(function (commit) {
+                commits_history += '<p>' + commit + '</p>';
+            });
+        }
+
+        return commits_history;
+    };
+
+    this.complete = function (data) {
+        data.commits_history = self.getCommitsHistory(data.commit_history);
 
         // progress-bar-success
         var pb = $('#tests-progress').find('.progress-bar');
@@ -99,7 +114,7 @@ App.main = function () {
             pb.addClass('progress-bar-success');
         }
 
-        $('#last-info-tests').html(resultHtml);
+        self.renderStatsText(data);
 
         self.repaintIframe();
     };
@@ -126,39 +141,30 @@ App.main = function () {
 	};
 
     this.stats_update = function (data) {
+        var data_obj = JSON.parse(data);
+
         var treeHtml = '<div id="tree"></div>';
         $('#tree-block').empty().html(treeHtml);
 
         var testSuitesHtml = '<div id="event_result"></div>';
         $('#event-block').empty().html(testSuitesHtml);
 
-        var tests_all = data.all_tests_data;
-        var failed_test_suites_names = data.failed_test_suites_names;
-
-        tests_all.forEach(function (test) {
-            var path = test.path;
-            var new_path = processDir(path);
-            failed_test_suites_names[new_path] = failed_test_suites_names[path];
-            delete failed_test_suites_names[path];
-            test.path = new_path;
-        });
-
+        var failed_test_suites_names = {};
         var tests_fails = [];
-        tests_all.forEach(function (test) {
-            if (!test.status) {
-                tests_fails.push(test);
-            }
+        var failed_test_suites = data_obj.failed_tests_suites;
+        var failed_tests_names = data_obj.failed_tests_names;
+
+        failed_tests_names.forEach(function (test_path, i) {
+            console.log(test_path);
+            var new_path = processDir(test_path);
+            failed_test_suites_names[new_path] = failed_test_suites[i];
+            tests_fails.push({'path': new_path, 'status': 0});
         });
 
         var tree_arr;
         var tree = new Tree();
 
-        if (stats_fails_only) {
-            tree_arr = tests_fails;
-        }
-        else {
-            tree_arr = tests_all;
-        }
+        tree_arr = tests_fails;
 
         tree.addArr(tree_arr);
         var treeJSON = tree.asArray();
@@ -197,14 +203,12 @@ App.main = function () {
                 var test_suite_last = $("#event-block").find('table :last');
 
                 if (!is_tree_new && test_suite_last.exists()) {
-                    console.log('sdsdsd');
                     $('html, body').animate({
                         scrollTop: test_suite_last.offset().top
                     }, 100);
                 }
 
                 is_tree_new = false;
-
             })
             .jstree({
             themes: {
@@ -248,6 +252,7 @@ App.main = function () {
         });
     };
 
+    socket.on('stats.init_result', this.stats_init);
     socket.on('web.start', this.start);
     socket.on('web.update', this.update);
     socket.on('web.complete', this.complete);
@@ -256,6 +261,8 @@ App.main = function () {
     socket.on('web.users.update', this.users_update);
 
     socket.on('stats.update', this.stats_update);
+
+    socket.emit('stats.init_request');
 
     this.repaintIframe();
     this.addManualRunnerHandler();
