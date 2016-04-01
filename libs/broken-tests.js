@@ -1,9 +1,9 @@
 var mysql = require('mysql2');
 
 /**
- * Âûğåçàåò èç suite òåñòà ïîäğîáíîå îïèñàíèå îøèáêè
- * Äî: GKPZRowTest::testGetApprovalDepartmentCheckRequired with data set #1 (2, true) [Failed asserting that false matches expected true.]
- * Ïîñëå: GKPZRowTest::testGetApprovalDepartmentCheckRequired with data set #1 (2, true)
+ * Ğ’Ñ‹Ñ€ĞµĞ·Ğ°ĞµÑ‚ Ğ¸Ğ· suite Ñ‚ĞµÑÑ‚Ğ° Ğ¿Ğ¾Ğ´Ñ€Ğ¾Ğ±Ğ½Ğ¾Ğµ Ğ¾Ğ¿Ğ¸ÑĞ°Ğ½Ğ¸Ğµ Ğ¾ÑˆĞ¸Ğ±ĞºĞ¸
+ * Ğ”Ğ¾: GKPZRowTest::testGetApprovalDepartmentCheckRequired with data set #1 (2, true) [Failed asserting that false matches expected true.]
+ * ĞŸĞ¾ÑĞ»Ğµ: GKPZRowTest::testGetApprovalDepartmentCheckRequired with data set #1 (2, true)
  *
  * @param {string} suite
  * @returns {string}
@@ -14,7 +14,7 @@ function getTestSuite(suite) {
 }
 
 /**
- * Âûğåçàåò èç èñòîğèè êîììèòîâ àâòîğà(-îâ) è âîçâğàùàåò â âèäå ñòğîêè
+ * Ğ’Ñ‹Ñ€ĞµĞ·Ğ°ĞµÑ‚ Ğ¸Ğ· Ğ¸ÑÑ‚Ğ¾Ñ€Ğ¸Ğ¸ ĞºĞ¾Ğ¼Ğ¼Ğ¸Ñ‚Ğ¾Ğ² Ğ°Ğ²Ñ‚Ğ¾Ñ€Ğ°(-Ğ¾Ğ²) Ğ¸ Ğ²Ğ¾Ğ·Ğ²Ñ€Ğ°Ñ‰Ğ°ĞµÑ‚ Ğ² Ğ²Ğ¸Ğ´Ğµ ÑÑ‚Ñ€Ğ¾ĞºĞ¸
  *
  * @param {Array} commit_history
  * @returns {string}
@@ -89,12 +89,12 @@ var BrokenTests = function (config) {
 		var self = this;
 		var broken_tests = this.getBrokenTests();
 
-		/** Åñëè ó íàñ íåò ñëîìàíûõ òåñòîâ è ïîñëåäíèé ïóë íè÷åãî íå ñëîìàë - íè÷åãî íå äåëàåì */
+		/** Ğ•ÑĞ»Ğ¸ Ñƒ Ğ½Ğ°Ñ Ğ½ĞµÑ‚ ÑĞ»Ğ¾Ğ¼Ğ°Ğ½Ñ‹Ñ… Ñ‚ĞµÑÑ‚Ğ¾Ğ² Ğ¸ Ğ¿Ğ¾ÑĞ»ĞµĞ´Ğ½Ğ¸Ğ¹ Ğ¿ÑƒĞ» Ğ½Ğ¸Ñ‡ĞµĞ³Ğ¾ Ğ½Ğµ ÑĞ»Ğ¾Ğ¼Ğ°Ğ» - Ğ½Ğ¸Ñ‡ĞµĞ³Ğ¾ Ğ½Ğµ Ğ´ĞµĞ»Ğ°ĞµĞ¼ */
 		if (broken_tests.length() == 0 && data.tests_failed_count == 0) {
 			return;
 		}
 
-		/** Åñëè ó íàñ íåò ñëîìàíûõ òåñòîâ, íî ïîñëåäíèé ïóë êàêèå-òî ñëîìàë - äîáàâëÿåì èõ â áàçó */
+		/** Ğ•ÑĞ»Ğ¸ Ñƒ Ğ½Ğ°Ñ Ğ½ĞµÑ‚ ÑĞ»Ğ¾Ğ¼Ğ°Ğ½Ñ‹Ñ… Ñ‚ĞµÑÑ‚Ğ¾Ğ², Ğ½Ğ¾ Ğ¿Ğ¾ÑĞ»ĞµĞ´Ğ½Ğ¸Ğ¹ Ğ¿ÑƒĞ» ĞºĞ°ĞºĞ¸Ğµ-Ñ‚Ğ¾ ÑĞ»Ğ¾Ğ¼Ğ°Ğ» - Ğ´Ğ¾Ğ±Ğ°Ğ²Ğ»ÑĞµĞ¼ Ğ¸Ñ… Ğ² Ğ±Ğ°Ğ·Ñƒ */
 		if (broken_tests.length() == 0 && data.tests_failed_count > 0) {
 			data.failed_tests_suites[0].forEach(function (test) {
 				test.forEach(function (suite) {
@@ -114,7 +114,7 @@ var BrokenTests = function (config) {
 			return;
 		}
 
-		/** Åñëè ó íàñ åñòü ñëîìàíûå òåñòû è ïîñëåäíèé ïóë âñ¸ ïî÷èíèë - îáíîâëÿåì äàòó ïî÷èíêè */
+		/** Ğ•ÑĞ»Ğ¸ Ñƒ Ğ½Ğ°Ñ ĞµÑÑ‚ÑŒ ÑĞ»Ğ¾Ğ¼Ğ°Ğ½Ñ‹Ğµ Ñ‚ĞµÑÑ‚Ñ‹ Ğ¸ Ğ¿Ğ¾ÑĞ»ĞµĞ´Ğ½Ğ¸Ğ¹ Ğ¿ÑƒĞ» Ğ²ÑÑ‘ Ğ¿Ğ¾Ñ‡Ğ¸Ğ½Ğ¸Ğ» - Ğ¾Ğ±Ğ½Ğ¾Ğ²Ğ»ÑĞµĞ¼ Ğ´Ğ°Ñ‚Ñƒ Ğ¿Ğ¾Ñ‡Ğ¸Ğ½ĞºĞ¸ */
 		if (broken_tests.length() > 0 && data.tests_failed_count == 0) {
 			var ids = [];
 
@@ -134,7 +134,7 @@ var BrokenTests = function (config) {
 			return;
 		}
 
-		/** Åñëè ó íàñ åñòü ñëîìàíûå òåñòû è ïîñëåäíèé ïóë òîæå èìååò ñëîìàíûå òåñòû - ñğàâíèòü è îáíîâèòü/äîáàâèòü */
+		/** Ğ•ÑĞ»Ğ¸ Ñƒ Ğ½Ğ°Ñ ĞµÑÑ‚ÑŒ ÑĞ»Ğ¾Ğ¼Ğ°Ğ½Ñ‹Ğµ Ñ‚ĞµÑÑ‚Ñ‹ Ğ¸ Ğ¿Ğ¾ÑĞ»ĞµĞ´Ğ½Ğ¸Ğ¹ Ğ¿ÑƒĞ» Ñ‚Ğ¾Ğ¶Ğµ Ğ¸Ğ¼ĞµĞµÑ‚ ÑĞ»Ğ¾Ğ¼Ğ°Ğ½Ñ‹Ğµ Ñ‚ĞµÑÑ‚Ñ‹ - ÑÑ€Ğ°Ğ²Ğ½Ğ¸Ñ‚ÑŒ Ğ¸ Ğ¾Ğ±Ğ½Ğ¾Ğ²Ğ¸Ñ‚ÑŒ/Ğ´Ğ¾Ğ±Ğ°Ğ²Ğ¸Ñ‚ÑŒ */
 		if (broken_tests.length() > 0 && data.tests_failed_count > 0) {
 			var suites = [];
 			data.failed_tests_suites[0].forEach(function (test) {
@@ -149,8 +149,8 @@ var BrokenTests = function (config) {
 				var position = suites.indexOf(test.suitename);
 
 				/**
-				 * Åñëè ñëîìàíîãî òåñòà íåò â ğåçóëüòàòàõ ïóëà - åãî ïî÷èíèëè
-				 * Èíà÷å, îí òàì åñòü è åãî ñîõğàíÿòü ñíîâà íå íóæíî - óäàëÿåì èç suites
+				 * Ğ•ÑĞ»Ğ¸ ÑĞ»Ğ¾Ğ¼Ğ°Ğ½Ğ¾Ğ³Ğ¾ Ñ‚ĞµÑÑ‚Ğ° Ğ½ĞµÑ‚ Ğ² Ñ€ĞµĞ·ÑƒĞ»ÑŒÑ‚Ğ°Ñ‚Ğ°Ñ… Ğ¿ÑƒĞ»Ğ° - ĞµĞ³Ğ¾ Ğ¿Ğ¾Ñ‡Ğ¸Ğ½Ğ¸Ğ»Ğ¸
+				 * Ğ˜Ğ½Ğ°Ñ‡Ğµ, Ğ¾Ğ½ Ñ‚Ğ°Ğ¼ ĞµÑÑ‚ÑŒ Ğ¸ ĞµĞ³Ğ¾ ÑĞ¾Ñ…Ñ€Ğ°Ğ½ÑÑ‚ÑŒ ÑĞ½Ğ¾Ğ²Ğ° Ğ½Ğµ Ğ½ÑƒĞ¶Ğ½Ğ¾ - ÑƒĞ´Ğ°Ğ»ÑĞµĞ¼ Ğ¸Ğ· suites
 				 */
 				if (position == -1) {
 					repair_ids.push(test.id);
@@ -165,9 +165,9 @@ var BrokenTests = function (config) {
 			console.log(suites);
 
 			/**
-			 * Ñåé÷àñ ó íàñ åñòü äâà ìàññèâà:
-			 * repair_ids - ID òåñòîâ, êîòîğûå ïî÷èíèëè
-			 * suites - íîâûå ñëîìàíûå òåñòû
+			 * Ğ¡ĞµĞ¹Ñ‡Ğ°Ñ Ñƒ Ğ½Ğ°Ñ ĞµÑÑ‚ÑŒ Ğ´Ğ²Ğ° Ğ¼Ğ°ÑÑĞ¸Ğ²Ğ°:
+			 * repair_ids - ID Ñ‚ĞµÑÑ‚Ğ¾Ğ², ĞºĞ¾Ñ‚Ğ¾Ñ€Ñ‹Ğµ Ğ¿Ğ¾Ñ‡Ğ¸Ğ½Ğ¸Ğ»Ğ¸
+			 * suites - Ğ½Ğ¾Ğ²Ñ‹Ğµ ÑĞ»Ğ¾Ğ¼Ğ°Ğ½Ñ‹Ğµ Ñ‚ĞµÑÑ‚Ñ‹
 			 */
 			if (repair_ids.length > 0) {
 				this.repairTests(repair_ids);
