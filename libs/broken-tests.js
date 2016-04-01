@@ -104,7 +104,7 @@ var BrokenTests = function (config) {
 			var ids = [];
 
 			broken_tests.forEach(function (item) {
-				ids.push(item.id);
+				ids.push(item[0]);
 			});
 
 			if (ids.length > 0) {
@@ -129,19 +129,15 @@ var BrokenTests = function (config) {
 			console.log(suites);
 
 			broken_tests.forEach(function (test) {
-				var position = suites.indexOf(test.suitename);
-
-				console.log('POSITION broke TEST: ' + position);
+				var position = suites.indexOf(test[1]);
 
 				/**
 				 * Если сломаного теста нет в результатах пула - его починили
 				 * Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
 				 */
 				if (position == -1) {
-					console.log('Сломаного теста (' + test.suitename + ') не в результатах пула');
-					repair_ids.push(test.id);
+					repair_ids.push(test[0]);
 				} else {
-					console.log('Сломаный тест (' + test.suitename + ') ЕСТЬ в результатах пула. Удаляем...');
 					suites.splice(position, 1);
 				}
 			});
