@@ -84,7 +84,11 @@ var BrokenTests = function (config) {
 
 		/** Если у нас нет сломаных тестов, но последний пул какие-то сломал - добавляем их в базу */
 		if (broken_tests.length == 0 && data.tests_failed_count > 0) {
-			data.failed_tests_suites[0].forEach(function (test) {
+			console.log('FAILED TESTS SUITES:\n');
+			console.log(data.failed_tests_suites);
+			data.failed_tests_suites.forEach(function (test) {
+				console.log('FAILED TEST:\n');
+				console.log(test);
 				test.forEach(function (suite) {
 					var broken_suite = {
 						suitename: getTestSuite(suite),
