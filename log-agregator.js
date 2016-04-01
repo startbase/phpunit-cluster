@@ -35,6 +35,23 @@ var LogAgregator = function (config) {
         });
     };
 
+    this.getLastPoolData = function (callback) {
+        var self = this;
+        var connection = self.getNewConnection();
+
+        connection.execute("SELECT `data` FROM `" + self.tablename + "` ORDER BY `datetime` DESC LIMIT 1", function (err, rows) {
+            if (err) {
+                console.log("CLUSTER: >>>>>>>>>>>>>>>\n".red);
+                console.log(err.red);
+            }
+            else {
+                callback(rows[0].data)
+            }
+
+            connection.close();
+        });
+    };
+
     this.startInterval = function () {
         var self = this;
         setInterval(function () {
