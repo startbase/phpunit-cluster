@@ -304,7 +304,9 @@ io.sockets.on('connection', function (socket) {
             io.sockets.emit('web.update', web_stats);
             io.sockets.emit('web.complete', web_stats);
             logAgregator.push(save_stats);
-			BrokenTests.update(save_stats);
+			BrokenTests.getBrokenTests(function(broken_tests) {
+				BrokenTests.update(save_stats, broken_tests);
+			});
         }
     });
 

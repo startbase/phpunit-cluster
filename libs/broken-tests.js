@@ -74,9 +74,8 @@ var BrokenTests = function (config) {
 		});
 	};
 
-	this.update = function (data) {
+	this.update = function (data, broken_tests) {
 		var self = this;
-		var broken_tests = this.getBrokenTests();
 
 		/** Если у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем */
 		if (broken_tests.length == 0 && data.tests_failed_count == 0) {
@@ -174,7 +173,7 @@ var BrokenTests = function (config) {
 		}
 	};
 
-	this.getBrokenTests = function () {
+	this.getBrokenTests = function (callback) {
 		var connection = this.getNewConnection();
 		var options = { sql: 'SELECT `id`, `suitename` FROM `' + this.tablename + '` WHERE `repairtime` = "0"', rowsAsArray: true };
 
@@ -187,9 +186,9 @@ var BrokenTests = function (config) {
 			console.log('List broken tests:\n');
 			console.log(results);
 
-			connection.close();
+			callback(results);
 
-			return results;
+			connection.close();
 		});
 	};
 
