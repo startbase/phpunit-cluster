@@ -41,6 +41,13 @@ function getCommitAuthors(commit_history) {
 
 var BrokenTests = function (config) {
 
+	this.tablename = config.logAgregator.tables.broken_tests;
+
+	console.log('CONFIG:\n');
+	console.log(config);
+	console.log('TABLE NAME:\n');
+	console.log(this.tablename);
+
 	this.getNewConnection = function () {
 		return mysql.createConnection({
 			user: config.logAgregator.user,
@@ -51,8 +58,7 @@ var BrokenTests = function (config) {
 
 	this.init = function () {
 		var connection = this.getNewConnection();
-
-		connection.query('CREATE TABLE IF NOT EXISTS `' + config.logAgregator.tables.broken_tests + '` (' +
+		var query = 'CREATE TABLE IF NOT EXISTS `' + this.tablename + '` (' +
 			'`id` INT(11) NOT NULL AUTO_INCREMENT,' +
 			'`suitename` TEXT NOT NULL,' +
 			'`first_commit` VARCHAR(32) NOT NULL,' +
@@ -60,12 +66,20 @@ var BrokenTests = function (config) {
 			'`broketime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
 			'`repairtime` TIMESTAMP NOT NULL DEFAULT 0,' +
 			'PRIMARY KEY (`id`)' +
-			') COLLATE="utf8_general_ci" ENGINE=InnoDB', function (err, result) {
+			') COLLATE="utf8_general_ci" ENGINE=InnoDB';
+
+		console.log('QUERY:\n');
+		console.log(query);
+
+		connection.query(query, function (err, result) {
 
 			if (err) {
 				console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
 				console.log(err);
 			}
+
+			console.log('INIT RESULT:\n');
+			console.log(result);
 
 			connection.close();
 		});
@@ -173,7 +187,7 @@ var BrokenTests = function (config) {
 
 	this.getBrokenTests = function () {
 		var connection = this.getNewConnection();
-		var options = { sql: 'SELECT `id`, `suitename` FROM `' + config.logAgregator.tables.broken_tests + '` WHERE `repairtime` = "0"', rowsAsArray: true };
+		var options = { sql: 'SELECT `id`, `suitename` FROM `' + this.tablename + '` WHERE `repairtime` = "0"', rowsAsArray: true };
 
 		connection.query(options, function(err, results) {
 			if (err) {
@@ -193,7 +207,7 @@ var BrokenTests = function (config) {
 	this.addBrokenTest = function (data) {
 		var connection = this.getNewConnection();
 
-		connection.prepare("INSERT INTO `" + config.logAgregator.tables.broken_tests + "` (`suitename`, `first_commit`, `commit_authors`) VALUES (?, ?, ?)", function (err, statement) {
+		connection.prepare("INSERT INTO `" + this.tablename + "` (`suitename`, `first_commit`, `commit_authors`) VALUES (?, ?, ?)", function (err, statement) {
 			statement.execute([data.suitename, data.first_commit, data.commit_authors], function (err, rows, columns) {
 				if (err) {
 					console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
@@ -208,7 +222,7 @@ var BrokenTests = function (config) {
 	this.repairTests = function (ids) {
 		var connection = this.getNewConnection();
 
-		connection.prepare("UPDATE `" + config.logAgregator.tables.broken_tests + "` SET `repairtime` = '?' WHERE `id` IN (?)", function (err, statement) {
+		connection.prepare("UPDATE `" + this.tablename + "` SET `repairtime` = '?' WHERE `id` IN (?)", function (err, statement) {
 			statement.execute([new Date().getTime(), ids.join()], function (err, rows, columns) {
 				if (err) {
 					console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
