@@ -19,6 +19,7 @@ var fs = require('fs');
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
 var taskBalancer = new (require('./task-balancer.js'));
+taskBalancer.repeat_attempts_number = configParams.task_balancer.failed_attempts;
 var testParser = require('./libs/test-parser');
 var repository = require('./libs/repository.js');
 var queueEvents = new (require('./queue'));
@@ -249,7 +250,7 @@ io.sockets.on('connection', function (socket) {
 			console.log('[' + getDate() + '] ' + socket.username + ' завалил задачу ID: \n' + task.taskName);
 			taskBalancer.registerFailed(socket.username, task);
 			// Нужно отправить на повторную проверку?
-			if (taskBalancer.needReturnTask(socket.username, task)) {
+			if (taskBalancer.canReturnTask(task)) {
 				// Сохраним время выполнения phpunit
 				stats.phpunit_repeat += task.response.time;
 				returnTaskToQueue(socket, task);
