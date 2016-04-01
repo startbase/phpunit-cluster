@@ -125,19 +125,29 @@ var BrokenTests = function (config) {
 
 			var repair_ids = [];
 
+			console.log('BROKEN SUITES FROM POOL:\n');
+			console.log(suites);
+
 			broken_tests.forEach(function (test) {
 				var position = suites.indexOf(test.suitename);
+
+				console.log('POSITION broke TEST: ' + position);
 
 				/**
 				 * Если сломаного теста нет в результатах пула - его починили
 				 * Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
 				 */
 				if (position == -1) {
+					console.log('Сломаного теста (' + test.suitename + ') не в результатах пула');
 					repair_ids.push(test.id);
 				} else {
+					console.log('Сломаный тест (' + test.suitename + ') ЕСТЬ в результатах пула. Удаляем...');
 					suites.splice(position, 1);
 				}
 			});
+
+			console.log('BROKEN SUITES FROM POOL (AFTER CLEAR):\n');
+			console.log(suites);
 
 			/**
 			 * Сейчас у нас есть два массива:
