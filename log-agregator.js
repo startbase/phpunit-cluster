@@ -2,12 +2,15 @@ var mysql = require('mysql2');
 var colors = require('colors');
 
 var LogAgregator = function (config) {
+
+	this.tablename = config.logAgregator.tables.cluster_logs;
+
     this.stack = [];
 
     this.init = function () {
         var self = this;
         var connection = this.getNewConnection();
-        connection.query("CREATE TABLE IF NOT EXISTS `" + config.logAgregator.table + "` ( " +
+        connection.query("CREATE TABLE IF NOT EXISTS `" + self.tablename + "` ( " +
             "`id` INT(11) NOT NULL AUTO_INCREMENT," +
             "`commit` VARCHAR(32) NOT NULL," +
             "`data` TEXT NOT NULL," +
@@ -43,7 +46,7 @@ var LogAgregator = function (config) {
 
             if (data) {
                 var connection = self.getNewConnection();
-                connection.prepare("INSERT INTO `" + config.logAgregator.table + "` (`commit`, `data`) VALUES (?, ?)", function (err, statement) {
+                connection.prepare("INSERT INTO `" + self.tablename + "` (`commit`, `data`) VALUES (?, ?)", function (err, statement) {
                     statement.execute([data.commit_hash, JSON.stringify(data)], function (err, rows, columns) {
                         if (err) {
                             console.log("CLUSTER: >>>>>>>>>>>>>>>\n".red);

@@ -43,11 +43,6 @@ var BrokenTests = function (config) {
 
 	this.tablename = config.logAgregator.tables.broken_tests;
 
-	console.log('CONFIG:\n');
-	console.log(config);
-	console.log('TABLE NAME:\n');
-	console.log(this.tablename);
-
 	this.getNewConnection = function () {
 		return mysql.createConnection({
 			user: config.logAgregator.user,
@@ -68,18 +63,12 @@ var BrokenTests = function (config) {
 			'PRIMARY KEY (`id`)' +
 			') COLLATE="utf8_general_ci" ENGINE=InnoDB';
 
-		console.log('QUERY:\n');
-		console.log(query);
-
 		connection.query(query, function (err, result) {
 
 			if (err) {
 				console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
 				console.log(err);
 			}
-
-			console.log('INIT RESULT:\n');
-			console.log(result);
 
 			connection.close();
 		});
