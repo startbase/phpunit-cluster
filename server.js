@@ -27,7 +27,8 @@ var weightBase = require('./libs/weight-base');
 var users = [];
 var tasks_pool_count = 0;
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-var logAgregator = new (require('./log-agregator'))(config.getParams());
+var logAgregator = new (require('./log-agregator'))(configParams);
+var BrokenTests = new (require('./libs/broken-tests'))(configParams);
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** Запускаемся */
 var io = require('socket.io').listen(params.port);
@@ -298,10 +299,12 @@ io.sockets.on('connection', function (socket) {
 			}
 
 			var web_stats = stats.getWebStats();
+			var save_stats = stats.prepareForSave();
 			io.sockets.emit('stats.update', web_stats);
             io.sockets.emit('web.update', web_stats);
             io.sockets.emit('web.complete', web_stats);
-            logAgregator.push(stats.prepareForSave());
+            logAgregator.push(save_stats);
+			BrokenTests.update(save_stats);
         }
     });
 

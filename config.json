@@ -46,6 +46,9 @@
 		"database": "b2bcenter_cluster",
 		"user": "root",
 		"password": "",
-		"table": "cluster_logs"
+		"tables": {
+			"cluster_logs": "cluster_logs",
+			"broken_tests": "broken_tests"
+		}
 	}
 }
