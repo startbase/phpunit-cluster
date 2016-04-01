@@ -79,12 +79,12 @@ var BrokenTests = function (config) {
 		var broken_tests = this.getBrokenTests();
 
 		/** Если у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем */
-		if (broken_tests.length() == 0 && data.tests_failed_count == 0) {
+		if (broken_tests.length == 0 && data.tests_failed_count == 0) {
 			return;
 		}
 
 		/** Если у нас нет сломаных тестов, но последний пул какие-то сломал - добавляем их в базу */
-		if (broken_tests.length() == 0 && data.tests_failed_count > 0) {
+		if (broken_tests.length == 0 && data.tests_failed_count > 0) {
 			data.failed_tests_suites[0].forEach(function (test) {
 				test.forEach(function (suite) {
 					var broken_suite = {
@@ -104,7 +104,7 @@ var BrokenTests = function (config) {
 		}
 
 		/** Если у нас есть сломаные тесты и последний пул всё починил - обновляем дату починки */
-		if (broken_tests.length() > 0 && data.tests_failed_count == 0) {
+		if (broken_tests.length > 0 && data.tests_failed_count == 0) {
 			var ids = [];
 
 			broken_tests.forEach(function (item) {
@@ -124,7 +124,7 @@ var BrokenTests = function (config) {
 		}
 
 		/** Если у нас есть сломаные тесты и последний пул тоже имеет сломаные тесты - сравнить и обновить/добавить */
-		if (broken_tests.length() > 0 && data.tests_failed_count > 0) {
+		if (broken_tests.length > 0 && data.tests_failed_count > 0) {
 			var suites = [];
 			data.failed_tests_suites[0].forEach(function (test) {
 				test.forEach(function (suite) {
