@@ -223,4 +223,4 @@ var BrokenTests = function (config) {
 	this.init();
 };
 
-module.exports = new BrokenTests();
+module.exports = BrokenTests;
