@@ -84,20 +84,13 @@ var BrokenTests = function (config) {
 
 		/** Если у нас нет сломаных тестов, но последний пул какие-то сломал - добавляем их в базу */
 		if (broken_tests.length == 0 && data.tests_failed_count > 0) {
-			console.log('FAILED TESTS SUITES:\n');
-			console.log(data.failed_tests_suites);
 			data.failed_tests_suites.forEach(function (test) {
-				console.log('FAILED TEST:\n');
-				console.log(test);
 				test.forEach(function (suite) {
 					var broken_suite = {
 						suitename: getTestSuite(suite),
 						first_commit: data.commit_hash,
 						commit_authors: getCommitAuthors(data.commit_history)
 					};
-
-					console.log('SAVE SUITE:\n');
-					console.log(broken_suite);
 
 					self.addBrokenTest(broken_suite);
 				});
@@ -111,13 +104,8 @@ var BrokenTests = function (config) {
 			var ids = [];
 
 			broken_tests.forEach(function (item) {
-				console.log('Item:\n');
-				console.log(item);
 				ids.push(item.id);
 			});
-
-			console.log('REPAIR IDS:\n');
-			console.log(ids);
 
 			if (ids.length > 0) {
 				this.repairTests(ids);
@@ -151,11 +139,6 @@ var BrokenTests = function (config) {
 				}
 			});
 
-			console.log('REPAIR IDS:\n');
-			console.log(repair_ids);
-			console.log('NEW SUITES:\n');
-			console.log(suites);
-
 			/**
 			 * Сейчас у нас есть два массива:
 			 * repair_ids - ID тестов, которые починили
@@ -179,16 +162,13 @@ var BrokenTests = function (config) {
 
 	this.getBrokenTests = function (callback) {
 		var connection = this.getNewConnection();
-		var options = { sql: 'SELECT `id`, `suitename` FROM `' + this.tablename + '` WHERE `repairtime` = "0"', rowsAsArray: true };
+		var options = { sql: 'SELECT `id`, `suitename` FROM `' + this.tablename + '` WHERE `repairtime` = "0000-00-00 00:00:00"', rowsAsArray: true };
 
 		connection.query(options, function(err, results) {
 			if (err) {
 				console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
 				console.log(err.red);
 			}
-
-			console.log('List broken tests:\n');
-			console.log(results);
 
 			callback(results);
 
