@@ -117,7 +117,7 @@ var BrokenTests = function (config) {
 		/** Если у нас есть сломаные тесты и последний пул тоже имеет сломаные тесты - сравнить и обновить/добавить */
 		if (broken_tests.length > 0 && data.tests_failed_count > 0) {
 			var suites = [];
-			data.failed_tests_suites[0].forEach(function (test) {
+			data.failed_tests_suites.forEach(function (test) {
 				test.forEach(function (suite) {
 					suites.push(getTestSuite(suite));
 				});
