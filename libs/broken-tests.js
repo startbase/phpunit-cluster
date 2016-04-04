@@ -178,31 +178,29 @@ var BrokenTests = function (config) {
 
 	this.addBrokenTest = function (data) {
 		var connection = this.getNewConnection();
+		var query = "INSERT INTO `" + this.tablename + "` (`suitename`, `first_commit`, `commit_authors`) VALUES ('" + data.suitename + "', '" + data.first_commit + "', '" + data.commit_authors + "')";
 
-		connection.prepare("INSERT INTO `" + this.tablename + "` (`suitename`, `first_commit`, `commit_authors`) VALUES (?, ?, ?)", function (err, statement) {
-			statement.execute([data.suitename, data.first_commit, data.commit_authors], function (err, rows, columns) {
-				if (err) {
-					console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
-					console.log(err.red);
-				}
+		connection.query(query, function(err, result) {
+			if (err) {
+				console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
+				console.log(err.red);
+			}
 
-				connection.close();
-			});
+			connection.close();
 		});
 	};
 
 	this.repairTests = function (ids) {
 		var connection = this.getNewConnection();
+		var query = "UPDATE `" + this.tablename + "` SET `repairtime` = FROM_UNIXTIME('" + new Date().getTime() + "') WHERE `id` IN (" + ids.join() + ")";
 
-		connection.prepare("UPDATE `" + this.tablename + "` SET `repairtime` = FROM_UNIXTIME('?') WHERE `id` IN (?)", function (err, statement) {
-			statement.execute([new Date().getTime(), ids.join()], function (err, rows, columns) {
-				if (err) {
-					console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
-					console.log(err.red);
-				}
+		connection.query(query, function(err, result) {
+			if (err) {
+				console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
+				console.log(err.red);
+			}
 
-				connection.close();
-			});
+			connection.close();
 		});
 	};
 
