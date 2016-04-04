@@ -18,7 +18,7 @@ function getTestSuite(suite) {
 	suite = suite.substring(position + 1);
 
 	/** Заменяем одинарные ковычки на двойные */
-	suite = suite.replace('\'', '"');
+	suite = suite.replace(/'/g, '"');
 
 	return suite;
 }
