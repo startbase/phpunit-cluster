@@ -37,6 +37,7 @@ App.main = function () {
         var data_obj = JSON.parse(data);
         data_obj.commits_history = self.getCommitsHistory(data_obj.commit_history);
         self.renderStatsText(data_obj);
+        console.log('repaintIframe - stats_init');
         self.repaintIframe();
     };
 
@@ -49,6 +50,7 @@ App.main = function () {
             '</div>' +
             '</div>';
         $('#current-info-tests').empty().html(currentTestInfoHtml + progressBarHtml);
+        console.log('repaintIframe - start (его тут нет)');
     };
 
     this.update = function (data) {
@@ -73,6 +75,8 @@ App.main = function () {
         var percent = Math.ceil((100 / parseInt(pb.attr('aria-valuemax'))) * data.tests_overall_count);
         pb.css('width', percent + '%');
         pb.find('span').text(percent + '% Complete');
+
+        console.log('repaintIframe - update (его тут нет)');
     };
 
     this.renderStatsText = function(data) {
@@ -89,6 +93,7 @@ App.main = function () {
             '</table>';
 
         $('#last-info-tests').empty().html(resultHtml);
+        console.log('repaintIframe - renderStatsText (его тут нет)');
     };
 
     this.getCommitsHistory = function (commit_history) {
@@ -115,6 +120,7 @@ App.main = function () {
         }
 
         self.renderStatsText(data);
+        console.log('repaintIframe - complete');
         self.repaintIframe();
     };
 
@@ -137,6 +143,7 @@ App.main = function () {
 			users_list = users_list.substring(0, users_list.length - 2)
 		}
 		$('#users-list').html(users_list);
+        console.log('repaintIframe - users_update (его тут нет)');
 	};
 
     this.stats_update = function (data) {
@@ -173,6 +180,7 @@ App.main = function () {
         $('#tree')
             // listen for event
             .on('select_node.jstree', function (e, data) {
+                console.log('repaintIframe - stats_update (его тут нет)');
                 console.log(e);
                 var i, j, node_suites_arr = {};
 
