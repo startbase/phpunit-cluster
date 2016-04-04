@@ -37,6 +37,7 @@ App.main = function () {
         var data_obj = JSON.parse(data);
         data_obj.commits_history = self.getCommitsHistory(data_obj.commit_history);
         self.renderStatsText(data_obj);
+        self.repaintIframe();
     };
 
     this.start = function (data) {
@@ -48,11 +49,11 @@ App.main = function () {
             '</div>' +
             '</div>';
         $('#current-info-tests').empty().html(currentTestInfoHtml + progressBarHtml);
-
     };
 
     this.update = function (data) {
         self.repaintIframe();
+
         console.log('update', data);
 
         if (!data.count_tasks) {
@@ -263,7 +264,6 @@ App.main = function () {
 
     socket.emit('stats.init_request');
 
-    this.repaintIframe();
     this.addManualRunnerHandler();
 };
 
