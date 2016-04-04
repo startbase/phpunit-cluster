@@ -52,8 +52,6 @@ App.main = function () {
     };
 
     this.update = function (data) {
-        self.repaintIframe();
-
         console.log('update', data);
 
         if (!data.count_tasks) {
@@ -117,6 +115,7 @@ App.main = function () {
         }
 
         self.renderStatsText(data);
+        self.repaintIframe();
     };
 
     this.reset = function () {
