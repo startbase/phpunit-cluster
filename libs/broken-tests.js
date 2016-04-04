@@ -9,8 +9,18 @@ var mysql = require('mysql2');
  * @returns {string}
  */
 function getTestSuite(suite) {
+	/** Вырезаем описание ошибки (справа) */
 	var position = suite.indexOf(" [Failed ");
-	return suite.substring(0, position);
+	suite = suite.substring(0, position);
+
+	/** Вырезаем путь теста (слева) */
+	position = suite.lastIndexOf("\\");
+	suite = suite.substring(position + 1);
+
+	/** Заменяем одинарные ковычки на двойные */
+	suite = suite.replace('\'', '"');
+
+	return suite;
 }
 
 /**
@@ -56,7 +66,7 @@ var BrokenTests = function (config) {
 		var query = 'CREATE TABLE IF NOT EXISTS `' + this.tablename + '` (' +
 			'`id` INT(11) NOT NULL AUTO_INCREMENT,' +
 			'`suitename` TEXT NOT NULL,' +
-			'`first_commit` VARCHAR(32) NOT NULL,' +
+			'`first_commit` VARCHAR(255) NOT NULL,' +
 			'`commit_authors` VARCHAR(255) NOT NULL DEFAULT "",' +
 			'`broketime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
 			'`repairtime` TIMESTAMP NOT NULL DEFAULT "0000-00-00 00:00:00",' +
@@ -66,7 +76,7 @@ var BrokenTests = function (config) {
 		connection.query(query, function (err, result) {
 
 			if (err) {
-				console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
+				console.log("[MYSQL] BROKEN TESTS ERROR:");
 				console.log(err);
 			}
 
@@ -75,10 +85,14 @@ var BrokenTests = function (config) {
 	};
 
 	this.update = function (data, broken_tests) {
+		console.log('Broken tests:');
+		console.log(broken_tests);
+
 		var self = this;
 
 		/** Если у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем */
 		if (broken_tests.length == 0 && data.tests_failed_count == 0) {
+			console.log('Broken tests: у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем');
 			return;
 		}
 
@@ -123,21 +137,32 @@ var BrokenTests = function (config) {
 				});
 			});
 
+			console.log('New broken tests (before)');
+			console.log(suites);
+
 			var repair_ids = [];
 
 			broken_tests.forEach(function (test) {
+				console.log('Compare: ' + test[1]);
 				var position = suites.indexOf(test[1]);
-
 				/**
 				 * Если сломаного теста нет в результатах пула - его починили
 				 * Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
 				 */
 				if (position == -1) {
+					console.log('Result: "' + position + '" -> NOT in array (тест починили)');
 					repair_ids.push(test[0]);
 				} else {
+					console.log('Result: "' + position + '" -> EXIST in array (тест уже сломан, сохранять не нужно и удалим из suite)');
 					suites.splice(position, 1);
 				}
 			});
+
+			console.log('New broken tests (after)');
+			console.log(suites);
+			console.log('\n');
+			console.log('Repair tests:');
+			console.log(repair_ids);
 
 			/**
 			 * Сейчас у нас есть два массива:
@@ -166,8 +191,11 @@ var BrokenTests = function (config) {
 
 		connection.query(options, function(err, results) {
 			if (err) {
-				console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
-				console.log(err.red);
+				console.log("[MYSQL] BROKEN TESTS ERROR:");
+				console.log(err);
+				console.log(options.sql);
+			} else {
+				console.log('GOOD: ' + options.sql);
 			}
 
 			callback(results);
@@ -182,8 +210,11 @@ var BrokenTests = function (config) {
 
 		connection.query(query, function(err, result) {
 			if (err) {
-				console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
-				console.log(err.red);
+				console.log("[MYSQL] BROKEN TESTS ERROR:");
+				console.log(err);
+				console.log(query);
+			} else {
+				console.log('GOOD: ' + query);
 			}
 
 			connection.close();
@@ -196,8 +227,11 @@ var BrokenTests = function (config) {
 
 		connection.query(query, function(err, result) {
 			if (err) {
-				console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
-				console.log(err.red);
+				console.log("[MYSQL] BROKEN TESTS ERROR:");
+				console.log(err);
+				console.log(query);
+			} else {
+				console.log('GOOD: ' + query);
 			}
 
 			connection.close();

@@ -12,7 +12,7 @@ var LogAgregator = function (config) {
         var connection = this.getNewConnection();
         connection.query("CREATE TABLE IF NOT EXISTS `" + self.tablename + "` ( " +
             "`id` INT(11) NOT NULL AUTO_INCREMENT," +
-            "`commit` VARCHAR(32) NOT NULL," +
+            "`commit` VARCHAR(255) NOT NULL," +
             "`data` TEXT NOT NULL," +
             "`datetime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
             "PRIMARY KEY (`id`)" +
