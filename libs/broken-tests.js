@@ -57,7 +57,7 @@ var BrokenTests = function (config) {
 			'`id` INT(11) NOT NULL AUTO_INCREMENT,' +
 			'`suitename` TEXT NOT NULL,' +
 			'`first_commit` VARCHAR(32) NOT NULL,' +
-			'`commit_authors` TEXT NOT NULL,' +
+			'`commit_authors` VARCHAR(255) NOT NULL DEFAULT "",' +
 			'`broketime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
 			'`repairtime` TIMESTAMP NOT NULL DEFAULT "0000-00-00 00:00:00",' +
 			'PRIMARY KEY (`id`)' +
