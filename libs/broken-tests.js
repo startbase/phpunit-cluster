@@ -85,14 +85,10 @@ var BrokenTests = function (config) {
 	};
 
 	this.update = function (data, broken_tests) {
-		console.log('Broken tests:');
-		console.log(broken_tests);
-
 		var self = this;
 
 		/** Если у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем */
 		if (broken_tests.length == 0 && data.tests_failed_count == 0) {
-			console.log('Broken tests: у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем');
 			return;
 		}
 
@@ -137,32 +133,20 @@ var BrokenTests = function (config) {
 				});
 			});
 
-			console.log('New broken tests (before)');
-			console.log(suites);
-
 			var repair_ids = [];
 
 			broken_tests.forEach(function (test) {
-				console.log('Compare: ' + test[1]);
 				var position = suites.indexOf(test[1]);
 				/**
 				 * Если сломаного теста нет в результатах пула - его починили
 				 * Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
 				 */
 				if (position == -1) {
-					console.log('Result: "' + position + '" -> NOT in array (тест починили)');
 					repair_ids.push(test[0]);
 				} else {
-					console.log('Result: "' + position + '" -> EXIST in array (тест уже сломан, сохранять не нужно и удалим из suite)');
 					suites.splice(position, 1);
 				}
 			});
-
-			console.log('New broken tests (after)');
-			console.log(suites);
-			console.log('\n');
-			console.log('Repair tests:');
-			console.log(repair_ids);
 
 			/**
 			 * Сейчас у нас есть два массива:
@@ -193,9 +177,6 @@ var BrokenTests = function (config) {
 			if (err) {
 				console.log("[MYSQL] BROKEN TESTS ERROR:");
 				console.log(err);
-				console.log(options.sql);
-			} else {
-				console.log('GOOD: ' + options.sql);
 			}
 
 			callback(results);
@@ -212,9 +193,6 @@ var BrokenTests = function (config) {
 			if (err) {
 				console.log("[MYSQL] BROKEN TESTS ERROR:");
 				console.log(err);
-				console.log(query);
-			} else {
-				console.log('GOOD: ' + query);
 			}
 
 			connection.close();
@@ -229,9 +207,6 @@ var BrokenTests = function (config) {
 			if (err) {
 				console.log("[MYSQL] BROKEN TESTS ERROR:");
 				console.log(err);
-				console.log(query);
-			} else {
-				console.log('GOOD: ' + query);
 			}
 
 			connection.close();
