@@ -59,7 +59,7 @@ var BrokenTests = function (config) {
 			'`first_commit` VARCHAR(32) NOT NULL,' +
 			'`commit_authors` TEXT NOT NULL,' +
 			'`broketime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
-			'`repairtime` TIMESTAMP NOT NULL DEFAULT 0,' +
+			'`repairtime` TIMESTAMP NOT NULL DEFAULT "0000-00-00 00:00:00",' +
 			'PRIMARY KEY (`id`)' +
 			') COLLATE="utf8_general_ci" ENGINE=InnoDB';
 
@@ -125,9 +125,6 @@ var BrokenTests = function (config) {
 
 			var repair_ids = [];
 
-			console.log('BROKEN SUITES FROM POOL:\n');
-			console.log(suites);
-
 			broken_tests.forEach(function (test) {
 				var position = suites.indexOf(test[1]);
 
@@ -141,9 +138,6 @@ var BrokenTests = function (config) {
 					suites.splice(position, 1);
 				}
 			});
-
-			console.log('BROKEN SUITES FROM POOL (AFTER CLEAR):\n');
-			console.log(suites);
 
 			/**
 			 * Сейчас у нас есть два массива:
@@ -200,7 +194,7 @@ var BrokenTests = function (config) {
 	this.repairTests = function (ids) {
 		var connection = this.getNewConnection();
 
-		connection.prepare("UPDATE `" + this.tablename + "` SET `repairtime` = '?' WHERE `id` IN (?)", function (err, statement) {
+		connection.prepare("UPDATE `" + this.tablename + "` SET `repairtime` = FROM_UNIXTIME('?') WHERE `id` IN (?)", function (err, statement) {
 			statement.execute([new Date().getTime(), ids.join()], function (err, rows, columns) {
 				if (err) {
 					console.log("[MYSQL] BROKEN TESTS ERROR:\n".red);
