@@ -17,8 +17,21 @@ function processDir(dir) {
     return cut(dir, base_dir);
 }
 
+/**
+ * Человеко понятное время
+ *
+ * @returns {string}
+ */
+function getDate() {
+    var date = new Date();
+    return date.toLocaleString();
+}
+
+
 App.main = function () {
     var self = this;
+
+    this.connect_status = socket.connected;
 
     this.repaintIframe = function () {
         var iframe = $('#ourframe', parent.document.body);
@@ -31,6 +44,16 @@ App.main = function () {
             $(this).prop('disabled', true);
             socket.emit('manual.run');
         });
+    };
+
+    this.renderAlert = function() {
+        var alertTop = $('#alert-top');
+        if (self.connect_status) {
+            alertTop.addClass('hidden');
+        }
+        else {
+            alertTop.removeClass('hidden');
+        }
     };
     
     this.stats_init = function (data) {
@@ -254,6 +277,20 @@ App.main = function () {
             plugins: ['themes', 'json_data', 'ui', 'types', 'state']
         });
     };
+
+    socket.on('connect', function() {
+        self.connect_status = true;
+        console.log('[' + getDate() + '] Сервер доступен. Присоединяюсь...');
+        self.renderAlert();
+        $('#panel-users').removeClass('hidden');
+    });
+
+    socket.on('disconnect', function() {
+        self.connect_status = false;
+        console.log('[' + getDate() + '] Сервер недоступен');
+        self.renderAlert();
+        $('#panel-users').addClass('hidden');
+    });
 
     socket.on('stats.init_result', this.stats_init);
     socket.on('web.start', this.start);
