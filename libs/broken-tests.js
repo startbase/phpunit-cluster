@@ -3,8 +3,8 @@ var mysql = require('mysql2');
 var colors = require('colors/safe');
 colors.setTheme({
 	info: 'green',
-	data: 'grey',
-	debug: 'blue',
+	data: 'white',
+	debug: 'cyan',
 	error: 'red'
 });
 
