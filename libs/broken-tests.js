@@ -1,5 +1,5 @@
 var mysql = require('mysql2');
-var colors = require('colors');
+var colors = require('colors/safe');
 
 /**
  * Вырезает из suite теста подробное описание ошибки
