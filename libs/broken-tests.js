@@ -1,5 +1,12 @@
 var mysql = require('mysql2');
+
 var colors = require('colors/safe');
+colors.setTheme({
+	info: 'green',
+	data: 'grey',
+	debug: 'blue',
+	error: 'red'
+});
 
 /**
  * Вырезает из suite теста подробное описание ошибки
