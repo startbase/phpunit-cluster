@@ -1,13 +1,5 @@
 var mysql = require('mysql2');
 
-var colors = require('colors/safe');
-colors.setTheme({
-	info: 'green',
-	data: 'white',
-	debug: 'cyan',
-	error: 'red'
-});
-
 /**
  * Вырезает из suite теста подробное описание ошибки
  * До: GKPZ\GKPZRowTest::testGetApprovalDepartmentCheckRequired with data set #1 (2, true) [Failed asserting that false matches expected true.]
@@ -17,8 +9,8 @@ colors.setTheme({
  * @returns {string}
  */
 function getTestSuite(suite) {
-	console.log(colors.data('Парсим название теста'));
-	console.log(colors.data('До: ' + suite));
+	console.log('Парсим название теста');
+	console.log('До: ' + suite);
 
 	/** Вырезаем описание ошибки (справа) */
 	var position = suite.indexOf(" [Failed ");
@@ -31,7 +23,7 @@ function getTestSuite(suite) {
 	/** Заменяем одинарные ковычки на двойные */
 	suite = suite.replace(/'/g, '"');
 
-	console.log(colors.data('После: ' + suite));
+	console.log('После: ' + suite);
 
 	return suite;
 }
@@ -93,9 +85,9 @@ var BrokenTests = function (config) {
 		connection.query(query, function (err, result) {
 
 			if (err) {
-				console.log(colors.error('\n[MYSQL] BROKEN TESTS ERROR (init):'));
-				console.log(colors.error(err));
-				console.log(colors.error(query));
+				console.log('\n[MYSQL] BROKEN TESTS ERROR (init):');
+				console.log(err);
+				console.log(query);
 			}
 
 			connection.close();
@@ -110,21 +102,21 @@ var BrokenTests = function (config) {
 	 * @param broken_tests сломаные тесты
 	 */
 	this.update = function (data, broken_tests) {
-		console.log(colors.info('Запускаем обновление сломаных тестов'));
-		console.log(colors.data('Список имеющихся сломаных тестов:'));
-		console.log(colors.data(broken_tests));
+		console.log('Запускаем обновление сломаных тестов');
+		console.log('Список имеющихся сломаных тестов:');
+		console.log(broken_tests);
 
 		var self = this;
 
 		/** Если у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем */
 		if (broken_tests.length == 0 && data.tests_failed_count == 0) {
-			console.log(colors.info('Сломаных тестов нет и последний пул ничего не сломал'));
+			console.log('Сломаных тестов нет и последний пул ничего не сломал');
 			return;
 		}
 
 		/** Если у нас нет сломаных тестов, но последний пул какие-то сломал - добавляем их в базу */
 		if (broken_tests.length == 0 && data.tests_failed_count > 0) {
-			console.log(colors.info('Сломаных тестов нет, но последний пул что-то сломал'));
+			console.log('Сломаных тестов нет, но последний пул что-то сломал');
 			data.failed_tests_suites.forEach(function (test) {
 				test.forEach(function (suite) {
 					var broken_suite = {
@@ -142,15 +134,15 @@ var BrokenTests = function (config) {
 
 		/** Если у нас есть сломаные тесты и последний пул всё починил - обновляем дату починки */
 		if (broken_tests.length > 0 && data.tests_failed_count == 0) {
-			console.log(colors.info('Есть сломаные тесты, но последний пул всё починил'));
+			console.log('Есть сломаные тесты, но последний пул всё починил');
 			var ids = [];
 
 			broken_tests.forEach(function (item) {
 				ids.push(item[0]);
 			});
 
-			console.log(colors.debug('Список ID тестов, которые поправлены:'));
-			console.log(colors.debug(ids));
+			console.log('Список ID тестов, которые поправлены:');
+			console.log(ids);
 
 			if (ids.length > 0) {
 				this.repairTests(ids, data);
@@ -161,7 +153,7 @@ var BrokenTests = function (config) {
 
 		/** Если у нас есть сломаные тесты и последний пул тоже имеет сломаные тесты - сравнить и обновить/добавить */
 		if (broken_tests.length > 0 && data.tests_failed_count > 0) {
-			console.log(colors.info('Есть сломаные тесты и последний пул что-то сломал'));
+			console.log('Есть сломаные тесты и последний пул что-то сломал');
 
 			var suites = [];
 			data.failed_tests_suites.forEach(function (test) {
@@ -170,33 +162,33 @@ var BrokenTests = function (config) {
 				});
 			});
 
-			console.log(colors.debug('Список поломанных тестов из пула:'));
-			console.log(colors.debug(suites));
+			console.log('Список поломанных тестов из пула:');
+			console.log(suites);
 
 			var repair_ids = [];
 
-			console.log(colors.debug('Сравним с уже сломаными тестами...'));
+			console.log('Сравним с уже сломаными тестами...');
 
 			broken_tests.forEach(function (test) {
-				console.log(colors.debug('Ищем ' + test[1]));
+				console.log('Ищем ' + test[1]);
 				var position = suites.indexOf(test[1]);
 				/**
 				 * Если сломаного теста нет в результатах пула - его починили
 				 * Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
 				 */
 				if (position == -1) {
-					console.log(colors.debug('Позиция: ' + position + ' ; Теста нет в пуле => его исправили!'));
+					console.log('Позиция: ' + position + ' ; Теста нет в пуле => его исправили!');
 					repair_ids.push(test[0]);
 				} else {
-					console.log(colors.debug('Позиция: ' + position + ' ; Тест есть в пуле => его не нужно сохранять'));
+					console.log('Позиция: ' + position + ' ; Тест есть в пуле => его не нужно сохранять');
 					suites.splice(position, 1);
 				}
 			});
 
-			console.log(colors.debug('Список исправленных тестов:'));
-			console.log(colors.debug(repair_ids));
-			console.log(colors.debug('Список новых сломаных тестов:'));
-			console.log(colors.debug(suites));
+			console.log('Список исправленных тестов:');
+			console.log(repair_ids);
+			console.log('Список новых сломаных тестов:');
+			console.log(suites);
 
 			/**
 			 * Сейчас у нас есть два массива:
@@ -229,11 +221,11 @@ var BrokenTests = function (config) {
 
 		connection.query(options, function(err, results) {
 			if (err) {
-				console.log(colors.error('\n[MYSQL] BROKEN TESTS ERROR (getBrokenTests):'));
-				console.log(colors.error(err));
-				console.log(colors.error(options.sql));
+				console.log('\n[MYSQL] BROKEN TESTS ERROR (getBrokenTests):');
+				console.log(err);
+				console.log(options.sql);
 			} else {
-				console.log(colors.debug(options.sql));
+				console.log(options.sql);
 			}
 
 			callback(results);
@@ -252,11 +244,11 @@ var BrokenTests = function (config) {
 
 		connection.query(query, function(err, result) {
 			if (err) {
-				console.log(colors.error('\n[MYSQL] BROKEN TESTS ERROR (addBrokenTest):'));
-				console.log(colors.error(err));
-				console.log(colors.error(query));
+				console.log('\n[MYSQL] BROKEN TESTS ERROR (addBrokenTest):');
+				console.log(err);
+				console.log(query);
 			} else {
-				console.log(colors.debug(query));
+				console.log(query);
 			}
 
 			connection.close();
@@ -277,11 +269,11 @@ var BrokenTests = function (config) {
 
 		connection.query(query, function(err, result) {
 			if (err) {
-				console.log(colors.error('\n[MYSQL] BROKEN TESTS ERROR (repairTests):'));
-				console.log(colors.error(err));
-				console.log(colors.error(query));
+				console.log('\n[MYSQL] BROKEN TESTS ERROR (repairTests):');
+				console.log(err);
+				console.log(query);
 			} else {
-				console.log(colors.debug(query));
+				console.log(query);
 			}
 
 			connection.close();
