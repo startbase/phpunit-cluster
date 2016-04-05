@@ -81,10 +81,10 @@ var BrokenTests = function (config) {
 		var query = 'CREATE TABLE IF NOT EXISTS `' + this.tablename + '` (' +
 			'`id` INT(11) NOT NULL AUTO_INCREMENT,' +
 			'`suitename` TEXT NOT NULL,' +
-			'`broke_commit` VARCHAR(255) NOT NULL "",' +
+			'`broke_commit` VARCHAR(255) NOT NULL DEFAULT "",' +
 			'`broke_authors` VARCHAR(255) NOT NULL DEFAULT "",' +
 			'`broke_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
-			'`repair_commit` VARCHAR(255) NOT NULL "",' +
+			'`repair_commit` VARCHAR(255) NOT NULL DEFAULT "",' +
 			'`repair_authors` VARCHAR(255) NOT NULL DEFAULT "",' +
 			'`repair_date` TIMESTAMP NOT NULL DEFAULT "0000-00-00 00:00:00",' +
 			'PRIMARY KEY (`id`)' +
@@ -93,8 +93,9 @@ var BrokenTests = function (config) {
 		connection.query(query, function (err, result) {
 
 			if (err) {
-				console.log(colors.error('[MYSQL] BROKEN TESTS ERROR (init):'));
+				console.log(colors.error('\n[MYSQL] BROKEN TESTS ERROR (init):'));
 				console.log(colors.error(err));
+				console.log(colors.error(query));
 			}
 
 			connection.close();
@@ -228,8 +229,9 @@ var BrokenTests = function (config) {
 
 		connection.query(options, function(err, results) {
 			if (err) {
-				console.log(colors.error('[MYSQL] BROKEN TESTS ERROR (getBrokenTests):'));
+				console.log(colors.error('\n[MYSQL] BROKEN TESTS ERROR (getBrokenTests):'));
 				console.log(colors.error(err));
+				console.log(colors.error(options.sql));
 			} else {
 				console.log(colors.debug(options.sql));
 			}
@@ -250,8 +252,9 @@ var BrokenTests = function (config) {
 
 		connection.query(query, function(err, result) {
 			if (err) {
-				console.log(colors.error('[MYSQL] BROKEN TESTS ERROR (addBrokenTest):'));
+				console.log(colors.error('\n[MYSQL] BROKEN TESTS ERROR (addBrokenTest):'));
 				console.log(colors.error(err));
+				console.log(colors.error(query));
 			} else {
 				console.log(colors.debug(query));
 			}
@@ -274,8 +277,9 @@ var BrokenTests = function (config) {
 
 		connection.query(query, function(err, result) {
 			if (err) {
-				console.log(colors.error('[MYSQL] BROKEN TESTS ERROR (repairTests):'));
+				console.log(colors.error('\n[MYSQL] BROKEN TESTS ERROR (repairTests):'));
 				console.log(colors.error(err));
+				console.log(colors.error(query));
 			} else {
 				console.log(colors.debug(query));
 			}
