@@ -1,20 +1,11 @@
 #! /bin/sh
-### BEGIN INIT INFO
-# Provides:          $node-socket_broker
-# Required-Start:    $remote_fs $syslog $network
-# Required-Stop:     $remote_fs $syslog $network
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: Brocker socket server
-# Description:       Brocker socket messages server
-### END INIT INFO
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="phpunit-cluster"
 NAME=phpunit-cluster
 DAEMON="/usr/bin/node"
-DAEMON_ARGS="/var/phpunit-cluster/client.js -d dashboard.b2b-center.ru"
+DAEMON_ARGS="/var/phpunit-cluster/client.js"
 PIDFILE=/var/run/phpunit-cluster.pid
 SCRIPTNAME=/etc/init.d/$NAME
 INIT_VERBOSE=yes
