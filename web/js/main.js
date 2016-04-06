@@ -58,7 +58,7 @@ App.main = function () {
     
     this.stats_init = function (data) {
         var data_obj = JSON.parse(data);
-        data_obj.commits_history = self.getCommitsHistory(data_obj.commit_history);
+        data_obj.commits_merge_log = self.getCommitsHistory(data_obj.commits_merge_log);
         self.renderStatsText(data_obj);
         self.repaintIframe();
     };
@@ -105,7 +105,7 @@ App.main = function () {
             '<table class="table table-striped">' +
             '<tr><td class="col-xs-3">Время выполнения пула: </td><td class="col-xs-9">' + new Date(data.date_finish).toLocaleString() + '</td></tr>' +
             '<tr><td>Ветка: </td><td>integration</td></tr>' +
-            '<tr><td>Commit Hash: </td><td>' + data.commit_hash + '' + data.commits_history + '</td></tr>' +
+            '<tr><td>Commit Hash: </td><td>' + data.commit_hash + '' + data.commits_merge_log + '</td></tr>' +
             '<tr><td>Всего пройдено тестов: </td><td>' + data.tests_overall_count + '</td></tr>' +
             '<tr><td>Успешно пройдено тестов: </td><td>' + data.tests_success_count + '</td></tr>' +
             '<tr><td>Завалено тестов: </td><td>' + data.tests_failed_count + '</td></tr>' +
@@ -116,20 +116,20 @@ App.main = function () {
         $('#last-info-tests').empty().html(resultHtml);
     };
 
-    this.getCommitsHistory = function (commit_history) {
-        var commits_history = '';
-        if (commit_history.length > 0) {
-            commits_history += '<br /><br />';
-            commit_history.forEach(function (commit) {
-                commits_history += '<p>' + commit + '</p>';
+    this.getCommitsHistory = function (commits_merge_log) {
+        var commits_merge_log_html = '';
+        if (commits_merge_log.length > 0) {
+            commits_merge_log_html += '<br /><br />';
+            commits_merge_log.forEach(function (commit) {
+                commits_merge_log_html += '<p>' + commit + '</p>';
             });
         }
 
-        return commits_history;
+        return commits_merge_log_html;
     };
 
     this.complete = function (data) {
-        data.commits_history = self.getCommitsHistory(data.commit_history);
+        data.commits_merge_log = self.getCommitsHistory(data.commits_merge_log);
 
         // progress-bar-success
         var pb = $('#tests-progress').find('.progress-bar');

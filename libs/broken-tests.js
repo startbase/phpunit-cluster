@@ -33,29 +33,22 @@ function getTestSuite(suite) {
 }
 
 /**
- * Вырезает из истории коммитов автора(-ов) и возвращает в виде строки
+ * Вырезает из истории коммитов автора(-ов) и возвращает в виде массива
  *
- * @param {Array} commit_history
- * @returns {string}
+ * @param {Array} commits_merge
+ * @returns {Array}
  */
-function getCommitAuthors(commit_history) {
-	if (commit_history.length == 0) {
-		return '';
-	}
+function getCommitAuthors(commits_merge) {
+    if (commits_merge.length == 0) {
+        return [];
+    }
 
-	var authors = [];
-	commit_history.forEach(function (item) {
-		var position = item.indexOf("] Merge branch ");
-		if (position > 0) {
-			var author = item.substring(1, position);
+    var authors = [];
+    commits_merge.forEach(function (commit) {
+        authors.push(commit.author);
+    });
 
-			if (authors.indexOf(author) == -1) {
-				authors.push(item.substring(1, position));
-			}
-		}
-	});
-
-	return authors.join(", ");
+    return authors;
 }
 
 /**
@@ -195,7 +188,7 @@ var BrokenTests = function (config) {
                     testpath: suite[TEST_SUITE_FILEPATH],
                     suitename: suite[TEST_SUITE_NAME],
                     broke_commit: data.commit_hash,
-                    broke_authors: getCommitAuthors(data.commit_history)
+                    broke_authors: getCommitAuthors(data.commits_merge).join(', ')
                 });
             });
         }
@@ -253,7 +246,7 @@ var BrokenTests = function (config) {
 	this.repairTests = function (ids, stats_data) {
 		var connection = this.getNewConnection();
 		var commit = stats_data.commit_hash;
-		var commit_authors = getCommitAuthors(stats_data.commit_history);
+		var commit_authors = getCommitAuthors(stats_data.commits_merge).join(', ');
 
 		var query = "UPDATE `" + this.tablename + "` SET `repair_commit` = '" + commit + "', `repair_authors` = '" + commit_authors + "', `repair_date` = FROM_UNIXTIME('" + new Date().getTime() + "') WHERE `id` IN (" + ids.join() + ")";
 

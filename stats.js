@@ -20,7 +20,7 @@ var Stats = function () {
 
     this.phpunit_repeat = 0;
 
-	this.commitLog = [];
+	this.commits_merge = [];
 	this.commit_hash = '';
 	this.lastPoolFile = configParams.statistic.last_pool;
     
@@ -76,7 +76,7 @@ var Stats = function () {
             var test_suites = [];
 
             test.suites.forEach(function(suite) {
-                if (suite.status == 'fail') {
+                if (suite.status == 'error') {
                     var stat_msg = suite.test + " [" + suite.message + "]";
                     test_suites.push(stat_msg);
                 }
@@ -100,9 +100,10 @@ var Stats = function () {
             'tests_failed_count': raw_stats.tests_failed.length,
             'count_tasks': this.count_tasks,
             'date_start': this.start_time,
-			'date_finish': this.finish_time,
-			'commit_hash': this.commit_hash,
-			'commit_history': this.commitLog,
+            'date_finish': this.finish_time,
+            'commit_hash': this.commit_hash,
+			'commits_merge': this.commits_merge,
+			'commits_merge_log': this.getCommitsMergeLog(),
 			'tests_overall_count': this.tests.length,
             'time_average': raw_stats.time_overall / this.tests.length,
             'failed_tests_names': failed_tests_names,
@@ -111,6 +112,15 @@ var Stats = function () {
             'phpunit_repeat_time': this.phpunit_repeat,
             'all_tests_data': all_tests_data
         };
+    };
+
+    this.getCommitsMergeLog = function() {
+        var commits_merge_log = [];
+        self.commits_merge.forEach(function (commit) {
+            commits_merge_log.push('[' + commit.author_name + '] ' + commit.message);
+        });
+
+        return commits_merge_log;
     };
 
     this.getConsoleStats = function () {
@@ -177,7 +187,7 @@ var Stats = function () {
         this.count_tasks = 0;
         this.phpunit_repeat = 0;
 		this.commit_hash = '';
-		this.commitLog = [];
+		this.commits_merge = [];
     };
 
     EventEmitter.call(this);

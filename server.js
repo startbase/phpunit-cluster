@@ -52,8 +52,8 @@ taskBalancer.queueTasks.on('fill.complete', function () {
 	stats.count_tasks = tasks_pool_count;
 
 	if (params.last_commit_hash != 'none' && params.last_commit_hash != params.commit_hash) {
-		repository.getCommitHistory(params.last_commit_hash, params.commit_hash, function(history) {
-			stats.commitLog = history;
+		repository.getMergeCommitHistory(params.last_commit_hash, params.commit_hash, function(commits_merge) {
+			stats.commits_merge = commits_merge;
 		});
 	}
 
@@ -304,7 +304,7 @@ io.sockets.on('connection', function (socket) {
 
 			var web_stats = stats.getWebStats();
 			var save_stats = stats.prepareForSave();
-			io.sockets.emit('stats.update', web_stats);
+			io.sockets.emit('stats.update', JSON.stringify(web_stats));
             io.sockets.emit('web.update', web_stats);
             io.sockets.emit('web.complete', web_stats);
             logAgregator.push(save_stats);

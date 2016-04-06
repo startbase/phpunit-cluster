@@ -44,20 +44,20 @@ var Repository = function () {
         });
     };
 
-    this.getCommitHistory = function(lastCommit, currentCommit, callback) {
+    this.getMergeCommitHistory = function(lastCommit, currentCommit, callback) {
 		git.log({ from: lastCommit, to: currentCommit }, function (err, data) {
 			if (!err) {
 				var commits = data.all;
-				var logs = [];
+				var merge_commits = [];
 				var merge = /(.*?)Merge branch(.*?)into integration/i;
 
 				commits.forEach(function (commit) {
 					if (commit.author_name !== undefined && commit.message !== undefined && merge.test(commit.message)) {
-						logs.push('[' + commit.author_name + '] ' + commit.message);
+                        merge_commits.push(commit);
 					}
 				});
 
-				callback(logs);
+				callback(merge_commits);
 			}
 		});
     };
