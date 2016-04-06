@@ -1,9 +1,10 @@
 var forker = require('./libs/forker.js');
 var spawn = require('child_process').spawn;
-var git = require('simple-git')();
+
+var git = require('simple-git')(__dirname);
 
 var ClientForker = function(sh) {
-    this.client_script = sh || 'client.js';
+    this.client_script = sh || __dirname+'/client.js';
 
     this.updateClient = function(callback) {
         git.fetch('origin').pull(function() {
