@@ -78,6 +78,8 @@ function getSuiteIndex(suites, path, suite) {
 
 var BrokenTests = function (config) {
 
+	var self = this;
+
 	/** Название таблицы в БД */
 	this.tablename = config.logAgregator.tables.broken_tests;
 	/** Путь репозитория */
