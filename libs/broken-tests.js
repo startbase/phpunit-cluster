@@ -160,7 +160,7 @@ var BrokenTests = function (config) {
         failed_tests_old.forEach(function (test) {
             console.log('Ищем ' + test[TEST_SUITE_FILEPATH] + ' -> ' + test[TEST_SUITE_NAME]);
 
-            var suite_index = getSuiteIndex(suites, test[TEST_SUITE_FILEPATH], test[TEST_SUITE_NAME]);
+            var suite_index = getSuiteIndex(failed_suites_names_new, test[TEST_SUITE_FILEPATH], test[TEST_SUITE_NAME]);
 
             /**
              * Если сломаного теста нет в результатах пула - его починили
