@@ -181,7 +181,7 @@ var BrokenTests = function (config) {
 			console.log('Есть сломаные тесты и последний пул что-то сломал');
 
 			var suites = [];
-			data.failed_tests_suites.forEach(function (test) {
+			data.failed_tests_suites.forEach(function (test, index) {
 				var testpath = data.failed_tests_names[index];
 				testpath = testpath.replace(self.repository + '/', '');
 
