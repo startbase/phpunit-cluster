@@ -145,7 +145,7 @@ var BrokenTests = function (config) {
         var repaired_suites_ids = [];
 
         failed_tests_new.forEach(function (test, index) {
-            var testpath = failed_tests_new[index];
+			var testpath = data.failed_tests_names[index];
             testpath = testpath.replace(self.repository + '/', '');
             test.forEach(function (suite) {
                 failed_suites_names_new.push([-1, testpath, getTestSuite(suite)]);
