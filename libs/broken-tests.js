@@ -54,10 +54,30 @@ function getCommitAuthors(commit_history) {
 	return authors.join(", ");
 }
 
+/**
+ * Функция для поиска имеющегося сломаного теста в результатах пула
+ *
+ * @param {Array} suites массив сломаных тестов из пула в формате [ [path_1, suite_1], [path_N, suite_N] ]
+ * @param {string} path путь файла с тестом
+ * @param {string} suite
+ * @returns {number}
+ */
+function isSuiteExist(suites, path, suite) {
+	for (var i = 0; i < suites.length; i++) {
+		if (suites[i][0] === path && suites[i][1] === suite) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 var BrokenTests = function (config) {
 
 	/** Название таблицы в БД */
 	this.tablename = config.logAgregator.tables.broken_tests;
+	/** Путь репозитория */
+	this.repository = config.repository.repository_path;
 
 	/** Установка соединения с БД */
 	this.getNewConnection = function () {
@@ -72,6 +92,7 @@ var BrokenTests = function (config) {
 		var connection = this.getNewConnection();
 		var query = 'CREATE TABLE IF NOT EXISTS `' + this.tablename + '` (' +
 			'`id` INT(11) NOT NULL AUTO_INCREMENT,' +
+			'`path` VARCHAR(255) NOT NULL DEFAULT "",' +
 			'`suitename` TEXT NOT NULL,' +
 			'`broke_commit` VARCHAR(255) NOT NULL DEFAULT "",' +
 			'`broke_authors` VARCHAR(255) NOT NULL DEFAULT "",' +
@@ -117,9 +138,13 @@ var BrokenTests = function (config) {
 		/** Если у нас нет сломаных тестов, но последний пул какие-то сломал - добавляем их в базу */
 		if (broken_tests.length == 0 && data.tests_failed_count > 0) {
 			console.log('Сломаных тестов нет, но последний пул что-то сломал');
-			data.failed_tests_suites.forEach(function (test) {
+			data.failed_tests_suites.forEach(function (test, index) {
+				var testpath = data.failed_tests_names[index];
+				testpath = testpath.replace(self.repository + '/', '');
+
 				test.forEach(function (suite) {
 					var broken_suite = {
+						testpath: testpath,
 						suitename: getTestSuite(suite),
 						broke_commit: data.commit_hash,
 						broke_authors: getCommitAuthors(data.commit_history)
@@ -157,8 +182,11 @@ var BrokenTests = function (config) {
 
 			var suites = [];
 			data.failed_tests_suites.forEach(function (test) {
+				var testpath = data.failed_tests_names[index];
+				testpath = testpath.replace(self.repository + '/', '');
+
 				test.forEach(function (suite) {
-					suites.push(getTestSuite(suite));
+					suites.push([testpath, getTestSuite(suite)]);
 				});
 			});
 
@@ -170,8 +198,8 @@ var BrokenTests = function (config) {
 			console.log('Сравним с уже сломаными тестами...');
 
 			broken_tests.forEach(function (test) {
-				console.log('Ищем ' + test[1]);
-				var position = suites.indexOf(test[1]);
+				console.log('Ищем ' + test[1] + ' -> ' + test[2]);
+				var position = isSuiteExist(suites, test[1], test[2]);
 				/**
 				 * Если сломаного теста нет в результатах пула - его починили
 				 * Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
@@ -200,9 +228,10 @@ var BrokenTests = function (config) {
 			}
 
 			if (suites.length > 0) {
-				suites.forEach(function (suite) {
+				suites.forEach(function (test) {
 					self.addBrokenTest({
-						suitename: suite,
+						testpath: test[0],
+						suitename: test[1],
 						broke_commit: data.commit_hash,
 						broke_authors: getCommitAuthors(data.commit_history)
 					});
@@ -217,7 +246,7 @@ var BrokenTests = function (config) {
 	 */
 	this.getBrokenTests = function (callback) {
 		var connection = this.getNewConnection();
-		var options = { sql: 'SELECT `id`, `suitename` FROM `' + this.tablename + '` WHERE `repair_date` = "0000-00-00 00:00:00"', rowsAsArray: true };
+		var options = { sql: 'SELECT `id`, `path`, `suitename` FROM `' + this.tablename + '` WHERE `repair_date` = "0000-00-00 00:00:00"', rowsAsArray: true };
 
 		connection.query(options, function(err, results) {
 			if (err) {
@@ -236,11 +265,11 @@ var BrokenTests = function (config) {
 
 	/**
 	 * Добавляем новый сломаный тест в БД
-	 * @param data Формат { suitename, broke_commit, broke_authors }
+	 * @param test Формат { path, suitename, broke_commit, broke_authors }
 	 */
-	this.addBrokenTest = function (data) {
+	this.addBrokenTest = function (test) {
 		var connection = this.getNewConnection();
-		var query = "INSERT INTO `" + this.tablename + "` (`suitename`, `broke_commit`, `broke_authors`) VALUES ('" + data.suitename + "', '" + data.broke_commit + "', '" + data.broke_authors + "')";
+		var query = "INSERT INTO `" + this.tablename + "` (`path`, `suitename`, `broke_commit`, `broke_authors`) VALUES ('" + test.testpath + "', '" + test.suitename + "', '" + test.broke_commit + "', '" + test.broke_authors + "')";
 
 		connection.query(query, function(err, result) {
 			if (err) {
@@ -258,12 +287,12 @@ var BrokenTests = function (config) {
 	/**
 	 * Обновляем статус тестов на исправленные
 	 * @param {Array} ids Массив ID тестов, которые починили
-	 * @param data Данные, получаемые из статистики
+	 * @param stats_data Данные, получаемые из статистики
 	 */
-	this.repairTests = function (ids, data) {
+	this.repairTests = function (ids, stats_data) {
 		var connection = this.getNewConnection();
-		var commit = data.commit_hash;
-		var commit_authors = getCommitAuthors(data.commit_history);
+		var commit = stats_data.commit_hash;
+		var commit_authors = getCommitAuthors(stats_data.commit_history);
 
 		var query = "UPDATE `" + this.tablename + "` SET `repair_commit` = '" + commit + "', `repair_authors` = '" + commit_authors + "', `repair_date` = FROM_UNIXTIME('" + new Date().getTime() + "') WHERE `id` IN (" + ids.join() + ")";
 

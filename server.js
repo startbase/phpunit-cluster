@@ -135,7 +135,10 @@ udp_receiver.on('error', function (err) {
 udp_receiver.on('message', function (message, info) {
 	console.log('[' + getDate() + '] Пришёл UDP пакет на обновление');
 
-	if (message.toString('utf8') === 'beta') {
+    console.log('MESSAGE to string:');
+    console.log(message.toString('utf8'));
+
+    if (message.toString('utf8') === 'beta' || message.toString('utf8') === 'integration') {
 		rl.emit('line', 'u');
 	}
 });
