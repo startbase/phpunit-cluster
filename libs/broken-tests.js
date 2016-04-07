@@ -55,7 +55,11 @@ function getCommitAuthors(commits_merge) {
 
     var authors = [];
     commits_merge.forEach(function (commit) {
-        authors.push(commit.author_name);
+		var author = commit.author_name;
+
+		if (authors.indexOf(author) == -1) {
+			authors.push(author);
+		}
     });
 
     return authors;

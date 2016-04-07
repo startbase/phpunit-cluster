@@ -45,7 +45,11 @@ var LogAgregator = function (config) {
                 console.log(err.red);
             }
             else {
-                callback(JSON.parse(rows[0].data));
+				if (rows.length > 0) {
+					callback(JSON.parse(rows[0].data));
+				} else {
+					callback({});
+				}
             }
 
             connection.close();
