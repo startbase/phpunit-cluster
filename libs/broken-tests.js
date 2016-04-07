@@ -18,11 +18,21 @@ function getTestSuite(suite) {
 
 	/** Вырезаем описание ошибки (справа) */
 	var position = suite.indexOf(" [Failed ");
-	suite = suite.substring(0, position);
+	if (position > 0) {
+		suite = suite.substring(0, position);
+	}
+
+	/** Вырезаем SQL ошибку (справа) */
+	position = suite.indexOf(" [SQL ERROR: ");
+	if (position > 0) {
+		suite = suite.substring(0, position);
+	}
 
 	/** Вырезаем путь теста (слева) */
 	position = suite.lastIndexOf("\\");
-	suite = suite.substring(position + 1);
+	if (position > 0) {
+		suite = suite.substring(position + 1);
+	}
 
 	/** Заменяем одинарные ковычки на двойные */
 	suite = suite.replace(/'/g, '"');
@@ -39,13 +49,13 @@ function getTestSuite(suite) {
  * @returns {Array}
  */
 function getCommitAuthors(commits_merge) {
-    if (commits_merge.length == 0) {
+	if (commits_merge.length == 0) {
         return [];
     }
 
     var authors = [];
     commits_merge.forEach(function (commit) {
-        authors.push(commit.author);
+        authors.push(commit.author_name);
     });
 
     return authors;
