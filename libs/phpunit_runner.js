@@ -1,5 +1,18 @@
 var fs = require('fs');
 
+/**
+ * Функция проверяет Skipped или Incomplete статус теста
+ *
+ * @param {string} message сообщение из suite.message
+ * @returns {boolean}
+ */
+function isSuiteSkipOrIncomplete(message) {
+	var isSkip = message.indexOf('Skipped Test: ');
+	var isIncomplete = message.indexOf('Incomplete Test: ');
+
+	return (isSkip == 0 || isIncomplete == 0);
+}
+
 var PhpUnitRunner = function () {
     this.show_log = false;
     this.phpunit_cmd = '';
@@ -7,7 +20,7 @@ var PhpUnitRunner = function () {
     this.result_json_file = '';
 
     this.run = function (file, callback) {
-        var self = this;
+		var self = this;
         var exec = require('child_process').exec;
 
 		/**
@@ -29,12 +42,12 @@ var PhpUnitRunner = function () {
 
 			child.on('close', function(code) {
 				/** PHPUnit закончил выполнение, попытаемся прочитать лог файл */
-				fs.readFile(self.phpunit_cmd_suffix, 'utf8', function (err, data) {
+				fs.readFile(self.result_json_file, 'utf8', function (err, data) {
 					if (!err) {
 						data = data.replace(/\}\{/ig, '},{'); // @see https://github.com/sebastianbergmann/phpunit/issues/1156
 
 						try {
-							var obj = JSON.parse(data);
+							var obj = JSON.parse('[' + data + ']');
 							/** @type {boolean} Статус теста */
 							var test_status = true;
 							/** @type {number} Время выполнения теста */
@@ -49,7 +62,11 @@ var PhpUnitRunner = function () {
 									test_suites.push(suite);
 									test_time += suite.time;
 
-									if (suite.status != 'pass') {
+									/**
+									 * Если статус теста отличается от PASS
+									 * и тест не Skipped или Incomplete, тогда тест завален
+									 */
+									if (suite.status != 'pass' && !isSuiteSkipOrIncomplete(suite.message)) {
 										test_status = false;
 									}
 								}

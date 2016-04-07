@@ -6,6 +6,18 @@ var config = require('./config.js');
 var configParams = config.getParams();
 var logAgregator = new (require('./log-agregator'))(config.getParams());
 
+/**
+ * Функция проверяет Skipped или Incomplete статус теста
+ *
+ * @param {string} message сообщение из suite.message
+ * @returns {boolean}
+ */
+function isSuiteSkipOrIncomplete(message) {
+    var isSkip = message.indexOf('Skipped Test: ');
+    var isIncomplete = message.indexOf('Incomplete Test: ');
+
+    return (isSkip == 0 || isIncomplete == 0);
+}
 
 var Stats = function () {
     var self = this;
@@ -76,7 +88,11 @@ var Stats = function () {
             var test_suites = [];
 
             test.suites.forEach(function(suite) {
-                if (suite.status != 'pass') {
+				/**
+				 * Если статус теста отличается от PASS
+				 * и тест не Skipped или Incomplete, тогда тест завален
+				 */
+				if (suite.status != 'pass' && !isSuiteSkipOrIncomplete(suite.message)) {
                     var stat_msg = suite.test + " [" + suite.message + "]";
                     test_suites.push(stat_msg);
                 }
