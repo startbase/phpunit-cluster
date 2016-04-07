@@ -57,9 +57,8 @@ App.main = function () {
     };
     
     this.stats_init = function (data) {
-        var data_obj = JSON.parse(data);
-        data_obj.commits_merge_log = self.getCommitsHistory(data_obj.commits_merge_log);
-        self.renderStatsText(data_obj);
+        data.commits_merge_log = self.getCommitsHistory(data.commits_merge_log);
+        self.renderStatsText(data);
         self.repaintIframe();
     };
 
@@ -166,8 +165,6 @@ App.main = function () {
 	};
 
     this.stats_update = function (data) {
-        var data_obj = JSON.parse(data);
-
         var treeHtml = '<div id="tree"></div>';
         $('#tree-block').empty().html(treeHtml);
 
@@ -176,8 +173,8 @@ App.main = function () {
 
         var failed_test_suites_names = {};
         var tests_fails = [];
-        var failed_test_suites = data_obj.failed_tests_suites;
-        var failed_tests_names = data_obj.failed_tests_names;
+        var failed_test_suites = data.failed_tests_suites;
+        var failed_tests_names = data.failed_tests_names;
 
         failed_tests_names.forEach(function (test_path, i) {
             console.log(test_path);

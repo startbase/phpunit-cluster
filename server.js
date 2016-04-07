@@ -304,7 +304,7 @@ io.sockets.on('connection', function (socket) {
 
 			var web_stats = stats.getWebStats();
 			var save_stats = stats.prepareForSave();
-			io.sockets.emit('stats.update', JSON.stringify(web_stats));
+			io.sockets.emit('stats.update', web_stats);
             io.sockets.emit('web.update', web_stats);
             io.sockets.emit('web.complete', web_stats);
             logAgregator.push(save_stats);
