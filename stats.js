@@ -76,7 +76,7 @@ var Stats = function () {
             var test_suites = [];
 
             test.suites.forEach(function(suite) {
-                if (suite.status == 'error') {
+                if (suite.status != 'pass') {
                     var stat_msg = suite.test + " [" + suite.message + "]";
                     test_suites.push(stat_msg);
                 }
