@@ -1,4 +1,5 @@
 var mysql = require('mysql2');
+var mailer = require('./mailer');
 
 var TEST_SUITE_ID = 0;
 var TEST_SUITE_FILEPATH = 1;
@@ -186,6 +187,21 @@ var BrokenTests = function (config) {
         console.log(repaired_suites_ids);
         console.log('Список новых сломаных тестов:');
         console.log(failed_suites_names_new);
+
+        console.log('Рассылаем сообщения провинившимся товарищам');
+        data.commits_merge.forEach(function (commit) {
+            var mailOptions = {
+                from: '"Mr. John Smith" <black@overlord.com>',
+                to: 'i.baryshnikov@b2b-center.ru, r.schekin@b2b-center.ru',
+                // to: commit.author_email,
+                subject: 'Сломанные тесты',
+                text: 'Сломанные тесты',
+                html: '<b>Упс! Кажется, вы(' + commit.author_email +') сломали тест при мердже в интеграцию!</b>'
+                + '<p><div><pre>' + JSON.stringify(failed_suites_names_new, null, 2) + '</pre></div></p>'
+            };
+
+            mailer.sendMail(mailOptions);
+        });
 
         /**
          * Сейчас у нас есть два массива:

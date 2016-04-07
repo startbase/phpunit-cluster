@@ -1,6 +1,9 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 var colors = require('colors');
 
+// Выставляем окружению параметр для отсылки писем через транспорт
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 var argv = require('minimist')(process.argv.slice(2));
 var config = require('./config.js');
 var configParams = config.getParams();
@@ -308,8 +311,8 @@ io.sockets.on('connection', function (socket) {
             io.sockets.emit('web.update', web_stats);
             io.sockets.emit('web.complete', web_stats);
             logAgregator.push(save_stats);
-			BrokenTests.getBrokenTests(function(broken_tests) {
-				BrokenTests.update(save_stats, broken_tests);
+			BrokenTests.getBrokenTests(function(failed_tests_old) {
+				BrokenTests.update(save_stats, failed_tests_old);
 			});
         }
     });
