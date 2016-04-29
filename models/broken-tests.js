@@ -1,13 +1,13 @@
 var mysql = require('mysql');
 
 /**
- * Вырезает из suite теста подробное описание ошибки
- * До: GKPZ\GKPZRowTest::testGetApprovalDepartmentCheckRequired with data set #1 (2, true) [Failed asserting that false matches expected true.]
- * После: GKPZRowTest::testGetApprovalDepartmentCheckRequired with data set #1 (2, true)
- *
- * @param {string} suite
- * @returns {string}
- */
+* Вырезает из suite теста подробное описание ошибки
+* До: GKPZ\GKPZRowTest::testGetApprovalDepartmentCheckRequired with data set #1 (2, true) [Failed asserting that false matches expected true.]
+* После: GKPZRowTest::testGetApprovalDepartmentCheckRequired with data set #1 (2, true)
+*
+* @param {string} suite
+* @returns {string}
+*/
 function getTestSuite(suite) {
 	console.log('Парсим название теста');
 	console.log('До: ' + suite);
@@ -39,36 +39,36 @@ function getTestSuite(suite) {
 }
 
 /**
- * Вырезает из истории коммитов автора(-ов) и возвращает в виде массива
- *
- * @param {Array} commits_merge
- * @returns {Array}
- */
+* Вырезает из истории коммитов автора(-ов) и возвращает в виде массива
+*
+* @param {Array} commits_merge
+* @returns {Array}
+*/
 function getCommitAuthors(commits_merge) {
 	if (commits_merge.length == 0) {
-        return [];
-    }
+		return [];
+	}
 
-    var authors = [];
-    commits_merge.forEach(function (commit) {
+	var authors = [];
+	commits_merge.forEach(function (commit) {
 		var author = commit.author_email;
 
 		if (authors.indexOf(author) == -1) {
 			authors.push(author);
 		}
-    });
+	});
 
-    return authors;
+	return authors;
 }
 
 /**
- * Функция для поиска имеющегося сломаного теста в результатах пула
- *
- * @param {Array} suites массив сломаных тестов из пула в формате [ [path_1, suite_1], [path_N, suite_N] ]
- * @param {string} path путь файла с тестом
- * @param {string} suite
- * @returns {number}
- */
+* Функция для поиска имеющегося сломаного теста в результатах пула
+*
+* @param {Array} suites массив сломаных тестов из пула в формате [ [path_1, suite_1], [path_N, suite_N] ]
+* @param {string} path путь файла с тестом
+* @param {string} suite
+* @returns {number}
+*/
 function getSuiteIndex(suites, path, suite) {
 	for (var i = 0; i < suites.length; i++) {
 		if (suites[i]['path'] === path && suites[i]['suitename'] === suite) {
@@ -124,65 +124,65 @@ var BrokenTests = function (config) {
 	};
 
 	/**
-	 * Обновление сломаных тестов. Вызывается после выполнения пула
-	 * в callback-е функции получения тестов
-	 *
-	 * @param data данные из статистики
-	 * @param old_failed_tests сломаные тесты из базы
-	 * @param callback
-	 */
+	* Обновление сломаных тестов. Вызывается после выполнения пула
+	* в callback-е функции получения тестов
+	*
+	* @param data данные из статистики
+	* @param old_failed_tests сломаные тесты из базы
+	* @param callback
+	*/
 	this.update = function (data, old_failed_tests, callback) {
-        console.log('Запускаем обновление сломаных тестов');
-        console.log('Список имеющихся сломаных тестов:');
-        console.log(old_failed_tests);
+		console.log('Запускаем обновление сломаных тестов');
+		console.log('Список имеющихся сломаных тестов:');
+		console.log(old_failed_tests);
 
-        var new_failed_tests = data.failed_tests_suites;
+		var new_failed_tests = data.failed_tests_suites;
 
-        /** Если у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем */
-        if (old_failed_tests.length == 0 && new_failed_tests.length == 0) {
-            console.log('Сломаных тестов нет и последний пул ничего не сломал');
+		/** Если у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем */
+		if (old_failed_tests.length == 0 && new_failed_tests.length == 0) {
+			console.log('Сломаных тестов нет и последний пул ничего не сломал');
 			callback({});
-            return;
-        }
+			return;
+		}
 
 		/** @type {Array} Список коммитеров последнего пула */
 		var commit_authors = getCommitAuthors(data.commits_merge);
 		/** @type {Array} Новые сломанные тесты из пула в формате { id (-1), path, suitename } */
-        var broken_tests = [];
+		var broken_tests = [];
 		/** @type {Array} Исправленные тесты из пула в формате { id, path, suitename, broke_authors } */
 		var repair_tests = [];
 		/** @type {Array} Список ID исправленных тестов */
-        var repair_tests_ids = [];
+		var repair_tests_ids = [];
 
 		/** Сформируем удобный список новых сломанных тестов */
 		new_failed_tests.forEach(function (test, index) {
 			var testpath = data.failed_tests_names[index];
-            testpath = testpath.replace(self.repository + '/', '');
+			testpath = testpath.replace(self.repository + '/', '');
 
-            test.forEach(function (suite) {
+			test.forEach(function (suite) {
 				broken_tests.push({
 					id: -1,
 					path: testpath,
 					suitename: getTestSuite(suite)
 				});
-            });
-        });
+			});
+		});
 
-        console.log('Список поломанных тестов из пула:');
-        console.log(broken_tests);
-        console.log('Сравним с уже сломаными тестами...');
+		console.log('Список поломанных тестов из пула:');
+		console.log(broken_tests);
+		console.log('Сравним с уже сломаными тестами...');
 
-        old_failed_tests.forEach(function (test) {
-            console.log('Ищем ' + test['path'] + ' -> ' + test['suitename']);
+		old_failed_tests.forEach(function (test) {
+			console.log('Ищем ' + test['path'] + ' -> ' + test['suitename']);
 
-            var suite_index = getSuiteIndex(broken_tests, test['path'], test['suitename']);
+			var suite_index = getSuiteIndex(broken_tests, test['path'], test['suitename']);
 
-            /**
-             * Если сломаного теста нет в результатах пула - его починили
-             * Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
-             */
-            if (suite_index == -1) {
-                console.log('Позиция: ' + suite_index + ' ; Теста нет в пуле => его исправили!');
+			/**
+			* Если сломаного теста нет в результатах пула - его починили
+			* Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
+			*/
+			if (suite_index == -1) {
+				console.log('Позиция: ' + suite_index + ' ; Теста нет в пуле => его исправили!');
 				repair_tests_ids.push(test['id']);
 				repair_tests.push({
 					id: test['id'],
@@ -190,36 +190,36 @@ var BrokenTests = function (config) {
 					suitename: test['suitename'],
 					broke_authors: test['broke_authors']
 				});
-            } else {
-                console.log('Позиция: ' + suite_index + ' ; Тест есть в пуле => его не нужно сохранять');
+			} else {
+				console.log('Позиция: ' + suite_index + ' ; Тест есть в пуле => его не нужно сохранять');
 				broken_tests.splice(suite_index, 1);
-            }
-        });
+			}
+		});
 
-        console.log('Список исправленных тестов:');
-        console.log(repair_tests_ids);
-        console.log('Список новых сломаных тестов:');
-        console.log(broken_tests);
+		console.log('Список исправленных тестов:');
+		console.log(repair_tests_ids);
+		console.log('Список новых сломаных тестов:');
+		console.log(broken_tests);
 
-        /**
-         * Сейчас у нас есть два массива:
-         * repair_tests_ids - ID тестов, которые починили
-         * broken_tests - новые сломаные тесты
-         */
-        if (repair_tests_ids.length > 0) {
-            this.repairTests(repair_tests_ids, data);
-        }
+		/**
+		* Сейчас у нас есть два массива:
+		* repair_tests_ids - ID тестов, которые починили
+		* broken_tests - новые сломаные тесты
+		*/
+		if (repair_tests_ids.length > 0) {
+			this.repairTests(repair_tests_ids, data);
+		}
 
-        if (broken_tests.length > 0) {
+		if (broken_tests.length > 0) {
 			broken_tests.forEach(function (suite) {
-                self.addBrokenTest({
-                    testpath: suite['path'],
-                    suitename: suite['suitename'],
-                    broke_commit: data.commit_hash,
-                    broke_authors: commit_authors.join(', ')
-                });
-            });
-        }
+				self.addBrokenTest({
+					testpath: suite['path'],
+					suitename: suite['suitename'],
+					broke_commit: data.commit_hash,
+					broke_authors: commit_authors.join(', ')
+				});
+			});
+		}
 
 		var dataForNotification = {
 			broken_tests: broken_tests,
@@ -232,9 +232,9 @@ var BrokenTests = function (config) {
 	};
 
 	/**
-	 * Получаем список сломаных тестов, в формате:
-	 * @param callback
-	 */
+	* Получаем список сломаных тестов, в формате:
+	* @param callback
+	*/
 	this.getBrokenTests = function (callback) {
 		var connection = this.getNewConnection();
 		var options = { sql: 'SELECT `id`, `path`, `suitename`, `broke_authors` FROM `' + this.tablename + '` WHERE `repair_date` = "0000-00-00 00:00:00"', rowsAsArray: true };
@@ -255,9 +255,9 @@ var BrokenTests = function (config) {
 	};
 
 	/**
-	 * Добавляем новый сломаный тест в БД
-	 * @param test Формат { path, suitename, broke_commit, broke_authors }
-	 */
+	* Добавляем новый сломаный тест в БД
+	* @param test Формат { path, suitename, broke_commit, broke_authors }
+	*/
 	this.addBrokenTest = function (test) {
 		var connection = this.getNewConnection();
 		var query = "INSERT INTO `" + this.tablename + "` (`path`, `suitename`, `broke_commit`, `broke_authors`) VALUES ('" + test.testpath + "', '" + test.suitename + "', '" + test.broke_commit + "', '" + test.broke_authors + "')";
@@ -276,10 +276,10 @@ var BrokenTests = function (config) {
 	};
 
 	/**
-	 * Обновляем статус тестов на исправленные
-	 * @param {Array} ids Массив ID тестов, которые починили
-	 * @param stats_data Данные, получаемые из статистики
-	 */
+	* Обновляем статус тестов на исправленные
+	* @param {Array} ids Массив ID тестов, которые починили
+	* @param stats_data Данные, получаемые из статистики
+	*/
 	this.repairTests = function (ids, stats_data) {
 		var connection = this.getNewConnection();
 		var commit = stats_data.commit_hash;
