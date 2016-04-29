@@ -4,7 +4,7 @@ const fs = require('fs');
 
 var config = require('./config.js');
 var configParams = config.getParams();
-var logAgregator = new (require('./log-agregator'))(config.getParams());
+var ClusterLogs = new (require('./models/cluster-logs'))(config.getParams());
 
 /**
  * Функция проверяет Skipped или Incomplete статус теста
@@ -63,7 +63,7 @@ var Stats = function () {
     };
     
     this.getLastStatsData = function(callback) {
-        logAgregator.getLastPoolData(callback);
+        ClusterLogs.getLastPoolData(callback);
     };
 
     this.getStatsData = function () {
@@ -106,7 +106,7 @@ var Stats = function () {
         });
 
         if (this.finish_time > 0) {
-            time_pool = ((this.finish_time - this.start_time) / 1000).toFixed(4) + " сек.";
+            time_pool = (this.finish_time - this.start_time) / 1000;
         }
 
         return {
@@ -119,7 +119,6 @@ var Stats = function () {
             'date_finish': this.finish_time,
             'commit_hash': this.commit_hash,
 			'commits_merge': this.commits_merge,
-			'commits_merge_log': this.getCommitsMergeLog(),
 			'tests_overall_count': this.tests.length,
             'time_average': raw_stats.time_overall / this.tests.length,
             'failed_tests_names': failed_tests_names,
@@ -145,7 +144,7 @@ var Stats = function () {
 
         if (this.tests.length > 0) {
             stat_msg = "\nУспешно пройдено " + stats_data.tests_success_count + "/" + stats_data.tests_overall_count + " тестов\n"
-                + "Время выполнения последнего пула тестов: " + stats_data.time_pool + "\n"
+                + "Время выполнения последнего пула тестов: " + stats_data.time_pool + " сек.\n"
                 + "Общее время выполнения тестов в PHPUnit: " + stats_data.time_overall + " сек.\n"
 				+ "Общее время первых прохождений заваленых тестов в PHPUnit: " + stats_data.phpunit_repeat_time + " сек.\n"
                 + "Среднее время выполнения тестов в PHPUnit: " + stats_data.time_average + " сек.\n";

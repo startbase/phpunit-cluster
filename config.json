@@ -42,13 +42,21 @@
 		"exec_time_log": "./weight.json",
 		"last_pool": "./last_pool.json"
 	},
-	"logAgregator": {
+	"mysql": {
 		"database": "b2bcenter_cluster",
 		"user": "root",
 		"password": "",
 		"tables": {
 			"cluster_logs": "cluster_logs",
 			"broken_tests": "broken_tests"
+		}
+	},
+	"smtp": {
+		"host": "smtp.gmail.com",
+		"port": 465,
+		"auth": {
+			"user": "",
+			"pass": ""
 		}
 	}
 }

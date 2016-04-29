@@ -1,9 +1,4 @@
-var mysql = require('mysql2');
-var mailer = require('./mailer');
-
-var TEST_SUITE_ID = 0;
-var TEST_SUITE_FILEPATH = 1;
-var TEST_SUITE_NAME = 2;
+var mysql = require('mysql');
 
 /**
  * Вырезает из suite теста подробное описание ошибки
@@ -56,7 +51,7 @@ function getCommitAuthors(commits_merge) {
 
     var authors = [];
     commits_merge.forEach(function (commit) {
-		var author = commit.author_name;
+		var author = commit.author_email;
 
 		if (authors.indexOf(author) == -1) {
 			authors.push(author);
@@ -76,7 +71,7 @@ function getCommitAuthors(commits_merge) {
  */
 function getSuiteIndex(suites, path, suite) {
 	for (var i = 0; i < suites.length; i++) {
-		if (suites[i][TEST_SUITE_FILEPATH] === path && suites[i][TEST_SUITE_NAME] === suite) {
+		if (suites[i]['path'] === path && suites[i]['suitename'] === suite) {
 			return i;
 		}
 	}
@@ -89,16 +84,16 @@ var BrokenTests = function (config) {
 	var self = this;
 
 	/** Название таблицы в БД */
-	this.tablename = config.logAgregator.tables.broken_tests;
+	this.tablename = config.mysql.tables.broken_tests;
 	/** Путь репозитория */
 	this.repository = config.repository.repository_path;
 
 	/** Установка соединения с БД */
 	this.getNewConnection = function () {
 		return mysql.createConnection({
-			user: config.logAgregator.user,
-			password: config.logAgregator.password,
-			database: config.logAgregator.database
+			user: config.mysql.user,
+			password: config.mysql.password,
+			database: config.mysql.database
 		});
 	};
 
@@ -117,16 +112,15 @@ var BrokenTests = function (config) {
 			'PRIMARY KEY (`id`)' +
 			') COLLATE="utf8_general_ci" ENGINE=InnoDB';
 
+		connection.connect();
 		connection.query(query, function (err, result) {
-
 			if (err) {
 				console.log('\n[MYSQL] BROKEN TESTS ERROR (init):');
 				console.log(err);
 				console.log(query);
 			}
-
-			connection.close();
 		});
+		connection.end();
 	};
 
 	/**
@@ -134,41 +128,54 @@ var BrokenTests = function (config) {
 	 * в callback-е функции получения тестов
 	 *
 	 * @param data данные из статистики
-	 * @param failed_tests_old сломаные тесты
+	 * @param old_failed_tests сломаные тесты из базы
+	 * @param callback
 	 */
-	this.update = function (data, failed_tests_old) {
+	this.update = function (data, old_failed_tests, callback) {
         console.log('Запускаем обновление сломаных тестов');
         console.log('Список имеющихся сломаных тестов:');
-        console.log(failed_tests_old);
+        console.log(old_failed_tests);
 
-        var failed_tests_new = data.failed_tests_suites;
+        var new_failed_tests = data.failed_tests_suites;
 
         /** Если у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем */
-        if (failed_tests_old.length == 0 && failed_tests_new.length == 0) {
+        if (old_failed_tests.length == 0 && new_failed_tests.length == 0) {
             console.log('Сломаных тестов нет и последний пул ничего не сломал');
+			callback({});
             return;
         }
 
-        var failed_suites_names_new = [];
-        var repaired_suites_ids = [];
+		/** @type {Array} Список коммитеров последнего пула */
+		var commit_authors = getCommitAuthors(data.commits_merge);
+		/** @type {Array} Новые сломанные тесты из пула в формате { id (-1), path, suitename } */
+        var broken_tests = [];
+		/** @type {Array} Исправленные тесты из пула в формате { id, path, suitename, broke_authors } */
+		var repair_tests = [];
+		/** @type {Array} Список ID исправленных тестов */
+        var repair_tests_ids = [];
 
-        failed_tests_new.forEach(function (test, index) {
+		/** Сформируем удобный список новых сломанных тестов */
+		new_failed_tests.forEach(function (test, index) {
 			var testpath = data.failed_tests_names[index];
             testpath = testpath.replace(self.repository + '/', '');
+
             test.forEach(function (suite) {
-                failed_suites_names_new.push([-1, testpath, getTestSuite(suite)]);
+				broken_tests.push({
+					id: -1,
+					path: testpath,
+					suitename: getTestSuite(suite)
+				});
             });
         });
 
         console.log('Список поломанных тестов из пула:');
-        console.log(failed_suites_names_new);
-
+        console.log(broken_tests);
         console.log('Сравним с уже сломаными тестами...');
 
-        failed_tests_old.forEach(function (test) {
-            console.log('Ищем ' + test[TEST_SUITE_FILEPATH] + ' -> ' + test[TEST_SUITE_NAME]);
+        old_failed_tests.forEach(function (test) {
+            console.log('Ищем ' + test['path'] + ' -> ' + test['suitename']);
 
-            var suite_index = getSuiteIndex(failed_suites_names_new, test[TEST_SUITE_FILEPATH], test[TEST_SUITE_NAME]);
+            var suite_index = getSuiteIndex(broken_tests, test['path'], test['suitename']);
 
             /**
              * Если сломаного теста нет в результатах пула - его починили
@@ -176,62 +183,63 @@ var BrokenTests = function (config) {
              */
             if (suite_index == -1) {
                 console.log('Позиция: ' + suite_index + ' ; Теста нет в пуле => его исправили!');
-                repaired_suites_ids.push(test[TEST_SUITE_ID]);
+				repair_tests_ids.push(test['id']);
+				repair_tests.push({
+					id: test['id'],
+					path: test['path'],
+					suitename: test['suitename'],
+					broke_authors: test['broke_authors']
+				});
             } else {
                 console.log('Позиция: ' + suite_index + ' ; Тест есть в пуле => его не нужно сохранять');
-                failed_suites_names_new.splice(suite_index, 1);
+				broken_tests.splice(suite_index, 1);
             }
         });
 
         console.log('Список исправленных тестов:');
-        console.log(repaired_suites_ids);
+        console.log(repair_tests_ids);
         console.log('Список новых сломаных тестов:');
-        console.log(failed_suites_names_new);
-
-        console.log('Рассылаем сообщения провинившимся товарищам');
-        data.commits_merge.forEach(function (commit) {
-            var mailOptions = {
-                from: '"Mr. John Smith" <black@overlord.com>',
-                to: 'i.baryshnikov@b2b-center.ru, r.schekin@b2b-center.ru',
-                // to: commit.author_email,
-                subject: 'Сломанные тесты',
-                text: 'Сломанные тесты',
-                html: '<b>Упс! Кажется, вы(' + commit.author_email +') сломали тест при мердже в интеграцию!</b>'
-                + '<p><div><pre>' + JSON.stringify(failed_suites_names_new, null, 2) + '</pre></div></p>'
-            };
-
-            mailer.sendMail(mailOptions);
-        });
+        console.log(broken_tests);
 
         /**
          * Сейчас у нас есть два массива:
-         * repair_ids - ID тестов, которые починили
-         * suites - новые сломаные тесты
+         * repair_tests_ids - ID тестов, которые починили
+         * broken_tests - новые сломаные тесты
          */
-        if (repaired_suites_ids.length > 0) {
-            this.repairTests(repaired_suites_ids, data);
+        if (repair_tests_ids.length > 0) {
+            this.repairTests(repair_tests_ids, data);
         }
 
-        if (failed_suites_names_new.length > 0) {
-            failed_suites_names_new.forEach(function (suite) {
+        if (broken_tests.length > 0) {
+			broken_tests.forEach(function (suite) {
                 self.addBrokenTest({
-                    testpath: suite[TEST_SUITE_FILEPATH],
-                    suitename: suite[TEST_SUITE_NAME],
+                    testpath: suite['path'],
+                    suitename: suite['suitename'],
                     broke_commit: data.commit_hash,
-                    broke_authors: getCommitAuthors(data.commits_merge).join(', ')
+                    broke_authors: commit_authors.join(', ')
                 });
             });
         }
+
+		var dataForNotification = {
+			broken_tests: broken_tests,
+			repair_tests: repair_tests,
+			commit_authors: commit_authors,
+			commit_hash: data.commit_hash
+		};
+
+		callback(dataForNotification);
 	};
 
 	/**
-	 * Получаем список сломаных тестов
+	 * Получаем список сломаных тестов, в формате:
 	 * @param callback
 	 */
 	this.getBrokenTests = function (callback) {
 		var connection = this.getNewConnection();
-		var options = { sql: 'SELECT `id`, `path`, `suitename` FROM `' + this.tablename + '` WHERE `repair_date` = "0000-00-00 00:00:00"', rowsAsArray: true };
+		var options = { sql: 'SELECT `id`, `path`, `suitename`, `broke_authors` FROM `' + this.tablename + '` WHERE `repair_date` = "0000-00-00 00:00:00"', rowsAsArray: true };
 
+		connection.connect();
 		connection.query(options, function(err, results) {
 			if (err) {
 				console.log('\n[MYSQL] BROKEN TESTS ERROR (getBrokenTests):');
@@ -242,9 +250,8 @@ var BrokenTests = function (config) {
 			}
 
 			callback(results);
-
-			connection.close();
 		});
+		connection.end();
 	};
 
 	/**
@@ -255,6 +262,7 @@ var BrokenTests = function (config) {
 		var connection = this.getNewConnection();
 		var query = "INSERT INTO `" + this.tablename + "` (`path`, `suitename`, `broke_commit`, `broke_authors`) VALUES ('" + test.testpath + "', '" + test.suitename + "', '" + test.broke_commit + "', '" + test.broke_authors + "')";
 
+		connection.connect();
 		connection.query(query, function(err, result) {
 			if (err) {
 				console.log('\n[MYSQL] BROKEN TESTS ERROR (addBrokenTest):');
@@ -263,9 +271,8 @@ var BrokenTests = function (config) {
 			} else {
 				console.log(query);
 			}
-
-			connection.close();
 		});
+		connection.end();
 	};
 
 	/**
@@ -277,9 +284,9 @@ var BrokenTests = function (config) {
 		var connection = this.getNewConnection();
 		var commit = stats_data.commit_hash;
 		var commit_authors = getCommitAuthors(stats_data.commits_merge).join(', ');
-
 		var query = "UPDATE `" + this.tablename + "` SET `repair_commit` = '" + commit + "', `repair_authors` = '" + commit_authors + "', `repair_date` = FROM_UNIXTIME('" + new Date().getTime() + "') WHERE `id` IN (" + ids.join() + ")";
 
+		connection.connect();
 		connection.query(query, function(err, result) {
 			if (err) {
 				console.log('\n[MYSQL] BROKEN TESTS ERROR (repairTests):');
@@ -288,9 +295,8 @@ var BrokenTests = function (config) {
 			} else {
 				console.log(query);
 			}
-
-			connection.close();
 		});
+		connection.end();
 	};
 
 	this.init();
