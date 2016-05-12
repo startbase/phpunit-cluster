@@ -65,6 +65,7 @@ taskBalancer.queueTasks.on('fill.complete', function () {
     console.log('[' + getDate() + '] Раздаём задачи...');
 
 	io.sockets.emit('web.start', stats.getWebStats());
+	io.sockets.emit('dashboard.updateProgressBar', 0);
     io.sockets.emit('readyForJob');
 });
 
@@ -311,12 +312,17 @@ io.sockets.on('connection', function (socket) {
 			io.sockets.emit('stats.update', web_stats);
             io.sockets.emit('web.update', web_stats);
             io.sockets.emit('web.complete', web_stats);
+            io.sockets.emit('dashboard.changeStatus', stats.isPoolFailed([]));
+            io.sockets.emit('dashboard.updateProgressBar', 100);
             ClusterLogs.push(save_stats);
 			BrokenTests.getBrokenTests(function(failed_tests_old) {
 				BrokenTests.update(save_stats, failed_tests_old, function(notification) {
                     mailer.prepareMails(notification);
                 });
 			});
+        } else {
+            // Обновлям прогресс бар на дашборде
+            io.sockets.emit('dashboard.updateProgressBar', stats.getPercentOfComplete());
         }
     });
 
@@ -383,6 +389,13 @@ io.sockets.on('connection', function (socket) {
         });
     });
 
+    socket.on('dashboard.getLastState', function () {
+        ClusterLogs.getLastPoolData(function (data) {
+            io.sockets.emit('dashboard.changeStatus', stats.isPoolFailed(data));
+			io.sockets.emit('dashboard.updateProgressBar', stats.getPercentOfComplete());
+        });
+    });
+
     socket.emit('web.update', stats.getWebStats());
 	socket.emit('web.users.update', users);
 });
@@ -424,12 +437,12 @@ queueEvents.on('add', function (taskName) {
 				 * при этом push может не сделан. Если новый комит соотв. комиту прошлого пула,
 				 * то освобождаем сервер
 				 */
-				if (params.commit_hash == params.last_commit_hash) {
-					console.log('[' + getDate() + '] Последний commit hash совпал с текущим. Запуск пула отменён. Сервер свободен');
-					queueEvents.rmTask('in.process');
-				} else {
+				//if (params.commit_hash == params.last_commit_hash) {
+				//	console.log('[' + getDate() + '] Последний commit hash совпал с текущим. Запуск пула отменён. Сервер свободен');
+				//	queueEvents.rmTask('in.process');
+				//} else {
 					queueEvents.addTask('parser.start');
-				}
+				//}
             });
             break;
         case 'parser.start':

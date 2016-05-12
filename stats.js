@@ -191,6 +191,34 @@ var Stats = function () {
 		});
 	};
 
+    /**
+	 * Узнаём завален пул или нет
+	 * @param data данные могут быть переданы из БД или не переданы совсем
+	 * @returns {boolean}
+	 */
+	this.isPoolFailed = function (data) {
+		if (data.tests_failed_count) {
+			return Boolean(data.tests_failed_count);
+		}
+
+		return Boolean(this.getRawStats().tests_failed.length);
+    };
+
+    /**
+     * Функция возвращает процент выполнения пула
+     * @returns {*}
+     */
+    this.getPercentOfComplete = function () {
+        var tests_total = this.count_tasks;
+        var tests_complete = this.tests.length;
+
+        if (tests_complete == 0) {
+            return 0;
+        }
+
+        return (tests_complete * 100 / tests_total).toFixed(2);
+    };
+
     this.addStat = function (data) {
         this.tests.push(data);
     };
