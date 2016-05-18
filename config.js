@@ -19,10 +19,10 @@ var Config = function () {
 	};
 
 	/**
-	 * Объединяет настройки в одиное целое с приоритетом из local.config.json
+	 * РћР±СЉРµРґРёРЅСЏРµС‚ РЅР°СЃС‚СЂРѕР№РєРё РІ РѕРґРёРЅРѕРµ С†РµР»РѕРµ СЃ РїСЂРёРѕСЂРёС‚РµС‚РѕРј РёР· local.config.json
 	 *
-	 * @param baseSettings Настройки из config.json
-	 * @param localSettings Настройки из local.config.json
+	 * @param baseSettings РќР°СЃС‚СЂРѕР№РєРё РёР· config.json
+	 * @param localSettings РќР°СЃС‚СЂРѕР№РєРё РёР· local.config.json
 	 * @returns {Object}
 	 */
 	this.merge = function(baseSettings, localSettings) {
