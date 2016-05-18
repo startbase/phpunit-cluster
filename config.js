@@ -1,35 +1,52 @@
 var fs = require('fs');
 
-var localConfigPath = __dirname + '/local.config.json';
-var isExistLocalConfig = fs.existsSync(localConfigPath); // Р•СЃР»Рё СЃСѓС‰РµСЃС‚РІСѓРµС‚ Р»РѕРєР°Р»СЊРЅС‹Р№ РєРѕРЅС„РёРі
+const settings = require('./config.json');
+const local_settings_path = './local.config.json';
 
-var params = require('./config.json');
+var Config = function () {
+	/**
+	 * @type {Object}
+	 */
+	this.params = {};
 
-if (isExistLocalConfig) {
-    var localConfig = require(localConfigPath);
-    /**
-     * Merge recursive two objects
-     * @param baseObj
-     * @param dominantObj
-     * @return Object
-     */
-    var merge = function (baseObj, dominantObj) {
-        for (var key in dominantObj) {
-            if (baseObj[key] && (typeof baseObj[key] == "object")) {
-                baseObj[key] = merge(baseObj[key], dominantObj[key]);
-            } else {
-                baseObj[key] = dominantObj[key];
-            }
-        }
-        return baseObj;
-    };
+	this.init = function () {
+		if (fs.existsSync(local_settings_path)) {
+			var local_settings = require('./local.config.json');
+			this.params = this.merge(settings, local_settings);
+		} else {
+			this.params = settings;
+		}
+	};
 
-    params = merge(params, localConfig);
-}
+	/**
+	 * Объединяет настройки в одиное целое с приоритетом из local.config.json
+	 *
+	 * @param baseSettings Настройки из config.json
+	 * @param localSettings Настройки из local.config.json
+	 * @returns {Object}
+	 */
+	this.merge = function(baseSettings, localSettings) {
+		for (var key in localSettings) {
+			if (localSettings.hasOwnProperty(key)) {
+				if (baseSettings[key] && (typeof baseSettings[key] == "object")) {
+					baseSettings[key] = this.merge(baseSettings[key], localSettings[key]);
+				} else {
+					baseSettings[key] = localSettings[key];
+				}
+			}
+		}
 
-/**
- * @returns {config.json}
- */
-exports.getParams = function () {
-    return params;
+		return baseSettings;
+	};
+
+	/**
+	 * @returns {Object}
+	 */
+	this.getParams = function () {
+		return this.params;
+	};
+
+	this.init();
 };
+
+module.exports = Config;

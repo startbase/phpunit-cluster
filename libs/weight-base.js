@@ -1,6 +1,4 @@
-var fs = require('fs');
-var config = require('../config.js');
-var config_params = config.getParams();
+var fs = require("fs");
 
 function sortByWeight(task_1, task_2) {
 	if (task_1.weight < task_2.weight || (task_1.weight === undefined && task_2.weight > 0)) {
@@ -14,8 +12,8 @@ function sortByWeight(task_1, task_2) {
 	return 0;
 }
 
-var WeightBase = function () {
-	this.weightsFile = config_params.statistic.exec_time_log;
+var WeightBase = function (settings) {
+	this.weightsFile = './' + settings['exec_time_log'];
 
 	this.weightsPool = [];
 
@@ -61,4 +59,4 @@ var WeightBase = function () {
 	};
 };
 
-module.exports = new WeightBase();
+module.exports = WeightBase;

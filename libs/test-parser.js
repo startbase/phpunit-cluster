@@ -1,9 +1,9 @@
 var fs = require('fs');
 var path = require('path');
 
-var TestParser = function() {
-    this.base_dirs = [];
-    this.excluded_dirs = [];
+var TestParser = function(settings) {
+    this.base_dirs = settings['base_dirs'];
+    this.excluded_dirs = settings['excluded_dirs'];
 
     /**
      * Parse multiple dirs async and invoke result
@@ -121,4 +121,4 @@ var TestParser = function() {
     };
 };
 
-module.exports = new TestParser();
+module.exports = TestParser;

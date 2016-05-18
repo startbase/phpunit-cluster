@@ -1,22 +1,17 @@
-var config = require('../config.js');
-var config_params = config.getParams();
+var Repository = function (settings) {
 
-var git = require('simple-git')(config_params.repository.repository_path);
-git.outputHandler(function (command, stdout, stderr) {
-    stdout.pipe(process.stdout);
-    stderr.pipe(process.stderr);
-});
-
-var Repository = function () {
+	this.git = require('simple-git')(settings['repository_path']);
 
     /**
      * @param callback
      */
     this.update = function (callback) {
-        var branch = 'origin/' + config_params.repository.local_branch;
-        git.fetch('origin')
+		var self = this;
+        var branch = 'origin/' + settings['local_branch'];
+
+        self.git.fetch('origin')
             ._run(['reset', '--hard', branch], function() {
-                git._run(['rebase', branch], function(err) {
+                self.git._run(['rebase', branch], function(err) {
                     if(!err) {
                         callback();
                     }
@@ -25,7 +20,7 @@ var Repository = function () {
     };
 
     this.checkout = function (commit_hash, callback) {
-        git.fetch('origin')._run(['reset', '--hard', commit_hash], function(err) {
+        this.git.fetch('origin')._run(['reset', '--hard', commit_hash], function(err) {
             if(!err) {
                 callback();
             }
@@ -37,7 +32,7 @@ var Repository = function () {
      * @param callback
      */
     this.getLastCommitHash = function(callback) {
-        git.log(['-n', '1', '--pretty=format:%H'], function(err, data) {
+		this.git.log(['-n', '1', '--pretty=format:%H'], function(err, data) {
             if(!err) {
                 callback(data.latest.hash);
             }
@@ -45,7 +40,7 @@ var Repository = function () {
     };
 
     this.getMergeCommitHistory = function(lastCommit, currentCommit, callback) {
-		git.log({ from: lastCommit, to: currentCommit }, function (err, data) {
+		this.git.log({ from: lastCommit, to: currentCommit }, function (err, data) {
 			if (!err) {
 				var commits = data.all;
 				var merge_commits = [];
@@ -63,4 +58,4 @@ var Repository = function () {
     };
 };
 
-module.exports = new Repository();
+module.exports = Repository;

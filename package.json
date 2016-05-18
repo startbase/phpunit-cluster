@@ -1,12 +1,12 @@
 {
 	"name": "phpunit-cluster",
-	"version": "0.1.3",
+	"version": "0.2.1",
 	"description": "",
 	"author": "Startbase Team <startbase-dev-team@b2b-center.ru>",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
-	"main": "client.js",
+	"main": "client_runner.js",
 	"license": "ISC",
 	"dependencies": {
 		"async": "^2.0.0-rc.1",

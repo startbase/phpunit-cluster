@@ -1,10 +1,8 @@
 var async = require('async');
-var config = require('../config.js');
-var config_params = config.getParams();
 
-var MigrationManager = function() {
+var MigrationManager = function(settings) {
     this.executeMigrationCommand = function(cmd, callback) {
-        var repository_path = config_params.repository.repository_path;
+        var repository_path = settings['repository_path'];
         var sh = 'cd ' + repository_path + ' && ' + cmd;
         var exec = require('child_process').exec;
         var child = exec(sh);
@@ -22,14 +20,14 @@ var MigrationManager = function() {
     };
 
     this.migrateUpDb = function(callback) {
-        this.executeMigrationCommand(config_params.db.cmd_update, function() {
+        this.executeMigrationCommand(settings['migration']['cmd_update']['db'], function() {
             console.log('Database migrations completed');
             callback();
         });
     };
 
     this.migrateUpFs = function(callback) {
-        this.executeMigrationCommand(config_params.fs.cmd_update, function() {
+        this.executeMigrationCommand(settings['migration']['cmd_update']['fs'], function() {
             console.log('File migrations completed');
             callback();
         });
@@ -55,4 +53,4 @@ var MigrationManager = function() {
     };
 };
 
-module.exports = new MigrationManager();
+module.exports = MigrationManager;

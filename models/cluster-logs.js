@@ -1,10 +1,11 @@
-var config = require('../config').getParams();
-var DB = new (require('../libs/db'))(config);
+var Config = new (require('../config'));
+var settings = Config.getParams();
+var DB = new (require('../libs/db'))(settings['mysql']);
 
 var ClusterLogs = function () {
 
 	/** Название таблицы из конфига */
-	this.tablename = config.mysql.tables.cluster_logs;
+	this.tablename = settings['mysql']['tables']['cluster_logs'];
 
 	/** Создание таблицы */
 	this.createTable = function () {
@@ -29,9 +30,9 @@ var ClusterLogs = function () {
 			order: ['datetime', 'DESC']
 		};
 
-		this.find([], params, function (rows) {
-			if (rows.length > 0) {
-				callback(JSON.parse(rows[0].data));
+		this.find([], params, function (row) {
+			if (row) {
+				callback(JSON.parse(row.data));
 			} else {
 				callback(null);
 			}
@@ -44,9 +45,9 @@ var ClusterLogs = function () {
 	 * @param callback
 	 */
 	this.getPoolById = function (id, callback) {
-		this.find(['id = ' + id], [], function (rows) {
-			if (rows.length > 0) {
-				callback(rows[0]);
+		this.find(['id = ' + id], [], function (row) {
+			if (row) {
+				callback(row);
 			} else {
 				callback(null);
 			}

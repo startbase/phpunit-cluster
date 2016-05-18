@@ -1,34 +1,31 @@
-var os = require('os');
-var path = require('path');
-var migration_manager = require('./migration-manager');
+var Config = new (require('../config'));
+var settings = Config.getParams();
 
-var config = require('../config.js');
-var configParams = config.getParams();
 var params = {
 	user: 'startbase_' + Date.now(),
 	domain: 'localhost',
-	port: configParams.server_socket.port,
+	port: settings['ports']['server'],
 	commit_hash: 'none',
-	version: configParams.version
+	version: settings['version']
 };
 
-var repository = require('./repository');
+var os = require('os');
+var path = require('path');
+var argv = require('minimist')(process.argv.slice(2));
+
+var migration_manager = new (require('./migration-manager'))(settings['repository']);
+var repository = new (require('./repository'))(settings['repository']);
+var phpunitRunner = new (require('./phpunit-runner'))(settings['phpunit_runner']);
 
 var is_task_aborted = false;
 var connect_status = false;
 var is_busy = false;
 
-var phpunitRunner = require('./phpunit-runner');
-phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
-phpunitRunner.phpunit_cmd_suffix = configParams.phpunit_runner.cmd_suffix;
-phpunitRunner.result_json_file = configParams.phpunit_runner.result_json_file;
-
 /** Обработка аргументов */
-var argv = require('minimist')(process.argv.slice(2));
 
-if (argv.u && typeof argv.u == "string") { params.user = argv.u }
-if (argv.d && typeof argv.d == "string") { params.domain = argv.d }
-if (argv.p && typeof argv.p == "number") { params.port = argv.p }
+if (argv['u'] && typeof argv['u'] == "string") { params.user = argv['u'] }
+if (argv['d'] && typeof argv['d'] == "string") { params.domain = argv['d'] }
+if (argv['p'] && typeof argv['p'] == "number") { params.port = argv['p'] }
 
 /** Запускаемся */
 var socket = require('socket.io-client')('http://' + params.domain + ':' + params.port);
@@ -55,9 +52,6 @@ socket.on('disconnect', function() {
  * Сервер присылает текущую версию системы:
  * - совпадает с клиентом -> пользователь регистрируется
  * - не совпадает -> выводится сообщение и client.js останавливается
- *
- * @todo 1: вместо завершения процесса сделать автообновление клиента и перезапуск (с параметрами)
- * @todo 2: проверять не просто версию из конфига а хеш-сумму client.js
  */
 socket.on('needUserReg', function(server_version) {
 	console.log('[' + getDate() + '] Проверяю версию клиента...');
@@ -145,7 +139,7 @@ socket.on('changeClientName', function(username) {
  * @param socket
  */
 function processTask(task, socket) {
-	var test_path = path.resolve(configParams.repository.repository_path, task.taskName);
+	var test_path = path.resolve(settings['repository']['repository_path'], task.taskName);
 	socket.emit('serverMessage', { message: params.user + ' запускает PHPUnit' });
 
 	phpunitRunner.run(test_path, function (response) {
@@ -183,7 +177,7 @@ function syncRepository(data, socket, callback) {
 		socket.emit('serverMessage', { message: params.user + ' не смог синхронизироваться и возвращает задачу' });
 		is_busy = false;
 		socket.emit('rejectTask', data.task);
-	}, configParams.repository.client_connection_timeout);
+	}, settings['repository']['client_connection_timeout']);
 	repository.checkout(commit_hash, function () {
 		socket.emit('serverMessage', { message: params.user + ' выполнил checkout' });
 		if (updateTimeout) {

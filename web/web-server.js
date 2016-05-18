@@ -3,7 +3,9 @@ var fs = require("fs");
 var path = require("path");
 var mime = require("mime");
 var url = require("url");
-var config = require('../config').getParams();
+
+var Config = new (require('../config'));
+var settings = Config.getParams();
 
 var PoolList = new (require("./render-list"));
 var PoolDetail = new (require("./render-detail"));
@@ -71,7 +73,7 @@ var server = http.createServer(function(request, response) {
 	});
 });
 
-server.listen(config.web.port);
+server.listen(settings['ports']['web']);
 
 /**
  * Отдаём контент клиенту

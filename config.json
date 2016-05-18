@@ -1,29 +1,24 @@
 {
-	"version": "0.2.0",
-	"emails": {
-		"admin": "",
-		"support": ""
-	},
+	"version": "0.2.1",
 	"repository": {
 		"local_branch": "integration",
 		"repository_path": "/var/reps/b2bcenter",
 		"server_connection_timeout": 40000,
-		"client_connection_timeout": 40000
+		"client_connection_timeout": 40000,
+		"migration": {
+			"cmd_update": {
+				"db": "php /var/reps/b2bcenter/automation/bamboo/update_db_all.php",
+				"fs": "php /var/reps/b2bcenter/www_b2b/admin/cli/make_files_root_dirs.php"
+			}
+		}
 	},
 	"task_balancer": {
 		"failed_attempts": 1
 	},
-	"server_socket": {
-		"port": 8099
-	},
-	"stats_socket": {
-		"port": 8101
-	},
-	"udp_socket": {
-		"port": 8095
-	},
-	"web": {
-		"port": 8097
+	"ports": {
+		"server": 8099,
+		"udp": 8095,
+		"web": 8097
 	},
 	"phpunit_runner": {
 		"cmd": "BAMBOO_UNIT_TEST_DATABASE=b2bcenter_cluster_test php /opt/phpunit/phpunit-4.8.15.phar",
@@ -36,15 +31,8 @@
 			"/var/reps/b2bcenter/tests/Unit/Signature"
 		]
 	},
-	"db": {
-		"cmd_update": "php /var/reps/b2bcenter/automation/bamboo/update_db_all.php"
-	},
-	"fs": {
-		"cmd_update": "php /var/reps/b2bcenter/www_b2b/admin/cli/make_files_root_dirs.php"
-	},
 	"statistic": {
-		"exec_time_log": "./weight.json",
-		"last_pool": "./last_pool.json"
+		"exec_time_log": "weight.json"
 	},
 	"mysql": {
 		"database": "b2bcenter_cluster",
@@ -55,13 +43,19 @@
 			"broken_tests": "broken_tests"
 		}
 	},
-	"smtp": {
-		"host": "smtp.gmail.com",
-		"port": 465,
-		"auth": {
-			"user": "",
-			"pass": ""
+	"mail": {
+		"emails": {
+			"admin": "",
+			"support": ""
 		},
-		"from": ""
+		"smtp": {
+			"host": "smtp.gmail.com",
+			"port": 465,
+			"auth": {
+				"user": "",
+				"pass": ""
+			},
+			"from": ""
+		}		
 	}
 }

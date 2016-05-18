@@ -1,5 +1,6 @@
-var config = require('../config').getParams();
-var DB = new (require('../libs/db'))(config);
+var Config = new (require('../config'));
+var settings = Config.getParams();
+var DB = new (require('../libs/db'))(settings['mysql']);
 
 /**
 * Вырезает из suite теста подробное описание ошибки
@@ -83,10 +84,10 @@ function getSuiteIndex(suites, path, suite) {
 var BrokenTests = function () {
 
 	/** Название таблицы из конфига */
-	this.tablename = config.mysql.tables.broken_tests;
+	this.tablename = settings['mysql']['tables']['broken_tests'];
 
 	/** Путь репозитория */
-	this.repository = config.repository.repository_path;
+	this.repository = settings['repository']['repository_path'];
 
 	/** Создание таблицы */
 	this.createTable = function () {

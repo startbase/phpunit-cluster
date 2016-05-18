@@ -14,7 +14,7 @@ var Forker = function(command, before_start_callback) {
     this.restartApp = function()
     {
         var self = this;
-        this.before_start(function() {
+        self.before_start(function() {
             if (child) {
                 child.kill();
             }

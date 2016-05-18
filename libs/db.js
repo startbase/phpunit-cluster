@@ -1,13 +1,13 @@
 var mysql = require('mysql');
 
-var DB = function (config) {
+var DB = function (settings) {
 
 	/** Устанавливает соединение с БД */
 	this.getNewConnection = function () {
 		return mysql.createConnection({
-			user: config.mysql.user,
-			password: config.mysql.password,
-			database: config.mysql.database
+			user: settings['user'],
+			password: settings['password'],
+			database: settings['database']
 		});
 	};
 
@@ -119,7 +119,7 @@ var DB = function (config) {
 				return;
 			}
 
-			callback(rows);
+			callback(rows[0]);
 		});
 		connection.end();
 	};
@@ -178,7 +178,7 @@ var DB = function (config) {
 
 		var connection = this.getNewConnection();
 		connection.connect();
-		connection.query(query, function (err, result) {
+		connection.query(query, function (err) {
 			if (err) {
 				self.queryError({
 					message: '\n[MYSQL] DB ERROR (query):',

@@ -1,45 +1,43 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-var colors = require('colors');
+var Config = new (require('./config'));
+var settings = Config.getParams();
 
-// Выставляем окружению параметр для отсылки писем через транспорт
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+var params = {
+	port: settings['ports']['server'],
+	commit_hash: 'none',
+	last_commit_hash: 'none',
+	version: settings['version']
+};
 
 var argv = require('minimist')(process.argv.slice(2));
-var config = require('./config.js');
-var configParams = config.getParams();
-var params = {
-    port: configParams.server_socket.port,
-    stats_port: configParams.stats_socket.port,
-    commit_hash: 'none',
-	last_commit_hash: 'none',
-    version: configParams.version
-};
-if (argv.p && typeof argv.p == "number") {
-    params.port = argv.p
+if (argv['p'] && typeof argv['p'] == "number") {
+    params.port = argv['p'];
 }
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-var fs = require('fs');
-const readline = require('readline');
-const rl = readline.createInterface(process.stdin, process.stdout);
-var taskBalancer = new (require('./libs/task-balancer'));
-taskBalancer.repeat_attempts_number = configParams.task_balancer.failed_attempts;
-var testParser = require('./libs/test-parser');
-var repository = require('./libs/repository');
-var mailer = new (require('./libs/mailer'))(configParams);
+
+var readline = require('readline');
+var rl = readline.createInterface(process.stdin, process.stdout);
+
+var dgram = require('dgram');
+
+var taskBalancer = new (require('./libs/task-balancer'))(settings['task_balancer']);
+var testParser = new (require('./libs/test-parser'))(settings['parser']);
+var repository = new (require('./libs/repository'))(settings['repository']);
+var mailer = new (require('./libs/mailer'))(settings['mail']);
 var queueEvents = new (require('./libs/queue'));
 var stats = require('./libs/stats');
-var weightBase = require('./libs/weight-base');
-var users = [];
-var tasks_pool_count = 0;
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+var weightBase = new (require('./libs/weight-base'))(settings['statistic']);
+
 var ClusterLogs = new (require('./models/cluster-logs'));
 var BrokenTests = new (require('./models/broken-tests'));
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-/** Запускаемся */
-var io = require('socket.io').listen(params.port);
+
+var users = [];
+var tasks_pool_count = 0;
+
+var io = require('socket.io').listen(params.port, {});
 console.log('[' + getDate() + '] Сервер запущен. Порт: ' + params.port);
 setLastCommitHash();
 show_help();
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /**
  * Когда очередь готова для раздачи обнуляем статистику
@@ -64,10 +62,11 @@ taskBalancer.queueTasks.on('fill.complete', function () {
     console.log('\n[' + getDate() + '] Всего задач: ' + tasks_pool_count);
     console.log('[' + getDate() + '] Раздаём задачи...');
 
-	io.sockets.emit('web.start', stats.getWebStats());
 	io.sockets.emit('dashboard.updateProgressBar', 0);
     io.sockets.emit('readyForJob');
 });
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 rl.setPrompt('>>> ');
 rl.prompt();
@@ -100,7 +99,6 @@ rl.on('line', function (line) {
             io.sockets.emit('abortTask');
 			io.sockets.emit('unbusyClient');
             stats.count_tasks = 0;
-            io.sockets.emit('web.reset');
             break;
         case 'd':
             console.log(stats.getConsoleStats());
@@ -119,17 +117,17 @@ rl.on('line', function (line) {
             break;
     }
     rl.prompt();
-}).on('close', function () {
-    console.log('Bye!');
-	io.sockets.emit('web.users.update', []);
-	io.sockets.emit('web.reset');
+});
+
+rl.on('close', function () {
+	console.log('Bye!');
 	io.sockets.emit('abortTask');
 	io.sockets.emit('unbusyClient');
-    process.exit(0);
+	process.exit(0);
 });
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-var dgram = require('dgram');
+
 var udp_receiver = dgram.createSocket('udp4');
 
 udp_receiver.on('error', function (err) {
@@ -137,7 +135,7 @@ udp_receiver.on('error', function (err) {
 	udp_receiver.close();
 });
 
-udp_receiver.on('message', function (message, info) {
+udp_receiver.on('message', function (message) {
 	console.log('[' + getDate() + '] Пришёл UDP пакет на обновление');
 
     console.log('MESSAGE to string:');
@@ -148,7 +146,8 @@ udp_receiver.on('message', function (message, info) {
 	}
 });
 
-udp_receiver.bind(configParams.udp_socket.port);
+udp_receiver.bind(settings['ports']['udp']);
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /**
@@ -193,20 +192,17 @@ function isExistUser(username) {
 }
 
 function setLastCommitHash() {
-	if (fs.existsSync(configParams.statistic.last_pool)) {
-		fs.readFile(configParams.statistic.last_pool, function(err, data) {
-			if (err) throw err;
-
-			var last_pool = JSON.parse(data);
-			params.last_commit_hash = last_pool.commit_hash;
-		});
-	} else {
-		console.log('[' + getDate() + '] Данных по последнему выполненому пулу не обнаружено');
-	}
+	ClusterLogs.getLastPool(function (data) {
+		if (data == null) {
+			console.log('[' + getDate() + '] Данных по последнему выполненому пулу не обнаружено');
+		} else {
+			console.log('[' + getDate() + '] Последний commit hash билда: ' + data.commit_hash);
+			params.last_commit_hash = data.commit_hash;
+		}
+	});
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 io.sockets.on('connection', function (socket) {
 
@@ -235,15 +231,10 @@ io.sockets.on('connection', function (socket) {
         taskBalancer.clients_number++;
 
         console.log('[' + getDate() + '] ' + socket.username + ' подключился к системе');
-        io.sockets.emit('web.users.update', users);
 
 		socket.emit('userMessage', { message: 'Регистрация прошла успешно!' });
         socket.emit('unbusyClient');
         socket.emit('readyForJob');
-    });
-
-    socket.on('manual.run', function () {
-        rl.emit('line', 'u');
     });
 
     /**
@@ -297,21 +288,14 @@ io.sockets.on('connection', function (socket) {
 			/** Сразу покажем статистику */
 			rl.emit('line', 'd');
 
-			stats.saveLastPool(function () {
-				console.log('[' + getDate() + '] Результаты выполнения последнего пула записаны в файл');
-			});
-
 			/** Если в очереди есть задача на обновление репозитария - just do it! */
 			if (queueEvents.hasTask('need.update.repo')) {
 				queueEvents.rmTask('need.update.repo');
 				queueEvents.addTask('update.repo');
 			}
 
-			var web_stats = stats.getWebStats();
 			var save_stats = stats.prepareForSave();
-			io.sockets.emit('stats.update', web_stats);
-            io.sockets.emit('web.update', web_stats);
-            io.sockets.emit('web.complete', web_stats);
+
             io.sockets.emit('dashboard.changeStatus', stats.isPoolFailed([]));
             io.sockets.emit('dashboard.updateProgressBar', 100);
 
@@ -346,7 +330,6 @@ io.sockets.on('connection', function (socket) {
             socket.emit('userMessage', { message: 'Свободных задач в пуле нет для клиента' });
 			socket.emit('unbusyClient');
         }
-        io.sockets.emit('web.update', stats.getWebStats());
     });
 
     /** Участник отключается от системы */
@@ -368,7 +351,6 @@ io.sockets.on('connection', function (socket) {
         taskBalancer.clients_number--;
 
         console.log('[' + getDate() + '] ' + socket.username + ' отключился от системы');
-		io.sockets.emit('web.users.update', users);
 
         /** Если клиент выполнял задачу - возвращаем её в очередь */
         if (socket.current_task) {
@@ -386,25 +368,17 @@ io.sockets.on('connection', function (socket) {
         console.log('[' + getDate() + '] ' + data.message);
     });
 
-    socket.on('stats.init_request', function () {
-        stats.getLastStatsData(function (data) {
-            io.sockets.emit('stats.init_result', data);
-            io.sockets.emit('stats.update', data);
-        });
-    });
-
     socket.on('dashboard.getLastState', function () {
         ClusterLogs.getLastPool(function (data) {
-            io.sockets.emit('dashboard.changeStatus', stats.isPoolFailed(data));
-			io.sockets.emit('dashboard.updateProgressBar', stats.getPercentOfComplete());
+			if (data != null) {
+				io.sockets.emit('dashboard.changeStatus', stats.isPoolFailed(data));
+				io.sockets.emit('dashboard.updateProgressBar', stats.getPercentOfComplete());
+			}
         });
     });
-
-    socket.emit('web.update', stats.getWebStats());
-	socket.emit('web.users.update', users);
 });
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 queueEvents.on('add', function (taskName) {
     switch (taskName) {
@@ -422,7 +396,7 @@ queueEvents.on('add', function (taskName) {
                 queueEvents.tasks = [];
                 queueEvents.rmTask('update.repo');
                 console.log('[' + getDate() + '] Git update timeout. Waiting for a new update event...');
-            }, configParams.repository.server_connection_timeout);
+            }, settings['repository']['server_connection_timeout']);
 			repository.update(function () {
                 if (updateTimeout) {
                     clearTimeout(updateTimeout);
@@ -450,17 +424,19 @@ queueEvents.on('add', function (taskName) {
             });
             break;
         case 'parser.start':
-            testParser.base_dirs = configParams.parser.base_dirs;
-            testParser.excluded_dirs = configParams.parser.excluded_dirs;
             testParser.processParse(function (err, result) {
                 queueEvents.rmTask('parser.start');
-                queueEvents.addTask('task.generate', {data: testParser.getCleanResults(result, configParams.repository.repository_path)});
+                queueEvents.addTask('task.generate', {data: testParser.getCleanResults(result, settings['repository']['repository_path'])});
             });
             break;
         case 'task.generate':
             var taskEventObj = queueEvents.find('task.generate');
             queueEvents.rmTask('task.generate');
-            taskBalancer.generateQueue(taskEventObj.params['data']);
+            taskBalancer.generateQueue(taskEventObj.params['data'], function(queueTasks) {
+				weightBase.sortTasks(queueTasks, function() {
+					taskBalancer.queueTasks.emit('fill.complete');
+				});
+			});
             break;
         case 'in.process':
 			console.log('[' + getDate() + '] Сервер перешёл в режим создания и раздачи задач');
@@ -468,16 +444,7 @@ queueEvents.on('add', function (taskName) {
     }
 });
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-var stats_socket = require('socket.io').listen(params.stats_port);
-
-stats_socket.on('connection', function (socket) {
-
-    socket.on('getWebStats', function () {
-        socket.emit('statsReceived', stats.getWebStats());
-    });
-
-});
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 function returnTaskToQueue(socket, current_task) {
     console.log('[' + getDate() + '] Задача ID: ' + current_task.taskName + ' возвращена в очередь');

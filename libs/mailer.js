@@ -9,21 +9,21 @@ function getDate() {
 	return date.toLocaleString();
 }
 
-var Mailer = function (config) {
+var Mailer = function (settings) {
 	this.transporter = null;
 
 	this.mailOptions = {
-		from: config.smtp.from,
+		from: settings['smtp']['from'],
 		subject: '[PHP Unit Cluster] Tests status has been changed'
 	};
 
 	this.smtpConfig = {
-		host: config.smtp.host,
-		port: config.smtp.port,
+		host: settings['smtp']['host'],
+		port: settings['smtp']['port'],
 		secure: true,
 		auth: {
-			user: config.smtp.auth.user,
-			pass: config.smtp.auth.pass
+			user: settings['smtp']['auth']['user'],
+			pass: settings['smtp']['auth']['pass']
 		}
 	};
 
@@ -92,7 +92,7 @@ var Mailer = function (config) {
 		if (lucky_receivers.length > 0) {
 			console.log('[' + getDate() + '] Отправляем уведомления коммитерам, чьи тесты были исправлены без них...');
 			//this.mailOptions.to = lucky_receivers.join(', ');
-			this.mailOptions.to = config.emails.support;
+			this.mailOptions.to = settings['emails']['support'];
 			this.mailOptions.html = html;
 			this.sendMail(this.mailOptions);
 		}
@@ -103,7 +103,7 @@ var Mailer = function (config) {
 
 		console.log('[' + getDate() + '] Отправляем уведомления текущим коммитерам');
 		//this.mailOptions.to = receivers;
-		this.mailOptions.to = config.emails.support;
+		this.mailOptions.to = settings['emails']['support'];
 		this.mailOptions.html = html;
 		this.sendMail(this.mailOptions);
 	};

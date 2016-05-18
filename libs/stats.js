@@ -2,10 +2,6 @@ const EventEmitter = require('events');
 const util = require('util');
 const fs = require('fs');
 
-var config = require('../config.js');
-var configParams = config.getParams();
-var ClusterLogs = new (require('../models/cluster-logs'));
-
 /**
  * Функция проверяет Skipped или Incomplete статус теста
  *
@@ -20,7 +16,6 @@ function isSuiteSkipOrIncomplete(message) {
 }
 
 var Stats = function () {
-    var self = this;
     /** @type {number} Время старта раздач тестов клиентам, миллисекунды */
     this.start_time = 0;
     /** @type {number} Время выполнения последнего теста, миллисекунды */
@@ -34,11 +29,6 @@ var Stats = function () {
 
 	this.commits_merge = [];
 	this.commit_hash = '';
-	this.lastPoolFile = configParams.statistic.last_pool;
-    
-    this.getWebStats = function() {
-        return this.getStatsData();
-    };
 
     this.getRawStats = function () {
         var time_overall = 0;
@@ -60,10 +50,6 @@ var Stats = function () {
             'tests_failed': tests_failed,
             'tests_completed': tests_completed
         };
-    };
-    
-    this.getLastStatsData = function(callback) {
-        ClusterLogs.getLastPool(callback);
     };
 
     this.getStatsData = function () {
@@ -128,15 +114,6 @@ var Stats = function () {
         };
     };
 
-    this.getCommitsMergeLog = function() {
-        var commits_merge_log = [];
-        self.commits_merge.forEach(function (commit) {
-            commits_merge_log.push('[' + commit.author_name + '] ' + commit.message);
-        });
-
-        return commits_merge_log;
-    };
-
     this.getConsoleStats = function () {
         var stat_msg = '';
         var stats_data = this.getStatsData();
@@ -177,17 +154,6 @@ var Stats = function () {
 		delete data.all_tests_data;
 
 		return data;
-	};
-
-	this.saveLastPool = function (callback) {
-		var stats = this.prepareForSave();
-		stats = JSON.stringify(stats);
-
-		fs.writeFile(this.lastPoolFile, stats, function(err) {
-			if (err) throw err;
-
-			callback();
-		});
 	};
 
 	/**

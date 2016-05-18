@@ -13,11 +13,12 @@ function isSuiteSkipOrIncomplete(message) {
 	return (isSkip == 0 || isIncomplete == 0);
 }
 
-var PhpUnitRunner = function () {
-    this.show_log = false;
-    this.phpunit_cmd = '';
-    this.phpunit_cmd_suffix = '';
-    this.result_json_file = '';
+var PhpUnitRunner = function (settings) {
+
+	this.show_log = false;
+	this.phpunit_cmd = settings['cmd'];
+    this.phpunit_cmd_suffix = settings['cmd_suffix'];
+    this.result_json_file = settings['result_json_file'];
 
     this.run = function (file, callback) {
 		var self = this;
@@ -104,4 +105,4 @@ var PhpUnitRunner = function () {
     };
 };
 
-module.exports = new PhpUnitRunner();
+module.exports = PhpUnitRunner;

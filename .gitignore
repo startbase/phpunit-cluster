@@ -44,6 +44,3 @@ result.json
 
 # Weight DataBase
 weight.json
-
-# Logs of last run
-last_pool.json

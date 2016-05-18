@@ -1,7 +1,6 @@
 var Queue = require('./queue');
-var weightBase = require('./weight-base');
 
-var TaskBalancer = function() {
+var TaskBalancer = function(settings) {
     /** Failed states structure */
     this.prohStates = new (function() {
         var states = [];
@@ -40,7 +39,7 @@ var TaskBalancer = function() {
     })();
     this.queueTasks = new Queue();
 
-    this.repeat_attempts_number = 0;
+    this.repeat_attempts_number = settings['failed_attempts'];
 
     this.clients_number = 0;
 
@@ -98,20 +97,19 @@ var TaskBalancer = function() {
     };
 
     /**
-     * Make queue of tests from array
-     * After this emmit "queue ready" event
-     * @param {Array} data tests list
-     */
-    this.generateQueue = function(data) {
+	 * Make queue of tests from array
+	 * After this emmit "queue ready" event
+	 * @param data
+	 * @param callback
+	 */
+    this.generateQueue = function(data, callback) {
         var instance = this;
 
         data.forEach(function(item) {
             instance.queueTasks.addTask(item);
         });
 
-        weightBase.sortTasks(this.queueTasks, function() {
-            instance.queueTasks.emit('fill.complete');
-        });
+        callback(this.queueTasks);
     };
 
     /**
