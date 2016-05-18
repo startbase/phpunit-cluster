@@ -2,9 +2,9 @@ const EventEmitter = require('events');
 const util = require('util');
 const fs = require('fs');
 
-var config = require('./config.js');
+var config = require('../config.js');
 var configParams = config.getParams();
-var ClusterLogs = new (require('./models/cluster-logs'))(config.getParams());
+var ClusterLogs = new (require('../models/cluster-logs'));
 
 /**
  * Функция проверяет Skipped или Incomplete статус теста
@@ -63,7 +63,7 @@ var Stats = function () {
     };
     
     this.getLastStatsData = function(callback) {
-        ClusterLogs.getLastPoolData(callback);
+        ClusterLogs.getLastPool(callback);
     };
 
     this.getStatsData = function () {
@@ -112,19 +112,18 @@ var Stats = function () {
         return {
             'time_pool' : time_pool,
             'time_overall': raw_stats.time_overall,
+			'phpunit_repeat_time': this.phpunit_repeat,
+			'time_average': raw_stats.time_overall / this.tests.length,
+			'tests_overall_count': this.tests.length,
             'tests_success_count': raw_stats.tests_completed.length,
             'tests_failed_count': raw_stats.tests_failed.length,
-            'count_tasks': this.count_tasks,
             'date_start': this.start_time,
             'date_finish': this.finish_time,
             'commit_hash': this.commit_hash,
 			'commits_merge': this.commits_merge,
-			'tests_overall_count': this.tests.length,
-            'time_average': raw_stats.time_overall / this.tests.length,
             'failed_tests_names': failed_tests_names,
             'failed_tests_suites': failed_test_suites,
 			'failed_test_suites_names': failed_test_suites_names,
-            'phpunit_repeat_time': this.phpunit_repeat,
             'all_tests_data': all_tests_data
         };
     };
@@ -191,33 +190,33 @@ var Stats = function () {
 		});
 	};
 
-    /**
-	 * Узнаём завален пул или нет
-	 * @param data данные могут быть переданы из БД или не переданы совсем
-	 * @returns {boolean}
-	 */
+	/**
+	* Узнаём завален пул или нет
+	* @param data данные могут быть переданы из БД или не переданы совсем
+	* @returns {boolean}
+	*/
 	this.isPoolFailed = function (data) {
 		if (data.tests_failed_count) {
 			return Boolean(data.tests_failed_count);
 		}
 
 		return Boolean(this.getRawStats().tests_failed.length);
-    };
+	};
 
-    /**
-     * Функция возвращает процент выполнения пула
-     * @returns {*}
-     */
-    this.getPercentOfComplete = function () {
-        var tests_total = this.count_tasks;
-        var tests_complete = this.tests.length;
+	/**
+	* Функция возвращает процент выполнения пула
+	* @returns {*}
+	*/
+	this.getPercentOfComplete = function () {
+		var tests_total = this.count_tasks;
+		var tests_complete = this.tests.length;
 
-        if (tests_complete == 0) {
-            return 0;
-        }
+		if (tests_complete == 0) {
+			return 0;
+		}
 
-        return (tests_complete * 100 / tests_total).toFixed(2);
-    };
+		return (tests_complete * 100 / tests_total).toFixed(2);
+	};
 
     this.addStat = function (data) {
         this.tests.push(data);

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>PHPUnit Cluster</title>
+        <link type="text/css" rel="stylesheet" href="css/bootstrap.css"/>
+        <link type="text/css" rel="stylesheet" href="css/bootstrap-theme.css"/>
+        <style>
+            .table td.successful a { color: #14892c; }
+            .table td.failed a { color: #d04437; }
+            .icon { background-position: 50% 50%; background-repeat: no-repeat; display: inline-block; height: 16px; margin: 0; overflow: hidden; padding: 0; vertical-align: text-bottom; width: 16px; }
+            .table td.successful a .icon { background-image: url(/img/icon-pool-successful.png); }
+            .table td.failed a .icon { background-image: url(/img/icon-pool-failed.png); }
+        </style>
+        <script type="text/javascript" src="js/jquery.min.js"></script>
+    </head>
+    <body>
+        <div class="container-fluid">
+            {content}
+        </div>
+    </body>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
+</html>

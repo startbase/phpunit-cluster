@@ -1,15 +1,14 @@
-var mysql = require('mysql');
+var config = require('../config').getParams();
+var DB = new (require('../libs/db'))(config);
 
-var ClusterLogs = function (config) {
+var ClusterLogs = function () {
 
+	/** Название таблицы из конфига */
 	this.tablename = config.mysql.tables.cluster_logs;
 
-	this.stack = [];
-
-	this.init = function () {
-		var self = this;
-		var connection = this.getNewConnection();
-		var query = "CREATE TABLE IF NOT EXISTS `" + self.tablename + "` ( " +
+	/** Создание таблицы */
+	this.createTable = function () {
+		var sql = "CREATE TABLE IF NOT EXISTS `" + this.getTableName() + "` ( " +
 			"`id` INT(11) NOT NULL AUTO_INCREMENT," +
 			"`commit` VARCHAR(255) NOT NULL," +
 			"`data` TEXT NOT NULL," +
@@ -17,79 +16,69 @@ var ClusterLogs = function (config) {
 			"PRIMARY KEY (`id`)" +
 			") COLLATE='utf8_general_ci' ENGINE=InnoDB";
 
-		connection.connect();
-		connection.query(query, function (err, result) {
-			if (err) {
-				console.log('\n[MYSQL] CLUSTER LOGS ERROR (init):');
-				console.log(err);
-				console.log(query);
-			}
-			self.startInterval();
-		});
-		connection.end();
+		this.query(sql);
 	};
 
-	this.getNewConnection = function () {
-		return mysql.createConnection({
-			user: config.mysql.user,
-			password: config.mysql.password,
-			database: config.mysql.database
-		});
-	};
+	/**
+	 * Возвращает поля data последнего пула
+	 * @param callback
+	 */
+	this.getLastPool = function (callback) {
+		var params = {
+			select: ['data'],
+			order: ['datetime', 'DESC']
+		};
 
-	this.getLastPoolData = function (callback) {
-		var self = this;
-		var connection = self.getNewConnection();
-		var query = "SELECT `data` FROM `" + self.tablename + "` ORDER BY `datetime` DESC LIMIT 1";
-
-		connection.connect();
-		connection.query(query, function(err, rows) {
-			if (err) {
-				console.log('\n[MYSQL] CLUSTER LOGS ERROR (getLastPoolData):');
-				console.log(err);
-				console.log(query);
+		this.find([], params, function (rows) {
+			if (rows.length > 0) {
+				callback(JSON.parse(rows[0].data));
 			} else {
-				if (rows.length > 0) {
-					callback(JSON.parse(rows[0].data));
-				} else {
-					callback({});
-				}
+				callback(null);
 			}
 		});
-		connection.end();
 	};
 
-	this.startInterval = function () {
-		var self = this;
-		setInterval(function () {
-			if (!self.stack.length) {
-				return;
+	/**
+	 * Возвращает данные пула по его ID
+	 * @param {Number} id
+	 * @param callback
+	 */
+	this.getPoolById = function (id, callback) {
+		this.find(['id = ' + id], [], function (rows) {
+			if (rows.length > 0) {
+				callback(rows[0]);
+			} else {
+				callback(null);
 			}
-
-			var data = self.stack.shift();
-
-			if (data) {
-				var connection = self.getNewConnection();
-				var query = "INSERT INTO `" + self.tablename + "` (`commit`, `data`) VALUES (?, ?)";
-
-				connection.connect();
-				connection.query(query, [data.commit_hash, JSON.stringify(data)], function(err, rows) {
-					if (err) {
-						console.log('\n[MYSQL] CLUSTER LOGS ERROR (startInterval):');
-						console.log(err);
-						console.log(query);
-					}
-				});
-				connection.end();
-			}
-		}, 1000);
+		});
 	};
 
-	this.push = function (data) {
-		this.stack.push(data);
+	/**
+	 * Возвращает список пулов
+	 * @param condition Условие WHERE в виде массива
+	 * @param params список дополнительных опций
+	 * @param callback
+	 */
+	this.getPools = function (condition, params, callback) {
+		this.findAll([], params, function (rows, total_rows) {
+			callback(rows, total_rows);
+		});
 	};
 
-	this.init();
+	/**
+	 * Добавляет данные по пулу в таблицу
+	 * @param data данные из статистики
+	 * @param callback
+	 */
+	this.addPool = function (data, callback) {
+		var sql = "INSERT INTO `" + this.getTableName() + "` (`commit`, `data`) VALUES (?, ?)";
+		var values = [data.commit_hash, JSON.stringify(data)];
+
+		this.query(sql, values, callback);
+	};
+
+	this.createTable();
 };
 
+ClusterLogs.prototype = DB;
 module.exports = ClusterLogs;

@@ -1,5 +1,5 @@
 var Queue = require('./queue');
-var weightBase = require('./libs/weight-base');
+var weightBase = require('./weight-base');
 
 var TaskBalancer = function() {
     /** Failed states structure */

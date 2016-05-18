@@ -1,8 +1,8 @@
 var os = require('os');
 var path = require('path');
-var migration_manager = require('./libs/migration-manager.js');
+var migration_manager = require('./migration-manager');
 
-var config = require('./config.js');
+var config = require('../config.js');
 var configParams = config.getParams();
 var params = {
 	user: 'startbase_' + Date.now(),
@@ -12,13 +12,13 @@ var params = {
 	version: configParams.version
 };
 
-var repository = require('./libs/repository.js');
+var repository = require('./repository');
 
 var is_task_aborted = false;
 var connect_status = false;
 var is_busy = false;
 
-var phpunitRunner = require('./libs/phpunit_runner.js');
+var phpunitRunner = require('./phpunit-runner');
 phpunitRunner.phpunit_cmd = configParams.phpunit_runner.cmd;
 phpunitRunner.phpunit_cmd_suffix = configParams.phpunit_runner.cmd_suffix;
 phpunitRunner.result_json_file = configParams.phpunit_runner.result_json_file;

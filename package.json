@@ -16,7 +16,9 @@
 		"socket.io-client": "^1.4.5",
 		"mysql": "latest",
 		"colors": "latest",
-		"nodemailer": "latest"
+		"nodemailer": "latest",
+		"mime": "latest",
+		"time-ago": "latest"
 	},
 	"repository": {
 	"type": "git",

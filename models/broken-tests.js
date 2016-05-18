@@ -1,4 +1,5 @@
-var mysql = require('mysql');
+var config = require('../config').getParams();
+var DB = new (require('../libs/db'))(config);
 
 /**
 * Вырезает из suite теста подробное описание ошибки
@@ -79,48 +80,69 @@ function getSuiteIndex(suites, path, suite) {
 	return -1;
 }
 
-var BrokenTests = function (config) {
+var BrokenTests = function () {
 
-	var self = this;
-
-	/** Название таблицы в БД */
+	/** Название таблицы из конфига */
 	this.tablename = config.mysql.tables.broken_tests;
+
 	/** Путь репозитория */
 	this.repository = config.repository.repository_path;
 
-	/** Установка соединения с БД */
-	this.getNewConnection = function () {
-		return mysql.createConnection({
-			user: config.mysql.user,
-			password: config.mysql.password,
-			database: config.mysql.database
+	/** Создание таблицы */
+	this.createTable = function () {
+		var sql = "CREATE TABLE IF NOT EXISTS `" + this.getTableName() + "` (" +
+			"`id` INT(11) NOT NULL AUTO_INCREMENT," +
+			"`path` VARCHAR(255) NOT NULL DEFAULT ''," +
+			"`suitename` TEXT NOT NULL," +
+			"`broke_commit` VARCHAR(255) NOT NULL DEFAULT ''," +
+			"`broke_authors` VARCHAR(255) NOT NULL DEFAULT ''," +
+			"`broke_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+			"`repair_commit` VARCHAR(255) NOT NULL DEFAULT ''," +
+			"`repair_authors` VARCHAR(255) NOT NULL DEFAULT ''," +
+			"`repair_date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00'," +
+			"PRIMARY KEY (`id`)" +
+			") COLLATE='utf8_general_ci' ENGINE=InnoDB";
+
+		this.query(sql);
+	};
+
+	/**
+	 * Получаем список сломаных тестов, в формате:
+	 * { id, path, suitename, broke_authors }
+	 *
+	 * @param callback
+	 */
+	this.getBrokenTests = function (callback) {
+		var condition = ['repair_date = "0000-00-00 00:00:00"'];
+		var params = [];
+
+		params['select'] = ['id', 'path', 'suitename', 'broke_authors'];
+		this.findAll(condition, params, function (rows) {
+			callback(rows);
 		});
 	};
 
-	this.init = function () {
-		var connection = this.getNewConnection();
-		var query = 'CREATE TABLE IF NOT EXISTS `' + this.tablename + '` (' +
-			'`id` INT(11) NOT NULL AUTO_INCREMENT,' +
-			'`path` VARCHAR(255) NOT NULL DEFAULT "",' +
-			'`suitename` TEXT NOT NULL,' +
-			'`broke_commit` VARCHAR(255) NOT NULL DEFAULT "",' +
-			'`broke_authors` VARCHAR(255) NOT NULL DEFAULT "",' +
-			'`broke_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,' +
-			'`repair_commit` VARCHAR(255) NOT NULL DEFAULT "",' +
-			'`repair_authors` VARCHAR(255) NOT NULL DEFAULT "",' +
-			'`repair_date` TIMESTAMP NOT NULL DEFAULT "0000-00-00 00:00:00",' +
-			'PRIMARY KEY (`id`)' +
-			') COLLATE="utf8_general_ci" ENGINE=InnoDB';
+	/**
+	 * Добавляем новый сломаный тест в БД
+	 * @param test Формат { path, suitename, broke_commit, broke_authors }
+	 */
+	this.addBrokenTest = function (test) {
+		var sql = "INSERT INTO `" + this.getTableName() + "` (`path`, `suitename`, `broke_commit`, `broke_authors`) VALUES ('" + test.testpath + "', '" + test.suitename + "', '" + test.broke_commit + "', '" + test.broke_authors + "')";
 
-		connection.connect();
-		connection.query(query, function (err, result) {
-			if (err) {
-				console.log('\n[MYSQL] BROKEN TESTS ERROR (init):');
-				console.log(err);
-				console.log(query);
-			}
-		});
-		connection.end();
+		this.query(sql);
+	};
+
+	/**
+	 * Обновляем статус тестов на исправленные
+	 * @param {Array} ids Массив ID тестов, которые починили
+	 * @param stats_data Данные, получаемые из статистики
+	 */
+	this.repairTests = function (ids, stats_data) {
+		var commit = stats_data.commit_hash;
+		var commit_authors = getCommitAuthors(stats_data.commits_merge).join(', ');
+		var sql = "UPDATE `" + this.getTableName() + "` SET `repair_commit` = '" + commit + "', `repair_authors` = '" + commit_authors + "', `repair_date` = FROM_UNIXTIME(" + new Date().getTime() + ") WHERE `id` IN (" + ids.join(', ') + ")";
+
+		this.query(sql);
 	};
 
 	/**
@@ -132,6 +154,8 @@ var BrokenTests = function (config) {
 	* @param callback
 	*/
 	this.update = function (data, old_failed_tests, callback) {
+		var self = this;
+
 		console.log('Запускаем обновление сломаных тестов');
 		console.log('Список имеющихся сломаных тестов:');
 		console.log(old_failed_tests);
@@ -231,75 +255,8 @@ var BrokenTests = function (config) {
 		callback(dataForNotification);
 	};
 
-	/**
-	* Получаем список сломаных тестов, в формате:
-	* @param callback
-	*/
-	this.getBrokenTests = function (callback) {
-		var connection = this.getNewConnection();
-		var options = { sql: 'SELECT `id`, `path`, `suitename`, `broke_authors` FROM `' + this.tablename + '` WHERE `repair_date` = "0000-00-00 00:00:00"', rowsAsArray: true };
-
-		connection.connect();
-		connection.query(options, function(err, results) {
-			if (err) {
-				console.log('\n[MYSQL] BROKEN TESTS ERROR (getBrokenTests):');
-				console.log(err);
-				console.log(options.sql);
-			} else {
-				console.log(options.sql);
-			}
-
-			callback(results);
-		});
-		connection.end();
-	};
-
-	/**
-	* Добавляем новый сломаный тест в БД
-	* @param test Формат { path, suitename, broke_commit, broke_authors }
-	*/
-	this.addBrokenTest = function (test) {
-		var connection = this.getNewConnection();
-		var query = "INSERT INTO `" + this.tablename + "` (`path`, `suitename`, `broke_commit`, `broke_authors`) VALUES ('" + test.testpath + "', '" + test.suitename + "', '" + test.broke_commit + "', '" + test.broke_authors + "')";
-
-		connection.connect();
-		connection.query(query, function(err, result) {
-			if (err) {
-				console.log('\n[MYSQL] BROKEN TESTS ERROR (addBrokenTest):');
-				console.log(err);
-				console.log(query);
-			} else {
-				console.log(query);
-			}
-		});
-		connection.end();
-	};
-
-	/**
-	* Обновляем статус тестов на исправленные
-	* @param {Array} ids Массив ID тестов, которые починили
-	* @param stats_data Данные, получаемые из статистики
-	*/
-	this.repairTests = function (ids, stats_data) {
-		var connection = this.getNewConnection();
-		var commit = stats_data.commit_hash;
-		var commit_authors = getCommitAuthors(stats_data.commits_merge).join(', ');
-		var query = "UPDATE `" + this.tablename + "` SET `repair_commit` = '" + commit + "', `repair_authors` = '" + commit_authors + "', `repair_date` = FROM_UNIXTIME('" + new Date().getTime() + "') WHERE `id` IN (" + ids.join() + ")";
-
-		connection.connect();
-		connection.query(query, function(err, result) {
-			if (err) {
-				console.log('\n[MYSQL] BROKEN TESTS ERROR (repairTests):');
-				console.log(err);
-				console.log(query);
-			} else {
-				console.log(query);
-			}
-		});
-		connection.end();
-	};
-
-	this.init();
+	this.createTable();
 };
 
+BrokenTests.prototype = DB;
 module.exports = BrokenTests;

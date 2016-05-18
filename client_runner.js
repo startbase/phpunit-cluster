@@ -1,33 +1,33 @@
-var forker = require('./libs/forker.js');
+var forker = require('./libs/forker');
 var spawn = require('child_process').spawn;
-
 var git = require('simple-git')(__dirname);
 
 var ClientForker = function(sh) {
-    this.client_script = sh || __dirname+'/client.js';
+
+    this.client_script = sh || __dirname+'/libs/client.js';
 
     this.updateClient = function(callback) {
-        git.fetch('origin').pull(function() {
-            console.log('Repository has been updated');
-            spawn('npm', ['install']).on('close', function() {
-                console.log('npm install completed');
-                callback();
-            });
-        });
+		git.fetch('origin').pull(function() {
+			console.log('Repository has been updated');
+			spawn('npm', ['install']).on('close', function() {
+				console.log('npm install completed');
+				callback();
+			});
+		});
     };
 
     this.getArgv = function() {
-        var argv = process.argv;
-        argv[1] = this.client_script;
-        return argv;
+		var argv = process.argv;
+		argv[1] = this.client_script;
+		return argv;
     };
 
     this.run = function() {
-        var self = this;
-        var f = new forker(this.getArgv(), function(callback) {
-            self.updateClient(callback);
-        });
-        f.restartApp();
+		var self = this;
+		var f = new forker(this.getArgv(), function(callback) {
+			self.updateClient(callback);
+		});
+		f.restartApp();
     };
 };
 

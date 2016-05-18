@@ -10,12 +10,10 @@ function getDate() {
 }
 
 var Mailer = function (config) {
-	var self = this;
-
 	this.transporter = null;
 
 	this.mailOptions = {
-		from: '"PHPUnit Cluster" <dashboard@b2b-center.ru>',
+		from: config.smtp.from,
 		subject: '[PHP Unit Cluster] Tests status has been changed'
 	};
 
@@ -30,11 +28,9 @@ var Mailer = function (config) {
 	};
 
 	this.init = function () {
-		var self = this;
+		this.transporter = nodemailer.createTransport(this.smtpConfig);
 
-		self.transporter = nodemailer.createTransport(self.smtpConfig);
-
-		self.transporter.verify(function (err) {
+		this.transporter.verify(function (err) {
 			if (err) {
 				console.log('[' + getDate() + '] SMTP verify error:\n');
 				console.log(err);
@@ -50,7 +46,7 @@ var Mailer = function (config) {
 	* @param {Object} mailOptions
 	*/
 	this.sendMail = function (mailOptions) {
-		self.transporter.sendMail(mailOptions, function (err, info) {
+		this.transporter.sendMail(mailOptions, function (err, info) {
 			if (err) {
 				console.log('[' + getDate() + '] Send email error:');
 				console.log(err);
@@ -83,33 +79,33 @@ var Mailer = function (config) {
 		var receivers = notification.commit_authors.join(', ');
 		console.log('[' + getDate() + '] Коммитеры текущего пула:');
 		console.log(receivers);
-		var lucky_receivers = self.getAuthorsForRepairNotify(receivers, notification.repair_tests);
+		var lucky_receivers = this.getAuthorsForRepairNotify(receivers, notification.repair_tests);
 		console.log('[' + getDate() + '] Коммитеры, чьи тесты были исправлены без них:');
 		console.log(lucky_receivers);
 
-		var html = self.getHeader(notification.commit_authors, notification.commit_hash);
+		var html = this.getHeader(notification.commit_authors, notification.commit_hash);
 
 		if (notification.repair_tests.length > 0) {
-			html += "<br /><h4 style='color: darkgreen;'>Исправленные тесты:</h4>" + self.getTestInfoForMail(notification.repair_tests);
+			html += "<br /><h4 style='color: darkgreen;'>Исправленные тесты:</h4>" + this.getTestInfoForMail(notification.repair_tests);
 		}
 
 		if (lucky_receivers.length > 0) {
 			console.log('[' + getDate() + '] Отправляем уведомления коммитерам, чьи тесты были исправлены без них...');
-			//self.mailOptions.to = lucky_receivers.join(', ');
-			self.mailOptions.to = 'r.schekin@b2b-center.ru';
-			self.mailOptions.html = html;
-			self.sendMail(self.mailOptions);
+			//this.mailOptions.to = lucky_receivers.join(', ');
+			this.mailOptions.to = config.emails.support;
+			this.mailOptions.html = html;
+			this.sendMail(this.mailOptions);
 		}
 
 		if (notification.broken_tests.length > 0) {
-			html += "<br /><h4 style='color: red;'>Сломанные тесты:</h4>" + self.getTestInfoForMail(notification.broken_tests);
+			html += "<br /><h4 style='color: red;'>Сломанные тесты:</h4>" + this.getTestInfoForMail(notification.broken_tests);
 		}
 
 		console.log('[' + getDate() + '] Отправляем уведомления текущим коммитерам');
-		//self.mailOptions.to = receivers;
-		self.mailOptions.to = 'r.schekin@b2b-center.ru';
-		self.mailOptions.html = html;
-		self.sendMail(self.mailOptions);
+		//this.mailOptions.to = receivers;
+		this.mailOptions.to = config.emails.support;
+		this.mailOptions.html = html;
+		this.sendMail(this.mailOptions);
 	};
 
 	/**

@@ -21,19 +21,19 @@ if (argv.p && typeof argv.p == "number") {
 var fs = require('fs');
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
-var taskBalancer = new (require('./task-balancer.js'));
+var taskBalancer = new (require('./libs/task-balancer'));
 taskBalancer.repeat_attempts_number = configParams.task_balancer.failed_attempts;
 var testParser = require('./libs/test-parser');
-var repository = require('./libs/repository.js');
+var repository = require('./libs/repository');
 var mailer = new (require('./libs/mailer'))(configParams);
-var queueEvents = new (require('./queue'));
-var stats = require('./stats');
+var queueEvents = new (require('./libs/queue'));
+var stats = require('./libs/stats');
 var weightBase = require('./libs/weight-base');
 var users = [];
 var tasks_pool_count = 0;
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-var ClusterLogs = new (require('./models/cluster-logs'))(configParams);
-var BrokenTests = new (require('./models/broken-tests'))(configParams);
+var ClusterLogs = new (require('./models/cluster-logs'));
+var BrokenTests = new (require('./models/broken-tests'));
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** Запускаемся */
 var io = require('socket.io').listen(params.port);
@@ -298,7 +298,7 @@ io.sockets.on('connection', function (socket) {
 			rl.emit('line', 'd');
 
 			stats.saveLastPool(function () {
-				console.log('[' + getDate() + '] Результаты выполнения последнего пула сохранены');
+				console.log('[' + getDate() + '] Результаты выполнения последнего пула записаны в файл');
 			});
 
 			/** Если в очереди есть задача на обновление репозитария - just do it! */
@@ -314,7 +314,11 @@ io.sockets.on('connection', function (socket) {
             io.sockets.emit('web.complete', web_stats);
             io.sockets.emit('dashboard.changeStatus', stats.isPoolFailed([]));
             io.sockets.emit('dashboard.updateProgressBar', 100);
-            ClusterLogs.push(save_stats);
+
+            ClusterLogs.addPool(save_stats, function() {
+				console.log('[' + getDate() + '] Результаты выполнения последнего пула сохранены');
+			});
+
 			BrokenTests.getBrokenTests(function(failed_tests_old) {
 				BrokenTests.update(save_stats, failed_tests_old, function(notification) {
                     mailer.prepareMails(notification);
@@ -390,7 +394,7 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('dashboard.getLastState', function () {
-        ClusterLogs.getLastPoolData(function (data) {
+        ClusterLogs.getLastPool(function (data) {
             io.sockets.emit('dashboard.changeStatus', stats.isPoolFailed(data));
 			io.sockets.emit('dashboard.updateProgressBar', stats.getPercentOfComplete());
         });
@@ -437,12 +441,12 @@ queueEvents.on('add', function (taskName) {
 				 * при этом push может не сделан. Если новый комит соотв. комиту прошлого пула,
 				 * то освобождаем сервер
 				 */
-				//if (params.commit_hash == params.last_commit_hash) {
-				//	console.log('[' + getDate() + '] Последний commit hash совпал с текущим. Запуск пула отменён. Сервер свободен');
-				//	queueEvents.rmTask('in.process');
-				//} else {
+				if (params.commit_hash == params.last_commit_hash) {
+					console.log('[' + getDate() + '] Последний commit hash совпал с текущим. Запуск пула отменён. Сервер свободен');
+					queueEvents.rmTask('in.process');
+				} else {
 					queueEvents.addTask('parser.start');
-				//}
+				}
             });
             break;
         case 'parser.start':

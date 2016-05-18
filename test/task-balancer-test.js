@@ -1,7 +1,7 @@
-var taskBalancer = new (require('../task-balancer'));
+var taskBalancer = new (require('../libs/task-balancer'));
 var assert = require('assert');
 
-describe('task-balancer.js', function() {
+describe('libs/task-balancer.js', function() {
 
     beforeEach(function (done) {
         var data = ['/dir1/test1Test.php',
