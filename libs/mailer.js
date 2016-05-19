@@ -64,6 +64,10 @@ var Mailer = function (settings) {
 	* @param {Object} notification
 	*/
 	this.prepareMails = function (notification) {
+		if (notification == null) {
+			return;
+		}
+
 		/** Если нет коммитеров и никаких тестов не исправили, то и уведомлять некого */
 		if (notification.commit_authors.length == 0 && notification.repair_tests.length == 0) {
 			console.log('[' + getDate() + '] Коммитеров и исправленых тестов нет. Уведомлений не отправляем.');

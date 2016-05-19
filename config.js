@@ -19,7 +19,7 @@ var Config = function () {
 	};
 
 	/**
-	 * Объединяет настройки в одиное целое с приоритетом из local.config.json
+	 * Метод объединяет настройки в единое целое с приоритетом из local.config.json
 	 *
 	 * @param baseSettings Настройки из config.json
 	 * @param localSettings Настройки из local.config.json

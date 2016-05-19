@@ -11,9 +11,8 @@ var ClusterLogs = function () {
 	this.createTable = function () {
 		var sql = "CREATE TABLE IF NOT EXISTS `" + this.getTableName() + "` ( " +
 			"`id` INT(11) NOT NULL AUTO_INCREMENT," +
-			"`commit` VARCHAR(255) NOT NULL," +
 			"`data` TEXT NOT NULL," +
-			"`datetime` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+			"`build_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
 			"PRIMARY KEY (`id`)" +
 			") COLLATE='utf8_general_ci' ENGINE=InnoDB";
 
@@ -27,7 +26,7 @@ var ClusterLogs = function () {
 	this.getLastPool = function (callback) {
 		var params = {
 			select: ['data'],
-			order: ['datetime', 'DESC']
+			order: ['build_date', 'DESC']
 		};
 
 		this.find([], params, function (row) {
@@ -72,8 +71,8 @@ var ClusterLogs = function () {
 	 * @param callback
 	 */
 	this.addPool = function (data, callback) {
-		var sql = "INSERT INTO `" + this.getTableName() + "` (`commit`, `data`) VALUES (?, ?)";
-		var values = [data.commit_hash, JSON.stringify(data)];
+		var sql = "INSERT INTO `" + this.getTableName() + "` (`data`) VALUES (?)";
+		var values = [JSON.stringify(data)];
 
 		this.query(sql, values, callback);
 	};

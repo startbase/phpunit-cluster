@@ -1,180 +1,161 @@
-const EventEmitter = require('events');
-const util = require('util');
-const fs = require('fs');
-
-/**
- * Функция проверяет Skipped или Incomplete статус теста
- *
- * @param {string} message сообщение из suite.message
- * @returns {boolean}
- */
-function isSuiteSkipOrIncomplete(message) {
-    var isSkip = message.indexOf('Skipped Test: ');
-    var isIncomplete = message.indexOf('Incomplete Test: ');
-
-    return (isSkip == 0 || isIncomplete == 0);
-}
-
 var Stats = function () {
-    /** @type {number} Время старта раздач тестов клиентам, миллисекунды */
-    this.start_time = 0;
-    /** @type {number} Время выполнения последнего теста, миллисекунды */
-    this.finish_time = 0;
+	/**
+	 * @type {number} Время старта раздачи тестов, миллисекунды
+	 */
+	this.start_time = 0;
 
-    this.count_tasks = 0;
+	/**
+	 * @type {number} Время завершения выполнения билда, миллисекунды
+	 */
+	this.finish_time = 0;
 
-    this.tests = [];
+	/**
+	 * @type {Array} Данные по всем выполненным тестам от клиента
+	 */
+	this.tests = [];
 
-    this.phpunit_repeat = 0;
+	/**
+	 * @type {number} Изначальное количество тестов в билде
+	 */
+	this.build_tasks_count = 0;
 
-	this.commits_merge = [];
+	/**
+	 * @type {number} Суммарное время повторных выполнений заваленных тестов, секунды
+	 */
+	this.phpunit_repeat_time = 0;
+
+	/**
+	 * @type {string} Текущий коммит хеш билда
+	 */
 	this.commit_hash = '';
 
-    this.getRawStats = function () {
-        var time_overall = 0;
-        var tests_failed = [];
-        var tests_completed = [];
-
-        this.tests.forEach(function(test) {
-            time_overall += test.time;
-
-            if (test.status === false) {
-                tests_failed.push(test);
-            } else {
-                tests_completed.push(test);
-            }
-        });
-
-        return {
-            'time_overall': time_overall,
-            'tests_failed': tests_failed,
-            'tests_completed': tests_completed
-        };
-    };
-
-    this.getStatsData = function () {
-        var time_pool = 'нужно выполнить все тесты';
-        var raw_stats = this.getRawStats();
-
-        var failed_tests_names = [];
-        var failed_test_suites = [];
-
-        var all_tests_data = [];
-        
-        var failed_test_suites_names = {};
-        
-        raw_stats.tests_completed.forEach(function(test) {
-            all_tests_data.push({path: test.file, status: 1});
-        });
-
-        raw_stats.tests_failed.forEach(function(test) {
-            var file_path = test.file;
-            failed_tests_names.push(file_path);
-
-            var test_suites = [];
-
-            test.suites.forEach(function(suite) {
-				/**
-				 * Если статус теста отличается от PASS
-				 * и тест не Skipped или Incomplete, тогда тест завален
-				 */
-				if (suite.status != 'pass' && !isSuiteSkipOrIncomplete(suite.message)) {
-                    var stat_msg = suite.test + " [" + suite.message + "]";
-                    test_suites.push(stat_msg);
-                }
-            });
-
-            failed_test_suites.push(test_suites);
-
-            failed_test_suites_names[file_path] = test_suites;
-            
-            all_tests_data.push({path: test.file, status: 0});
-        });
-
-        if (this.finish_time > 0) {
-            time_pool = (this.finish_time - this.start_time) / 1000;
-        }
-
-        return {
-            'time_pool' : time_pool,
-            'time_overall': raw_stats.time_overall,
-			'phpunit_repeat_time': this.phpunit_repeat,
-			'time_average': raw_stats.time_overall / this.tests.length,
-			'tests_overall_count': this.tests.length,
-            'tests_success_count': raw_stats.tests_completed.length,
-            'tests_failed_count': raw_stats.tests_failed.length,
-            'date_start': this.start_time,
-            'date_finish': this.finish_time,
-            'commit_hash': this.commit_hash,
-			'commits_merge': this.commits_merge,
-            'failed_tests_names': failed_tests_names,
-            'failed_tests_suites': failed_test_suites,
-			'failed_test_suites_names': failed_test_suites_names,
-            'all_tests_data': all_tests_data
-        };
-    };
-
-    this.getConsoleStats = function () {
-        var stat_msg = '';
-        var stats_data = this.getStatsData();
-
-        if (this.tests.length > 0) {
-            stat_msg = "\nУспешно пройдено " + stats_data.tests_success_count + "/" + stats_data.tests_overall_count + " тестов\n"
-                + "Время выполнения последнего пула тестов: " + stats_data.time_pool + " сек.\n"
-                + "Общее время выполнения тестов в PHPUnit: " + stats_data.time_overall + " сек.\n"
-				+ "Общее время первых прохождений заваленых тестов в PHPUnit: " + stats_data.phpunit_repeat_time + " сек.\n"
-                + "Среднее время выполнения тестов в PHPUnit: " + stats_data.time_average + " сек.\n";
-
-            if (stats_data.tests_failed_count > 0) {
-                stat_msg += "\nЗавалены тесты:\n";
-
-				if (stats_data.failed_tests_names.length > 0) {
-					stats_data.failed_tests_names.forEach(function (failed_test, i) {
-						stat_msg += '\t' + failed_test + "\n";
-
-						stats_data.failed_tests_suites[i].forEach(function (failed_suite) {
-							stat_msg += '\t\t' + failed_suite + "\n";
-						});
-					});
-				}
-            }
-
-        }
-        else {
-            stat_msg = "\nТесты не пройдены";
-        }
-
-        return stat_msg;
-    };
-
-	this.prepareForSave = function () {
-		var data = this.getStatsData();
-
-		delete data.failed_test_suites_names;
-		delete data.all_tests_data;
-
-		return data;
-	};
+	/**
+	 * @type {Array} История коммитов. попавших в билд
+	 */
+	this.commits_merge = [];
 
 	/**
-	* Узнаём завален пул или нет
-	* @param data данные могут быть переданы из БД или не переданы совсем
-	* @returns {boolean}
-	*/
-	this.isPoolFailed = function (data) {
-		if (data.tests_failed_count) {
-			return Boolean(data.tests_failed_count);
+	 * Метод обрабатывает данные билда и готовит их для записи в БД или использования в ВЕБе
+	 *
+	 * @returns {Object}
+	 */
+	this.processData = function () {
+		var self = this;
+
+		var build_time = 0;
+		if (this.finish_time > 0) {
+			build_time = (this.finish_time - this.start_time) / 1000;
 		}
 
-		return Boolean(this.getRawStats().tests_failed.length);
+		var phpunit_time = 0;
+		var failed_tests = {};
+		this.tests.forEach(function(test) {
+			phpunit_time += test.time;
+
+			if (test.status === false) {
+				var file_path = test.file;
+				if (!(file_path in failed_tests)) {
+					failed_tests[file_path] = [];
+				}
+
+				var test_suites = [];
+				test.suites.forEach(function(suite) {
+					/**
+					 * Если статус теста отличается от PASS
+					 * и тест не Skipped или Incomplete, тогда тест завален
+					 */
+					if (suite.status != 'pass' && !self.isSuiteSkipOrIncomplete(suite.message)) {
+						var stat_msg = suite.test + " [" + suite.message + "]";
+						test_suites.push(stat_msg);
+					}
+				});
+
+				failed_tests[file_path] = test_suites;
+			}
+		});
+
+		return {
+			'build_time': build_time.toFixed(4),
+			'phpunit_time': phpunit_time.toFixed(4),
+			'phpunit_repeat_time': this.phpunit_repeat_time,
+			'test_avg_time': (phpunit_time / this.tests.length).toFixed(4),
+			'tests_total_count': this.build_tasks_count,
+			'commit_hash': this.commit_hash,
+			'commits_merge': this.commits_merge,
+			'failed_tests': failed_tests
+		};
 	};
 
 	/**
-	* Функция возвращает процент выполнения пула
-	* @returns {*}
-	*/
+	 * Метод выводит краткую статистику билда в консоль сервера
+	 *
+	 * @returns {string}
+	 */
+	this.getDataForConsole = function () {
+		if (this.finish_time == 0) {
+			console.log('\nНе все тесты выполнены');
+		}
+
+		var data = this.processData();
+		var message = '\n';
+		message += 'Успешно пройдено ' + (data.tests_total_count - Object.keys(data.failed_tests).length) + '/' + data.tests_total_count + ' тестов\n';
+		message += 'Время выполнения билда: ' + data.build_time + ' сек.\n';
+		message += 'Время выполнения в PHPUnit: ' + data.phpunit_time + ' сек.\n';
+		message += 'Время повтроного прохождения заваленых тестов в PHPUnit: ' + data.phpunit_repeat_time + ' сек.\n';
+		message += 'Среднее время выполнения теста: ' + data.test_avg_time + ' сек.\n';
+
+		if (Object.keys(data.failed_tests).length > 0) {
+			message += 'Заваленные тесты:\n';
+
+			for (var pathname in data.failed_tests) {
+				if (data.failed_tests.hasOwnProperty(pathname)) {
+					message += '\t' + pathname + '\n';
+
+					data.failed_tests[pathname].forEach(function (suite) {
+						message += '\t\t' + suite + '\n';
+					});
+				}
+			}
+		}
+
+		return message;
+	};
+
+	/**
+	 * Метод проверяет завален билд или нет.
+	 * Если data не пустое, то проверит статистику текущего билда
+	 *
+	 * @param data
+	 * @returns {boolean}
+	 */
+	this.isPoolFailed = function (data) {
+		if (data.length > 0) {
+			return Boolean(data.failed_tests);
+		}
+
+		return Boolean(this.processData().failed_tests.length);
+	};
+
+	/**
+	 * Метод проверяет Skipped или Incomplete статус теста
+	 *
+	 * @param message сообщение из suite.message
+	 * @returns {boolean}
+	 */
+	this.isSuiteSkipOrIncomplete = function (message) {
+		var isSkip = message.indexOf('Skipped Test: ');
+		var isIncomplete = message.indexOf('Incomplete Test: ');
+
+		return (isSkip == 0 || isIncomplete == 0);
+	};
+
+	/**
+	 * Метод возвращает процент завершения билда
+	 *
+	 * @returns {*}
+	 */
 	this.getPercentOfComplete = function () {
-		var tests_total = this.count_tasks;
+		var tests_total = this.build_tasks_count;
 		var tests_complete = this.tests.length;
 
 		if (tests_complete == 0) {
@@ -184,23 +165,25 @@ var Stats = function () {
 		return (tests_complete * 100 / tests_total).toFixed(2);
 	};
 
-    this.addStat = function (data) {
-        this.tests.push(data);
-    };
+	/**
+	 * Метод добавляет данные теста в статистику
+	 *
+	 * @param data
+	 */
+	this.add = function (data) {
+		this.tests.push(data);
+	};
 
-    this.resetStats = function () {
-        this.start_time = 0;
-        this.finish_time = 0;
-        this.tests = [];
-        this.count_tasks = 0;
-        this.phpunit_repeat = 0;
-		this.commit_hash = '';
+	/**
+	 * Метод сбрасывает все данные билда (обычно перед запуском нового билда)
+	 */
+	this.reset = function () {
+		this.start_time = Date.now();
+		this.finish_time = 0;
+		this.tests = [];
+		this.phpunit_repeat_time = 0;
 		this.commits_merge = [];
-    };
-
-    EventEmitter.call(this);
+	};
 };
 
-util.inherits(Stats, EventEmitter);
-
-module.exports = new Stats();
+module.exports = Stats;

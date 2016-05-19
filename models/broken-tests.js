@@ -161,12 +161,12 @@ var BrokenTests = function () {
 		console.log('Список имеющихся сломаных тестов:');
 		console.log(old_failed_tests);
 
-		var new_failed_tests = data.failed_tests_suites;
+		var new_failed_tests = data.failed_tests;
 
 		/** Если у нас нет сломаных тестов и последний пул ничего не сломал - ничего не делаем */
 		if (old_failed_tests.length == 0 && new_failed_tests.length == 0) {
 			console.log('Сломаных тестов нет и последний пул ничего не сломал');
-			callback({});
+			callback(null);
 			return;
 		}
 
@@ -180,46 +180,47 @@ var BrokenTests = function () {
 		var repair_tests_ids = [];
 
 		/** Сформируем удобный список новых сломанных тестов */
-		new_failed_tests.forEach(function (test, index) {
-			var testpath = data.failed_tests_names[index];
-			testpath = testpath.replace(self.repository + '/', '');
-
-			test.forEach(function (suite) {
-				broken_tests.push({
-					id: -1,
-					path: testpath,
-					suitename: getTestSuite(suite)
+		for (var pathname in new_failed_tests) {
+			if (new_failed_tests.hasOwnProperty(pathname)) {
+				new_failed_tests[pathname].forEach(function (suite) {
+					broken_tests.push({
+						id: -1,
+						path: pathname.replace(self.repository + '/', ''),
+						suitename: getTestSuite(suite)
+					});
 				});
-			});
-		});
+			}
+		}
 
 		console.log('Список поломанных тестов из пула:');
 		console.log(broken_tests);
 		console.log('Сравним с уже сломаными тестами...');
 
-		old_failed_tests.forEach(function (test) {
-			console.log('Ищем ' + test['path'] + ' -> ' + test['suitename']);
+		if (old_failed_tests.length > 0) {
+			old_failed_tests.forEach(function (test) {
+				console.log('Ищем ' + test['path'] + ' -> ' + test['suitename']);
 
-			var suite_index = getSuiteIndex(broken_tests, test['path'], test['suitename']);
+				var suite_index = getSuiteIndex(broken_tests, test['path'], test['suitename']);
 
-			/**
-			* Если сломаного теста нет в результатах пула - его починили
-			* Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
-			*/
-			if (suite_index == -1) {
-				console.log('Позиция: ' + suite_index + ' ; Теста нет в пуле => его исправили!');
-				repair_tests_ids.push(test['id']);
-				repair_tests.push({
-					id: test['id'],
-					path: test['path'],
-					suitename: test['suitename'],
-					broke_authors: test['broke_authors']
-				});
-			} else {
-				console.log('Позиция: ' + suite_index + ' ; Тест есть в пуле => его не нужно сохранять');
-				broken_tests.splice(suite_index, 1);
-			}
-		});
+				/**
+				 * Если сломаного теста нет в результатах пула - его починили
+				 * Иначе, он там есть и его сохранять снова не нужно - удаляем из suites
+				 */
+				if (suite_index == -1) {
+					console.log('Позиция: ' + suite_index + ' ; Теста нет в пуле => его исправили!');
+					repair_tests_ids.push(test['id']);
+					repair_tests.push({
+						id: test['id'],
+						path: test['path'],
+						suitename: test['suitename'],
+						broke_authors: test['broke_authors']
+					});
+				} else {
+					console.log('Позиция: ' + suite_index + ' ; Тест есть в пуле => его не нужно сохранять');
+					broken_tests.splice(suite_index, 1);
+				}
+			});
+		}
 
 		console.log('Список исправленных тестов:');
 		console.log(repair_tests_ids);

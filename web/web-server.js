@@ -43,7 +43,7 @@ var server = http.createServer(function(request, response) {
 				case '/':
 				case '/index.html':
 					var params = {
-						order: ['datetime', 'DESC'],
+						order: ['build_date', 'DESC'],
 						limit: getSqlLimit(uri.query.page),
 						use_calc_rows: true
 					};

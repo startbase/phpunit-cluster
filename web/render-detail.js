@@ -47,10 +47,9 @@ var PoolDetail = function () {
 			return '<h5 class="text-center"">Build not found</h5>';
 		}
 
-		var data = JSON.parse(pool.data);
 		var header = this.header(pool.id);
-		var content = this.content(data);
-		var tests = this.tests(data.failed_tests_names, data.failed_tests_suites);
+		var content = this.content(pool);
+		var tests = this.tests(JSON.parse(pool.data).failed_tests);
 
 		return header + content + tests;
 	};
@@ -68,7 +67,7 @@ var PoolDetail = function () {
 
 	this.content = function (pool) {
 		var detail = this.detail(pool);
-		var commits = this.commits(pool.commits_merge);
+		var commits = this.commits(pool);
 
 		var content = '';
 		content += '<div class="row">';
@@ -80,6 +79,7 @@ var PoolDetail = function () {
 	};
 
 	this.detail = function (pool) {
+		var data = JSON.parse(pool.data);
 		var content = '';
 		content += '<table class="table ">';
 		content += '	<thead>';
@@ -95,10 +95,10 @@ var PoolDetail = function () {
 		content += '	</thead>';
 		content += '	<tbody>';
 		content += '		<tr>';
-		content += '			<td>' + pool.time_pool.toFixed(4) + ' сек.</td>';
-		content += '			<td>' + pool.time_overall.toFixed(4) + ' сек.</td>';
-		content += '			<td>' + pool.time_average.toFixed(4) + ' сек.</td>';
-		content += '			<td>' + pool.phpunit_repeat_time.toFixed(4) + ' сек.</td>';
+		content += '			<td>' + data.build_time + ' сек.</td>';
+		content += '			<td>' + data.phpunit_time + ' сек.</td>';
+		content += '			<td>' + data.test_avg_time + ' сек.</td>';
+		content += '			<td>' + data.phpunit_repeat_time + ' сек.</td>';
 		content += '		</tr>';
 		content += '	</tbody>';
 		content += '</table>';
@@ -113,19 +113,20 @@ var PoolDetail = function () {
 		content += '	</thead>';
 		content += '	<tbody>';
 		content += '		<tr>';
-		content += '			<td><span class="text-info">' + pool.tests_overall_count + '</span></td>';
-		content += '			<td><span class="text-success">' + pool.tests_success_count + '</span></td>';
-		content += '			<td><span class="text-danger">' + pool.tests_failed_count + '</span></td>';
+		content += '			<td><span class="text-info">' + data.tests_total_count + '</span></td>';
+		content += '			<td><span class="text-success">' + (data.tests_total_count - Object.keys(data.failed_tests).length) + '</span></td>';
+		content += '			<td><span class="text-danger">' + Object.keys(data.failed_tests).length + '</span></td>';
 		content += '		</tr>';
 		content += '	</tbody>';
 		content += '</table>';
-		content += '<p><strong>Complete:</strong> ' + ta.ago(pool.date_finish) + '</p>';
-		content += '<p><strong>Commit hash:</strong> ' + pool.commit_hash + '</p>';
+		content += '<p><strong>Complete:</strong> ' + ta.ago(pool.build_date) + '</p>';
+		content += '<p><strong>Commit hash:</strong> ' + data.commit_hash + '</p>';
 
 		return content;
 	};
 
-	this.commits = function (commits) {
+	this.commits = function (pool) {
+		var commits = JSON.parse(pool.data).commits_merge;
 		var authors_commits = groupCommitsByAuthors(commits);
 
 		var content = '';
@@ -152,8 +153,8 @@ var PoolDetail = function () {
 		return content;
 	};
 
-	this.tests = function (pathnames, suites) {
-		if (pathnames.length == 0) {
+	this.tests = function (failed_tests) {
+		if (Object.keys(failed_tests).length == 0) {
 			return '';
 		}
 
@@ -171,36 +172,31 @@ var PoolDetail = function () {
 		content += '					<td>';
 		content += '						<div class="panel-group" id="accordion">';
 
-		pathnames.forEach(function(pathname, index) {
-			pathname = pathname.replace(/\/var\/reps\/b2bcenter/g, '');
+		var index = 0;
+		for (var pathname in failed_tests) {
+			if (failed_tests.hasOwnProperty(pathname)) {
+				content += '<div class="panel panel-default">';
+				content += '	<div class="panel-heading">';
+				content += '		<h4 class="panel-title">';
+				content += '			<a data-toggle="collapse" data-parent="#accordion" href="#collapse' + index + '">' + pathname.replace(/\/var\/reps\/b2bcenter/g, '') + '</a>';
+				content += '		</h4>';
+				content += '	</div>';
+				content += '	<div id="collapse' + index + '" class="panel-collapse collapse out suites">';
+				content += '		<div class="panel-body">';
+				content += '			<ul class="list-group">';
 
-			content += '<div class="panel panel-default">';
-			content += '	<div class="panel-heading">';
-			content += '		<h4 class="panel-title">';
-			content += '			<a data-toggle="collapse" data-parent="#accordion" href="#collapse' + index + '">' + pathname + '</a>';
-			content += '		</h4>';
-			content += '	</div>';
-			content += '	<div id="collapse' + index + '" class="panel-collapse collapse out suites">';
-			content += '		<div class="panel-body">';
-			content += '			<ul class="list-group">';
+				failed_tests[pathname].forEach(function (suite) {
+					content += '<li class="list-group-item">' + suite + '</li>';
+				});
 
-			suites[index].forEach(function(suite, index) {
-				content += '<li class="list-group-item">' + suite + '</li>';
-			});
+				content += '			</ul>';
+				content += '		</div>';
+				content += '	</div>';
+				content += '</div>';
+			}
 
-			content += '			</ul>';
-			content += '		</div>';
-			content += '	</div>';
-			content += '</div>';
-		});
-
-		content += '						</div>';
-		content += '					</td>';
-		content += '				</tr>';
-		content += '			</tbody>';
-		content += '		</table>';
-		content += '	</div>';
-		content += '</div>';
+			index++;
+		}
 
 		return content;
 	};

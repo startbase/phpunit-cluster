@@ -82,15 +82,15 @@ var PoolList = function () {
 			var data = JSON.parse(pool.data);
 			var authors = getCommitAuthors(data.commits_merge);
 			var status = 'successful';
-			if (data.tests_failed_count > 0) {
+			if (Object.keys(data.failed_tests).length > 0) {
 				status = 'failed';
 			}
 
 			content += '<tr>';
 			content += '	<td class="' + status + '"><a href="/detail.html?id=' + pool.id + '"><span class="icon"></span> #' + pool.id + '</a></td>';
 			content += '	<td>' + getAuthorsForWeb(authors, pool.id) + '</td>';
-			content += '	<td>' + data.time_pool + ' sec</td>';
-			content += '	<td>' + ta.ago(pool.datetime) + '</td>';
+			content += '	<td>' + data.build_time + ' sec</td>';
+			content += '	<td>' + ta.ago(pool.build_date) + '</td>';
 			content += '</tr>';
 		});
 

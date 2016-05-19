@@ -23,14 +23,13 @@ var testParser = new (require('./libs/test-parser'))(settings['parser']);
 var repository = new (require('./libs/repository'))(settings['repository']);
 var mailer = new (require('./libs/mailer'))(settings['mail']);
 var queueEvents = new (require('./libs/queue'));
-var stats = require('./libs/stats');
+var Stats = new (require('./libs/stats'));
 var weightBase = new (require('./libs/weight-base'))(settings['statistic']);
 
 var ClusterLogs = new (require('./models/cluster-logs'));
 var BrokenTests = new (require('./models/broken-tests'));
 
 var users = [];
-var tasks_pool_count = 0;
 
 var io = require('socket.io').listen(params.port, {});
 console.log('[' + getDate() + '] Сервер запущен. Порт: ' + params.port);
@@ -45,21 +44,19 @@ show_help();
  */
 taskBalancer.queueTasks.on('fill.complete', function () {
 	weightBase.resetPool();
-	stats.resetStats();
-	tasks_pool_count = taskBalancer.tasksCount();
+	Stats.reset();
 
 	// Сохраняем данные в статистику
-	stats.start_time = Date.now();
-	stats.commit_hash = params.commit_hash;
-	stats.count_tasks = tasks_pool_count;
+	Stats.commit_hash = params.commit_hash;
+	Stats.build_tasks_count = taskBalancer.tasksCount();
 
 	if (params.last_commit_hash != 'none' && params.last_commit_hash != params.commit_hash) {
 		repository.getMergeCommitHistory(params.last_commit_hash, params.commit_hash, function(commits_merge) {
-			stats.commits_merge = commits_merge;
+			Stats.commits_merge = commits_merge;
 		});
 	}
 
-    console.log('\n[' + getDate() + '] Всего задач: ' + tasks_pool_count);
+    console.log('\n[' + getDate() + '] Всего задач: ' + Stats.build_tasks_count);
     console.log('[' + getDate() + '] Раздаём задачи...');
 
 	io.sockets.emit('dashboard.updateProgressBar', 0);
@@ -94,14 +91,14 @@ rl.on('line', function (line) {
             break;
         case 'e':
             console.log('Очищение очереди задач');
+			Stats.build_tasks_count = 0;
             taskBalancer.clearTaskQueue();
 			queueEvents.rmTask('in.process');
             io.sockets.emit('abortTask');
 			io.sockets.emit('unbusyClient');
-            stats.count_tasks = 0;
             break;
         case 'd':
-            console.log(stats.getConsoleStats());
+            console.log(Stats.getDataForConsole());
             break;
         case 'u':
 			if (!queueEvents.hasTask('need.update.repo')) {
@@ -251,7 +248,7 @@ io.sockets.on('connection', function (socket) {
 			// Нужно отправить на повторную проверку?
 			if (taskBalancer.canReturnTask(task)) {
 				// Сохраним время выполнения phpunit
-				stats.phpunit_repeat += task.response.time;
+				Stats.phpunit_repeat_time += task.response.time;
 				returnTaskToQueue(socket, task);
 				return;
 			}
@@ -260,7 +257,7 @@ io.sockets.on('connection', function (socket) {
 		console.log('[' + getDate() + '] ' + socket.username + ' выполнил задачу ID: \n' + task.taskName + ' за ' + (task.response.time).toFixed(4) + ' сек.');
 
 		// Записываем статистику
-		stats.addStat(task.response);
+		Stats.add(task.response);
 		// Сохраняем данные по тяжести теста
 		weightBase.addWeight({ taskName: task.taskName, weight: task.response.time });
 
@@ -271,10 +268,9 @@ io.sockets.on('connection', function (socket) {
 		}
 
 		// если в статистике столько же тестов, сколько было изначально, то пул выполнен
-		if (tasks_pool_count == stats.tests.length) {
+		if (Stats.build_tasks_count == Stats.tests.length) {
 			console.log('[' + getDate() + '] Все задачи из текущего пула выполнены');
-			stats.finish_time = Date.now();
-			stats.count_tasks = 0;
+			Stats.finish_time = Date.now();
 
 			weightBase.saveWeights(function() {
 				console.log('[' + getDate() + '] Данные по времени выполнения тестов последнего пула сохранены');
@@ -294,23 +290,23 @@ io.sockets.on('connection', function (socket) {
 				queueEvents.addTask('update.repo');
 			}
 
-			var save_stats = stats.prepareForSave();
+			io.sockets.emit('dashboard.changeStatus', Stats.isPoolFailed([]));
+			io.sockets.emit('dashboard.updateProgressBar', 100);
 
-            io.sockets.emit('dashboard.changeStatus', stats.isPoolFailed([]));
-            io.sockets.emit('dashboard.updateProgressBar', 100);
+			var build_data = Stats.processData();
 
-            ClusterLogs.addPool(save_stats, function() {
+            ClusterLogs.addPool(build_data, function() {
 				console.log('[' + getDate() + '] Результаты выполнения последнего пула сохранены');
 			});
 
 			BrokenTests.getBrokenTests(function(failed_tests_old) {
-				BrokenTests.update(save_stats, failed_tests_old, function(notification) {
+				BrokenTests.update(build_data, failed_tests_old, function(notification) {
                     mailer.prepareMails(notification);
                 });
 			});
         } else {
             // Обновлям прогресс бар на дашборде
-            io.sockets.emit('dashboard.updateProgressBar', stats.getPercentOfComplete());
+            io.sockets.emit('dashboard.updateProgressBar', Stats.getPercentOfComplete());
         }
     });
 
@@ -371,8 +367,8 @@ io.sockets.on('connection', function (socket) {
     socket.on('dashboard.getLastState', function () {
         ClusterLogs.getLastPool(function (data) {
 			if (data != null) {
-				io.sockets.emit('dashboard.changeStatus', stats.isPoolFailed(data));
-				io.sockets.emit('dashboard.updateProgressBar', stats.getPercentOfComplete());
+				io.sockets.emit('dashboard.changeStatus', Stats.isPoolFailed(data));
+				io.sockets.emit('dashboard.updateProgressBar', Stats.getPercentOfComplete());
 			}
         });
     });
